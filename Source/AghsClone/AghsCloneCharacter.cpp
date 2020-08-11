@@ -128,8 +128,6 @@ void AAghsCloneCharacter::Tick(float DeltaSeconds)
 {
     Super::Tick(DeltaSeconds);
 
-	GetFOV();
-
 	FDateTime t = FDateTime::UtcNow();
 	double ts = t.ToUnixTimestamp() + t.GetMillisecond() * 1.0 / 1000;
 
