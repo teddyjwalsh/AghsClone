@@ -65,7 +65,11 @@ AAghsCloneCharacter::AAghsCloneCharacter():
 	TopDownCameraComponent->SetupAttachment(CameraBoom, USpringArmComponent::SocketName);
 	TopDownCameraComponent->bUsePawnControlRotation = false; // Camera does not rotate relative to arm
 
-	
+	// Create vision bounds...
+	VisionBounds = CreateDefaultSubobject<USphereComponent>(TEXT("VisionBounds"));
+	VisionBounds->SetupAttachment(RootComponent);
+	VisionBounds->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	VisionBounds->SetSphereRadius(1000);
 
 	// Create a decal in the world to show the cursor's location
 	CursorToWorld = CreateDefaultSubobject<UDecalComponent>("CursorToWorld");
@@ -77,6 +81,7 @@ AAghsCloneCharacter::AAghsCloneCharacter():
 	}
 	CursorToWorld->DecalSize = FVector(16.0f, 32.0f, 32.0f);
 	CursorToWorld->SetRelativeRotation(FRotator(90.0f, 0.0f, 0.0f).Quaternion());
+	CursorToWorld->SetRelativeLocation(FVector(0, 0, -90));
 
 	// Activate ticking in order to update the cursor every frame.
 	PrimaryActorTick.bCanEverTick = true;
@@ -122,6 +127,8 @@ AAghsCloneCharacter::AAghsCloneCharacter():
 void AAghsCloneCharacter::Tick(float DeltaSeconds)
 {
     Super::Tick(DeltaSeconds);
+
+	GetFOV();
 
 	FDateTime t = FDateTime::UtcNow();
 	double ts = t.ToUnixTimestamp() + t.GetMillisecond() * 1.0 / 1000;
@@ -172,8 +179,8 @@ void AAghsCloneCharacter::Tick(float DeltaSeconds)
 				PC->GetHitResultUnderCursor(ECC_Visibility, true, TraceHitResult);
 				FVector CursorFV = TraceHitResult.ImpactNormal;
 				FRotator CursorR = CursorFV.Rotation();
-				CursorToWorld->SetWorldLocation(TraceHitResult.Location);
-				CursorToWorld->SetWorldRotation(CursorR);
+				//CursorToWorld->SetWorldLocation(TraceHitResult.Location);
+				//CursorToWorld->SetWorldRotation(CursorR);
 			}
 		}
 	}

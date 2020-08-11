@@ -95,7 +95,15 @@ public:
 				{
 					GetActorsInSelectionRectangle(box_start, box_end, out_chars, false);
 					out_chars.Remove(nullptr);
+					for (auto& act : selected)
+					{
+						act->SetSelected(false);
+					}
 					selected = out_chars;
+					for (auto& act : selected)
+					{
+						act->SetSelected(true);
+					}
 					pc->SetSelected(out_chars);
 				}
 				UE_LOG(LogTemp, Warning, TEXT("CHARACTERS"));
