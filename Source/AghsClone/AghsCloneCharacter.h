@@ -17,6 +17,7 @@
 #include "ManaInterface.h"
 #include "HealthInterface.h"
 #include "CommandInterface.h"
+#include "VisionInterface.h"
 #include "AghsCloneCharacter.generated.h"
 
 class CommonUnitStats
@@ -55,7 +56,8 @@ UCLASS(Blueprintable)
 class AAghsCloneCharacter : public ACharacter, 
 	public IHealthInterface,
 	public IManaInterface,
-	public ICommandInterface
+	public ICommandInterface,
+	public IVisionInterface
 	//public CommonUnitStats
 	
 {
@@ -78,6 +80,7 @@ class AAghsCloneCharacter : public ACharacter,
 	bool IsAttackImmune;
 	UPROPERTY(Replicated, EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
 	int32 team;
+	float vision_radius;
 
 public:
 	AAghsCloneCharacter();
@@ -110,6 +113,7 @@ public:
 		CursorToWorld->SetVisibility(is_selected);
 	}
 
+	// HEALTH INTERFACE IMPLEMENTATION
 	virtual float GetHealth() const override
 	{
 		return Health;
@@ -148,7 +152,9 @@ public:
 	{
 		return MaxHealth;
 	}
+	// END HEALTH INTERFACE
 
+	// MANA INTERFACE IMPLEMENTATION
 	virtual float GetMana()
 	{
 		return Mana;
@@ -168,6 +174,7 @@ public:
 	{
 		return MaxMana;
 	}
+	// END MANA INTERFACE
 
 	void SetTargetingActive(int32 ability_num)
 	{
@@ -243,6 +250,8 @@ public:
 		return retval;
 	}
 
+	// COMMAND INTERFACE IMPLEMENTATION
+
 	//UFUNCTION(reliable, server)
 	virtual void QueueCommand(const FCommand& in_command) override
 	{
@@ -276,6 +285,13 @@ public:
 		{
 			current_command.command_type = NONE;
 		}
+	}
+	// END COMMAND INTERFACE
+
+	// VISION INTERFACE IMPLEMENTATION
+	virtual float GetVisionRadius() const override
+	{
+		return vision_radius;
 	}
 
 	UFUNCTION()

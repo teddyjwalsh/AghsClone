@@ -2,6 +2,8 @@
 
 #include "EngineUtils.h"
 #include "Kismet/GameplayStatics.h"
+
+#include "VisionInterface.h"
 #include "VisionManager.h"
 
 // Sets default values
@@ -23,15 +25,17 @@ void AVisionManager::BeginPlay()
 void AVisionManager::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-	for (TActorIterator<AAghsCloneCharacter> act_it(GetWorld()); act_it; ++act_it)
+
+	TArray<AActor*> vision_actors;
+	UGameplayStatics::GetAllActorsWithInterface(GetWorld(), UVisionInterface::StaticClass(), vision_actors);
+
+	for (auto& act : vision_actors)
 	{
-		/*
-		UGameplayStatics::GetAllActorsWithInterface(GetWorld(), UVisionInterface::StaticClass(), )
-		vision_bounds->SetWorldLocation(act_it->GetActorLocation());
-		vision_bounds->SetSphereRadius(act_it->GetVisionRadius());
+		IVisionInterface* vision_interface = Cast<IVisionInterface>(act);
+		vision_bounds->SetWorldLocation(act->GetActorLocation());
+		vision_bounds->SetSphereRadius(vision_interface->GetVisionRadius());
 		TSet<AActor*> near_chars;
 		vision_bounds->GetOverlappingActors(near_chars, AAghsCloneCharacter::StaticClass());
-		*/
 
 	}
 }

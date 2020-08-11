@@ -29,7 +29,8 @@ AAghsCloneCharacter::AAghsCloneCharacter():
 	MagicResist(0.25),
 	IsSpellImmune(false),
 	IsAttackImmune(false),
-	MaxMana(100.0)
+	MaxMana(100.0),
+	vision_radius(1000)
 {
 	Health = MaxHealth;
 	Mana = MaxMana;
