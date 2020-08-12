@@ -4,6 +4,7 @@
 #include "AghsClonePlayerController.h"
 #include "Blueprint/AIBlueprintHelperLibrary.h"
 #include "Runtime/Engine/Classes/Components/DecalComponent.h"
+#include "Components/CapsuleComponent.h"
 #include "HeadMountedDisplayFunctionLibrary.h"
 #include "AghsCloneCharacter.h"
 #include "UnitController.h"
@@ -16,8 +17,30 @@ AAghsClonePlayerController::AAghsClonePlayerController()
 	bShowMouseCursor = true;
 	DefaultMouseCursor = EMouseCursor::Crosshairs;
 	
-	bReplicates = true;
+	//bReplicates = true;
 	//SetReplicateMovement(true);
+}
+
+void AAghsClonePlayerController::AssignTeam_Implementation(int32 in_team)
+{
+	team = in_team;
+}
+
+int32 AAghsClonePlayerController::GetTeam()
+{
+	return team;
+}
+
+void AAghsClonePlayerController::SetLocalActorVisibility_Implementation(AActor* in_actor, bool is_visible)
+{
+	//in_actor->SetActorHiddenInGame(!is_visible);
+	auto ap = Cast<AAghsCloneCharacter>(in_actor);
+	if (ap)
+	{
+		//ap->GetMesh()->SetVisibility(is_visible);
+		//ap->GetCapsuleComponent()->SetVisibleFlag(is_visible);
+		ap->SetActorHiddenInGame(!is_visible);
+	}
 }
 
 void AAghsClonePlayerController::PlayerTick(float DeltaTime)

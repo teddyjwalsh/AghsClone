@@ -14,6 +14,7 @@
 #include "GameFramework/SpringArmComponent.h"
 #include "Misc/DateTime.h"
 #include "Kismet/KismetMathLibrary.h"
+#include "Engine/NetworkObjectList.h"
 
 #include "HeadMountedDisplayFunctionLibrary.h"
 #include "Materials/Material.h"
@@ -22,7 +23,7 @@
 #include "ShockwaveAbility.h"
 #include "AIController.h"
 
-AAghsCloneCharacter::AAghsCloneCharacter():
+AAghsCloneCharacter::AAghsCloneCharacter() :
 	MaxHealth(100.0),
 	HealthRegeneration(0.1),
 	Armor(0),
@@ -35,10 +36,15 @@ AAghsCloneCharacter::AAghsCloneCharacter():
 	Health = MaxHealth;
 	Mana = MaxMana;
 	//bReplicates = true;
-	//SetReplicateMovement(true);
-	
+	SetReplicates(true);
+	bReplicates = true;
+	SetReplicateMovement(true);
+
 	// Set size for player capsule
 	GetCapsuleComponent()->InitCapsuleSize(42.f, 96.0f);
+	GetCapsuleComponent()->SetIsReplicated(false);
+
+
 
 	// Don't rotate character to camera direction
 	bUseControllerRotationPitch = false;
@@ -106,9 +112,9 @@ AAghsCloneCharacter::AAghsCloneCharacter():
 		//ab->SetIsReplicated(true);
 	}
 
-	GetCapsuleComponent()->SetIsReplicated(true);
+	//GetCapsuleComponent()->SetIsReplicated(true);
 	FDetachmentTransformRules test_det(EDetachmentRule::KeepRelative, true);
-	
+
 	static ConstructorHelpers::FObjectFinder<USkeletalMesh> Skellie(TEXT("SkeletalMesh'/Game/Mannequin/Character/Mesh/SK_Mannequin.SK_Mannequin'"));
 	GetMesh()->SetSkeletalMesh(Skellie.Object);
 	GetMesh()->SetRelativeLocation(FVector(0, 0, -95));
@@ -123,11 +129,18 @@ AAghsCloneCharacter::AAghsCloneCharacter():
 	//GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
 	//GetCapsuleComponent()->SetGenerateOverlapEvents(true);
 	GetCharacterMovement()->RotationRate.Yaw = 180;
+	GetCapsuleComponent()->SetIsReplicated(true);
+	GetMesh()->SetIsReplicated(true);
 }
 
 void AAghsCloneCharacter::Tick(float DeltaSeconds)
 {
     Super::Tick(DeltaSeconds);
+
+	if (!GetWorld()->IsServer())
+	{
+		//GetCapsuleComponent()->SetVisibility(false, true);
+	}
 
 	FDateTime t = FDateTime::UtcNow();
 	double ts = t.ToUnixTimestamp() + t.GetMillisecond() * 1.0 / 1000;
@@ -141,6 +154,19 @@ void AAghsCloneCharacter::Tick(float DeltaSeconds)
 		else if (!command_queue.IsEmpty())
 		{
 			NextCommand();
+		}
+	}
+	else
+	{
+		auto pc = GetWorld()->GetFirstPlayerController();
+		auto nc = pc->GetNetConnection();
+		auto nd = pc->GetNetDriver();
+		auto& nol = nd->GetNetworkObjectList();
+		//FlushNetDormancy();
+
+		if (NetDormancy != DORM_Awake)
+		{
+			//GetMesh()->SetVisibility(false);
 		}
 	}
 

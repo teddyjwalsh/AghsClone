@@ -37,6 +37,21 @@ public:
 
 		auto pc = Cast<AAghsClonePlayerController>(GetWorld()->GetFirstPlayerController());
 
+		auto pawn = pc->GetPawn();
+		static auto def_font = GetFontFromSizeIndex(10);
+		static FCanvasTextItem health_text(FVector2D(0, 0), FText(), def_font, FLinearColor(0, 0, 0));
+		FString health_string;
+		if (pawn)
+		{
+			health_string = FString::Printf(TEXT("%f / %f / %f"),
+				pawn->GetActorLocation().X,
+				pawn->GetActorLocation().Y,
+				pawn->GetActorLocation().Z);
+			health_text.Text = FText::FromString(health_string);
+			health_text.Position = FVector2D(100, 100);
+			Canvas->DrawItem(health_text);
+		}
+
 		if (pc != nullptr)
 		{
 			// Health bars
@@ -48,6 +63,10 @@ public:
 			// Draw health bars above units
 			for (auto& sc : screen_chars)
 			{
+				if (sc->IsHidden())
+				{
+					continue;
+				}
 				auto char_health_interface = Cast<IHealthInterface>(sc);
 				if (char_health_interface)
 				{

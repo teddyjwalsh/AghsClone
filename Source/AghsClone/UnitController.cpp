@@ -33,13 +33,16 @@ AUnitController::AUnitController()
 	bUseControllerRotationRoll = false;
 
 	// Create a camera boom...
+	
 	CameraBoom = CreateDefaultSubobject<USpringArmComponent>(TEXT("CameraBoom"));
+	
 	CameraBoom->SetupAttachment(RootComponent);
-	CameraBoom->SetUsingAbsoluteRotation(true); // Don't want arm to rotate when character does
+	//CameraBoom->SetUsingAbsoluteRotation(true); // Don't want arm to rotate when character does
 	CameraBoom->TargetArmLength = 1600.f;
 	CameraBoom->SetRelativeRotation(FRotator(-60.f, 0.f, 0.f));
 	CameraBoom->bDoCollisionTest = false; // Don't want to pull camera in when it collides with level
 	CameraBoom->SetIsReplicated(true);
+	SetRootComponent(CameraBoom);
 	//CameraBoom->SetWorldLocation(FVector(1000, 0, 0));
 	//CameraBoom->AddWorldOffset(FVector(1000, 1000, 0));
 
@@ -47,6 +50,7 @@ AUnitController::AUnitController()
 	TopDownCameraComponent = CreateDefaultSubobject<UCameraComponent>(TEXT("TopDownCamera"));
 	TopDownCameraComponent->SetupAttachment(CameraBoom, USpringArmComponent::SocketName);
 	TopDownCameraComponent->bUsePawnControlRotation = false; // Camera does not rotate relative to arm
+	TopDownCameraComponent->SetIsReplicated(true);
 
 	// Create a decal in the world to show the cursor's location
 	CursorToWorld = CreateDefaultSubobject<UDecalComponent>("CursorToWorld");
@@ -63,6 +67,17 @@ AUnitController::AUnitController()
 	PrimaryActorTick.bCanEverTick = true;
 	PrimaryActorTick.bStartWithTickEnabled = true;
 	//new_instance->SetActorLocation(GetOwner()->GetActorLocation() + FVector(0, 0, 0));
+	selected.Empty();
+}
+
+void AUnitController::AssignTeam(int32 in_team)
+{
+	team = in_team;
+}
+
+int32 AUnitController::GetTeam()
+{
+	return team;
 }
 
 // Called when the game starts or when spawned

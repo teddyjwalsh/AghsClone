@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/GameModeBase.h"
+#include "AghsClonePlayerController.h"
 #include "AghsCloneGameMode.generated.h"
 
 UCLASS(minimalapi)
@@ -13,6 +14,16 @@ class AAghsCloneGameMode : public AGameModeBase
 
 public:
 	AAghsCloneGameMode();
+
+	virtual void PostLogin(APlayerController * NewPlayer) override
+	{
+		Super::PostLogin(NewPlayer);
+		auto aghs_cont = Cast<AAghsClonePlayerController>(NewPlayer);
+		if (aghs_cont)
+		{
+			aghs_cont->AssignTeam(GetNumPlayers());
+		}
+	}
 };
 
 

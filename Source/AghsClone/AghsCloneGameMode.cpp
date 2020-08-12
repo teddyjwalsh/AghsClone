@@ -6,6 +6,7 @@
 #include "UnitController.h"
 #include "UObject/ConstructorHelpers.h"
 #include "InGameHud.h"
+#include "AghsReplicationDriver.h"
 #include "GameFramework/GameUserSettings.h"
 
 AAghsCloneGameMode::AAghsCloneGameMode()
@@ -21,7 +22,10 @@ AAghsCloneGameMode::AAghsCloneGameMode()
 	}
 	DefaultPawnClass = AUnitController::StaticClass();
 	HUDClass = AInGameHud::StaticClass();
-
+	//ReplicationDriver::CreateReplicationDriverDelegate().BindLambda([](UNetDriver* ForNetDriver, const FURL& URL, UWorld* World) -> UReplicationDriver*
+	//		{
+	//		return NewObject<UAghsReplicationDriver>(GetTransientPackage());
+	//	});
 	if (GEngine)
 	{
 		UGameUserSettings* MyGameSettings = GEngine->GetGameUserSettings();

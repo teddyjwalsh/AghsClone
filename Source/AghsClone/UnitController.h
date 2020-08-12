@@ -16,6 +16,7 @@ class AGHSCLONE_API AUnitController : public APawn, public ICommandInterface
 
 	TArray<AAghsCloneCharacter*> selected;
 	AAghsCloneCharacter* my_character;
+	int32 team;
 	
 public:
 	// Sets default values for this pawn's properties
@@ -32,6 +33,10 @@ public:
 	{
 		selected = in_selected;
 	}
+
+	void AssignTeam(int32 in_team);
+
+	int32 GetTeam();
 
 	AAghsCloneCharacter* GetPrimaryUnit()
 	{

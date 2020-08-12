@@ -22,10 +22,18 @@ class AAghsClonePlayerController : public APlayerController
 	UAbility* targeted_ability;
 	int32 targeted_ability_num;
 
+	//UPROPERTY( Replicated )
+	int32 team;
+
 	TArray<AAghsCloneCharacter*> selected_units;
 
 public:
 	AAghsClonePlayerController();
+
+	UFUNCTION(Reliable, NetMulticast)
+	void AssignTeam(int32 in_team);
+
+	int32 GetTeam();
 
 	bool SelectBoxOn()
 	{
@@ -45,6 +53,10 @@ public:
 	{
 		out_selected = selected_units;
 	}
+
+	UFUNCTION(Reliable, Client)
+	void SetLocalActorVisibility(AActor* in_actor, bool is_visible);
+
 
 protected:
 	/** True if the controlled character should navigate to the mouse cursor. */
