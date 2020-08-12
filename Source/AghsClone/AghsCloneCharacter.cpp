@@ -72,12 +72,6 @@ AAghsCloneCharacter::AAghsCloneCharacter() :
 	TopDownCameraComponent->SetupAttachment(CameraBoom, USpringArmComponent::SocketName);
 	TopDownCameraComponent->bUsePawnControlRotation = false; // Camera does not rotate relative to arm
 
-	// Create vision bounds...
-	VisionBounds = CreateDefaultSubobject<USphereComponent>(TEXT("VisionBounds"));
-	VisionBounds->SetupAttachment(RootComponent);
-	VisionBounds->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-	VisionBounds->SetSphereRadius(1000);
-
 	// Create a decal in the world to show the cursor's location
 	CursorToWorld = CreateDefaultSubobject<UDecalComponent>("CursorToWorld");
 	CursorToWorld->SetupAttachment(RootComponent);

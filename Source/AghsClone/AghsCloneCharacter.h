@@ -303,49 +303,6 @@ public:
 		DOREPLIFETIME(AAghsCloneCharacter, Mana);
 	}
 
-	void GetFOV()
-	{
-		int32 angle_division = 100;
-		TSet<AActor*> actors_in_radius;
-		VisionBounds->GetOverlappingActors(actors_in_radius);
-
-		for (auto& act : actors_in_radius)
-		{
-			auto test_char = Cast<AAghsCloneCharacter>(act);
-			FHitResult out_hit;
-			FVector shoot_vector = act->GetActorLocation() - GetActorLocation();
-			shoot_vector.Normalize();
-			GetWorld()->LineTraceSingleByChannel(out_hit, GetActorLocation(), shoot_vector * VisionBounds->GetScaledSphereRadius(), ECollisionChannel::ECC_WorldDynamic);
-			auto seen_char = Cast<AAghsCloneCharacter>(out_hit.Actor);
-			if (seen_char)
-			{
-				if (out_hit.Actor->GetUniqueID() != act->GetUniqueID() && test_char->GetTeam() != 1)
-				{
-					act->SetActorHiddenInGame(true);
-				}
-				else
-				{
-					act->SetActorHiddenInGame(false);
-				}
-			}
-			else
-			{
-				act->SetActorHiddenInGame(true);
-			}
-		}
-		/*
-		for (int i = 0; i < angle_division; ++i)
-		{
-			float angle = i * 360.0 / angle_division;
-			float shoot_distance = 1000;
-			FHitResult out_hit;
-			FVector shoot_vector(cos(angle), sin(angle), 0);
-			shoot_vector.Normalize();
-			
-		}
-		*/
-	}
-
 	std::vector<UAbility*> Abilities;
 
 private:
@@ -360,9 +317,6 @@ private:
 	/** A decal that projects to the cursor location. */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
 	class UDecalComponent* CursorToWorld;
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
-	class USphereComponent* VisionBounds;
 
 	
 
