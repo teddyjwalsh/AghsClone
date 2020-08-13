@@ -23,14 +23,16 @@ class AAghsClonePlayerController : public APlayerController
 	int32 targeted_ability_num;
 
 	//UPROPERTY( Replicated )
-	int32 team;
+	
 
 	TArray<AAghsCloneCharacter*> selected_units;
 
 public:
+	int32 team;
+
 	AAghsClonePlayerController();
 
-	UFUNCTION(Reliable, NetMulticast)
+	UFUNCTION(Reliable, Client)
 	void AssignTeam(int32 in_team);
 
 	int32 GetTeam();

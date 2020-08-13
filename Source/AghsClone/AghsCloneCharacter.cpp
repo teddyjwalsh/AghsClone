@@ -13,6 +13,7 @@
 #include "GameFramework/PlayerController.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "Misc/DateTime.h"
+#include "Components/PointLightComponent.h"
 #include "Kismet/KismetMathLibrary.h"
 #include "Engine/NetworkObjectList.h"
 
@@ -72,6 +73,19 @@ AAghsCloneCharacter::AAghsCloneCharacter() :
 	TopDownCameraComponent->SetupAttachment(CameraBoom, USpringArmComponent::SocketName);
 	TopDownCameraComponent->bUsePawnControlRotation = false; // Camera does not rotate relative to arm
 
+	GetMesh()->SetLightingChannels(false, false, true);
+
+	VisionLight = CreateDefaultSubobject<UPointLightComponent>(TEXT("VisionLight"));
+	VisionLight->SetupAttachment(RootComponent);
+	VisionLight->SetLightingChannels(true, true, false);
+	VisionLight->SetLightFalloffExponent(0.1);
+	VisionLight->SetSpecularScale(0);
+	VisionLight->ShadowResolutionScale = 8.0;
+	VisionLight->bUseInverseSquaredFalloff = false;
+	VisionLight->SetAttenuationRadius(GetVisionRadius());
+	VisionLight->SetIntensity(20);
+	
+
 	// Create a decal in the world to show the cursor's location
 	CursorToWorld = CreateDefaultSubobject<UDecalComponent>("CursorToWorld");
 	CursorToWorld->SetupAttachment(RootComponent);
@@ -130,6 +144,8 @@ AAghsCloneCharacter::AAghsCloneCharacter() :
 void AAghsCloneCharacter::Tick(float DeltaSeconds)
 {
     Super::Tick(DeltaSeconds);
+
+	//UStaticMesh::Array
 
 	if (!GetWorld()->IsServer())
 	{

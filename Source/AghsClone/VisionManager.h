@@ -8,6 +8,8 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
 #include "Components/SphereComponent.h"
+#include "Engine/Texture2D.h"
+#include "Materials/MaterialParameterCollection.h"
 
 #include "AghsCloneCharacter.h"
 #include "VisionManager.generated.h"
@@ -19,6 +21,7 @@ class AGHSCLONE_API AVisionManager : public AActor
 
 	std::map<int32, std::set<AActor*>> team_vision_sets;
 	USphereComponent* vision_bounds;
+	UMaterialParameterCollection* vision_positions;
 
 public:	
 	// Sets default values for this actor's properties

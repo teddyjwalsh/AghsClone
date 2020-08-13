@@ -5,6 +5,7 @@
 #include "Blueprint/AIBlueprintHelperLibrary.h"
 #include "Runtime/Engine/Classes/Components/DecalComponent.h"
 #include "Components/CapsuleComponent.h"
+#include "Components/PointLightComponent.h"
 #include "HeadMountedDisplayFunctionLibrary.h"
 #include "AghsCloneCharacter.h"
 #include "UnitController.h"
@@ -40,6 +41,10 @@ void AAghsClonePlayerController::SetLocalActorVisibility_Implementation(AActor* 
 		//ap->GetMesh()->SetVisibility(is_visible);
 		//ap->GetCapsuleComponent()->SetVisibleFlag(is_visible);
 		ap->SetActorHiddenInGame(!is_visible);
+		if (ap->GetTeam() != GetTeam())
+		{
+			ap->GetVisionLight()->SetVisibility(false);
+		}
 	}
 }
 

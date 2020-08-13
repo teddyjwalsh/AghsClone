@@ -21,6 +21,7 @@ public:
 		auto aghs_cont = Cast<AAghsClonePlayerController>(NewPlayer);
 		if (aghs_cont)
 		{
+			aghs_cont->team = GetNumPlayers();
 			aghs_cont->AssignTeam(GetNumPlayers());
 		}
 	}
