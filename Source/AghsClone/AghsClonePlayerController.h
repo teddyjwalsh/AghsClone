@@ -55,6 +55,8 @@ public:
 		return selected_units;
 	}
 
+	bool IsUnitControllable(AAghsCloneCharacter* in_unit);
+
 	UFUNCTION(Reliable, Client)
 	void SetLocalActorVisibility(AActor* in_actor, bool is_visible);
 

@@ -80,7 +80,10 @@ class AAghsCloneCharacter : public ACharacter,
 	bool IsAttackImmune;
 	UPROPERTY(Replicated, EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
 	int32 team;
+	UPROPERTY(Replicated, EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
+	AActor* unit_owner;
 	float vision_radius;
+
 
 public:
 	AAghsCloneCharacter();
@@ -101,6 +104,21 @@ public:
 	int32 GetTeam()
 	{
 		return team;
+	}
+
+	void SetTeam(int32 in_team)
+	{
+		team = in_team;
+	}
+
+	AActor* GetUnitOwner()
+	{
+		return unit_owner;
+	}
+
+	void SetUnitOwner(AActor* in_owner)
+	{
+		unit_owner = in_owner;
 	}
 
 	// Called when the game starts or when spawned
@@ -303,6 +321,8 @@ public:
 	{
 		Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 		DOREPLIFETIME(AAghsCloneCharacter, Mana);
+		DOREPLIFETIME(AAghsCloneCharacter, team);
+		DOREPLIFETIME(AAghsCloneCharacter, unit_owner);
 	}
 
 	std::vector<UAbility*> Abilities;
