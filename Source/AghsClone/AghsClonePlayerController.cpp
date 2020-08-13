@@ -88,7 +88,7 @@ void AAghsClonePlayerController::PlayerTick(float DeltaTime)
 	}
 }
 
-void AAghsClonePlayerController::SetSelected_Implementation(const TArray<AAghsCloneCharacter*>& in_selected)
+void AAghsClonePlayerController::SetSelectedServer_Implementation(const TArray<AAghsCloneCharacter*>& in_selected)
 {
 	AUnitController* MyPawn = Cast<AUnitController>(GetPawn());
 	if (MyPawn != nullptr)
@@ -97,6 +97,22 @@ void AAghsClonePlayerController::SetSelected_Implementation(const TArray<AAghsCl
 		selected_units = in_selected;
 	}
 }
+
+void AAghsClonePlayerController::SetSelected(const TArray<AAghsCloneCharacter*>& in_selected)
+{
+	AUnitController* MyPawn = Cast<AUnitController>(GetPawn());
+	if (MyPawn != nullptr)
+	{
+		MyPawn->SetSelected(in_selected);
+		selected_units = in_selected;
+		if (!GetWorld()->IsServer())
+		{
+			SetSelectedServer(in_selected);
+		}
+	}
+}
+
+//bool IsUnitSelectable()
 
 void AAghsClonePlayerController::SetupInputComponent()
 {

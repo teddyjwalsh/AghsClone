@@ -81,8 +81,8 @@ public:
 			// Draw main health bar
 			int32 x_center = vx / 2;
 			//TArray<AAghsCloneCharacter*> selected_chars;
-			//pc->GetSelected(selected_chars);
-			for (auto& sc : selected)
+			auto& selected_chars = pc->GetSelected();
+			for (auto& sc : selected_chars)
 			{
 				auto char_health_interface = Cast<IHealthInterface>(sc);
 				if (char_health_interface)

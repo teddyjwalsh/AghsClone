@@ -21,10 +21,7 @@ class AAghsClonePlayerController : public APlayerController
 	FVector2D select_box_end;
 	UAbility* targeted_ability;
 	int32 targeted_ability_num;
-
-	//UPROPERTY( Replicated )
 	
-
 	TArray<AAghsCloneCharacter*> selected_units;
 
 public:
@@ -48,12 +45,14 @@ public:
 		out_box_end = select_box_end;
 	}
 
-	UFUNCTION(reliable, server)
+	UFUNCTION(reliable, Server)
+	void SetSelectedServer(const TArray<AAghsCloneCharacter*>& in_selected);
+
 	void SetSelected(const TArray<AAghsCloneCharacter*>& in_selected);
 
-	void GetSelected(TArray<AAghsCloneCharacter*>& out_selected)
+	TArray<AAghsCloneCharacter*>& GetSelected()
 	{
-		out_selected = selected_units;
+		return selected_units;
 	}
 
 	UFUNCTION(Reliable, Client)
