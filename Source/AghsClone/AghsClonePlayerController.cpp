@@ -211,7 +211,29 @@ void AAghsClonePlayerController::OnAbilityPress()
 	OnAbilityNumPress(ability_num);
 }
 
-void AAghsClonePlayerController::OnAbilityNumPress_Implementation(int32 ability_num)
+void AAghsClonePlayerController::ActivateAbility_Implementation(int32 ability_num)
+{
+	if (AUnitController* MyPawn = Cast<AUnitController>(GetPawn()))
+	{
+		AAghsCloneCharacter * main_character = MyPawn->GetPrimaryUnit();
+		if (main_character)
+		{
+			if (main_character->Abilities.size() > ability_num)
+			{
+				if (main_character->Abilities[ability_num]->bToggleable && GetLocalRole() == ROLE_Authority)
+				{
+					main_character->Abilities[ability_num]->bToggled = !main_character->Abilities[ability_num]->bToggled;
+				}
+				else if (!main_character->Abilities[ability_num]->bPassive && GetLocalRole() == ROLE_Authority)
+				{
+					main_character->Abilities[ability_num]->OnActivationMeta();
+				}
+            }
+        }
+    }
+}
+
+void AAghsClonePlayerController::OnAbilityNumPress(int32 ability_num)
 {
 	if (AUnitController* MyPawn = Cast<AUnitController>(GetPawn()))
 	{
@@ -226,32 +248,10 @@ void AAghsClonePlayerController::OnAbilityNumPress_Implementation(int32 ability_
 					targeted_ability = main_character->Abilities[ability_num];
 					targeted_ability_num = ability_num;
 				}
-				else if (main_character->Abilities[ability_num]->bToggleable && GetLocalRole() == ROLE_Authority)
+				else
 				{
-					main_character->Abilities[ability_num]->bToggled = !main_character->Abilities[ability_num]->bToggled;
+                    ActivateAbility(ability_num);
 				}
-				else if (!main_character->Abilities[ability_num]->bPassive && GetLocalRole() == ROLE_Authority)
-				{
-					main_character->Abilities[ability_num]->OnActivationMeta();
-				}
-			}
-		}
-	}
-	if (AAghsCloneCharacter* MyPawn = Cast<AAghsCloneCharacter>(GetPawn()))
-	{
-		if (MyPawn->Abilities.size() > ability_num)
-		{
-			if (MyPawn->Abilities[ability_num]->bUnitTargeted || MyPawn->Abilities[ability_num]->bGroundTargeted)
-			{
-				MyPawn->SetTargetingActive(ability_num);
-			}
-			else if (MyPawn->Abilities[ability_num]->bToggleable)
-			{
-				MyPawn->Abilities[ability_num]->bToggled = !MyPawn->Abilities[ability_num]->bToggled;
-			}
-			else if (!MyPawn->Abilities[ability_num]->bPassive)
-			{
-				MyPawn->Abilities[ability_num]->OnActivationMeta();
 			}
 		}
 	}

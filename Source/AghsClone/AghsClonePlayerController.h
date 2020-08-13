@@ -22,9 +22,6 @@ class AAghsClonePlayerController : public APlayerController
 	UAbility* targeted_ability;
 	int32 targeted_ability_num;
 
-	//UPROPERTY( Replicated )
-	
-
 	TArray<AAghsCloneCharacter*> selected_units;
 
 public:
@@ -87,6 +84,8 @@ protected:
 	void OnSetDestinationReleased();
 
 	UFUNCTION(reliable, server)
+    void ActivateAbility(int32 ability_num);
+
 	void OnAbilityNumPress(int32 ability_num);
 
 	template<int32 ability_num>

@@ -19,6 +19,7 @@ ABallDrop::ABallDrop()
 	sphere->SetMobility(EComponentMobility::Movable);
 	sphere->SetNotifyRigidBodyCollision(true);
 	sphere->OnComponentHit.AddDynamic(this, &ABallDrop::OnTouch);
+	SetReplicates(true);
 }
 
 // Called when the game starts or when spawned
