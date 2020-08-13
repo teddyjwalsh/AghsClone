@@ -73,7 +73,16 @@ public:
 					FVector2D actor_screen_loc;
 					if (pc->ProjectWorldLocationToScreen(sc->GetActorLocation(), actor_screen_loc))
 					{
-						DrawUnitBar(char_health_interface, actor_screen_loc);
+						FVector health_color;
+						if (sc->GetTeam() == pc->GetTeam())
+						{
+							health_color = FVector(0, 1, 0);
+						}
+						else
+						{
+							health_color = FVector(1, 0, 0);
+						}
+						DrawUnitBar(char_health_interface, actor_screen_loc, health_color);
 					}
 				}
 			}
@@ -81,8 +90,8 @@ public:
 			// Draw main health bar
 			int32 x_center = vx / 2;
 			//TArray<AAghsCloneCharacter*> selected_chars;
-			//pc->GetSelected(selected_chars);
-			for (auto& sc : selected)
+			auto& selected_chars = pc->GetSelected();
+			for (auto& sc : selected_chars)
 			{
 				auto char_health_interface = Cast<IHealthInterface>(sc);
 				if (char_health_interface)
@@ -131,13 +140,13 @@ public:
 		
 	}
 	
-	void DrawUnitBar(IHealthInterface* char_health_interface, FVector2D screen_loc)
+	void DrawUnitBar(IHealthInterface* char_health_interface, FVector2D screen_loc, const FVector& in_color)
 	{
 			FVector2D health_box_size(40, 5);
 			FVector2D health_box_loc = screen_loc + FVector2D(-20, -30);
 			FCanvasBoxItem box_item(health_box_loc - FVector2D(1, 1), health_box_size + FVector2D(2, 2));
 			float health_fraction = char_health_interface->GetHealth() * 1.0 / char_health_interface->GetMaxHealth();
-			FCanvasTileItem tile_item(health_box_loc, health_box_size * FVector2D(health_fraction, 1), FLinearColor(1, 0, 0));
+			FCanvasTileItem tile_item(health_box_loc, health_box_size * FVector2D(health_fraction, 1), in_color);
 			box_item.SetColor(FLinearColor(1, 1, 1));
 			Canvas->DrawItem(tile_item);
 			Canvas->DrawItem(box_item);

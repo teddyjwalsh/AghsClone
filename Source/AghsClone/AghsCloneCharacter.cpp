@@ -32,8 +32,9 @@ AAghsCloneCharacter::AAghsCloneCharacter() :
 	IsSpellImmune(false),
 	IsAttackImmune(false),
 	MaxMana(100.0),
-	vision_radius(1000)
+	vision_radius(1000)	
 {
+	//AutoPossessAI = EAutoPossessAI::PlacedInWorldOrSpawned;
 	Health = MaxHealth;
 	Mana = MaxMana;
 	//bReplicates = true;
@@ -139,6 +140,7 @@ AAghsCloneCharacter::AAghsCloneCharacter() :
 	GetCharacterMovement()->RotationRate.Yaw = 180;
 	GetCapsuleComponent()->SetIsReplicated(true);
 	GetMesh()->SetIsReplicated(true);
+	
 }
 
 void AAghsCloneCharacter::Tick(float DeltaSeconds)
