@@ -160,7 +160,9 @@ public:
 		FVector2D main_health_box_size(400, 15);
 		FVector2D main_health_box_loc = FVector2D(screen_loc.X - main_health_box_size.X / 2,  screen_loc.Y);
 		FCanvasBoxItem box_item(main_health_box_loc - FVector2D(1, 1), main_health_box_size + FVector2D(2, 2));
-		float health_fraction = char_health_interface->GetHealth() * 1.0 / char_health_interface->GetMaxHealth();
+		float cur_health = char_health_interface->GetHealth();
+		float max_health = char_health_interface->GetMaxHealth();
+		float health_fraction = cur_health * 1.0 / max_health;
 		FString health_string;
 		health_string = FString::Printf(TEXT("%d / %d"),
 			int32(char_health_interface->GetHealth()),

@@ -22,6 +22,7 @@ class AAghsClonePlayerController : public APlayerController
 	UAbility* targeted_ability;
 	int32 targeted_ability_num;
 	TArray<AAghsCloneCharacter*> selected_units;
+	TArray<AAghsCloneCharacter*> temp_units;
 
 public:
 	int32 team;
@@ -37,6 +38,9 @@ public:
 	{
 		return select_box_on;
 	}
+
+	UFUNCTION(Reliable, Client)
+	void SetTargetedAbility(UAbility* in_ability, int32 in_ability_num);
 
 	void GetSelectBox(FVector2D& out_box_start, FVector2D& out_box_end)
 	{
@@ -105,6 +109,21 @@ protected:
 	void OnTrigger(FHitResult Hit, int32 ability_num);
 
 	void OnTriggerRelease();
+
+	void CleanSelected()
+	{
+		// Check if any of our selected units have been destroyed
+		temp_units = selected_units;
+		for (auto& s : temp_units)
+		{
+			if (!IsValid(s))
+			{
+				s = nullptr;
+			}
+		}
+		temp_units.Remove(nullptr);
+		SetSelected(temp_units);
+	}
 };
 
 

@@ -32,6 +32,12 @@ int32 AAghsClonePlayerController::GetTeam()
 	return team;
 }
 
+void AAghsClonePlayerController::SetTargetedAbility_Implementation(UAbility* in_ability, int32 in_ability_num)
+{
+	targeted_ability = in_ability;
+	targeted_ability_num = in_ability_num;
+}
+
 void AAghsClonePlayerController::SetLocalActorVisibility_Implementation(AActor* in_actor, bool is_visible)
 {
 	//in_actor->SetActorHiddenInGame(!is_visible);
@@ -208,6 +214,7 @@ void AAghsClonePlayerController::MoveToTouchLocation(const ETouchIndex::Type Fin
 
 void AAghsClonePlayerController::SetNewMoveDestination_Implementation(const FVector DestLocation)
 {
+	CleanSelected();
 	if (AUnitController* MyPawn = Cast<AUnitController>(GetPawn()))
 	{
 		float const Distance = FVector::Dist(DestLocation, MyPawn->GetActorLocation());
@@ -299,6 +306,7 @@ void AAghsClonePlayerController::OnAbilityRelease()
 
 void AAghsClonePlayerController::OnLeftClick()
 {
+	CleanSelected();
 	if (!targeted_ability)
 	{
 		select_box_on = true;
@@ -336,6 +344,7 @@ void AAghsClonePlayerController::OnTrigger_Implementation(FHitResult Hit, int32 
 				main_character->SetCommand(move_command);
 				
 			}
+			SetTargetedAbility(nullptr, -1);
 			targeted_ability = nullptr;
 		}
 	}
