@@ -20,6 +20,7 @@ class AGHSCLONE_API AVisionManager : public AActor
 	GENERATED_BODY()
 
 	std::map<int32, std::set<AActor*>> team_vision_sets;
+	std::map<int32, std::vector<AActor*>> team_actor_sets;
 	USphereComponent* vision_bounds;
 	UMaterialParameterCollection* vision_positions;
 

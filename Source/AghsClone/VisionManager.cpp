@@ -38,14 +38,15 @@ void AVisionManager::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 
 	TArray<AActor*> vision_actors;
-	UGameplayStatics::GetAllActorsWithInterface(GetWorld(), UVisionInterface::StaticClass(), vision_actors);
 	if (!GetWorld()->IsServer())
 	{
 		return;
 	}
+	UGameplayStatics::GetAllActorsWithInterface(GetWorld(), UVisionInterface::StaticClass(), vision_actors);
 	for (auto& k : team_vision_sets)
 	{
 		team_vision_sets[k.first].clear();
+		team_actor_sets[k.first].clear();
 	}
 	auto old_sets = team_vision_sets;
 	for (auto& act : vision_actors)
@@ -56,18 +57,21 @@ void AVisionManager::Tick(float DeltaTime)
 		vision_bounds->SetWorldLocation(act->GetActorLocation());
 		vision_bounds->SetSphereRadius(vision_interface->GetVisionRadius());
 		TSet<AActor*> near_chars;
-		vision_bounds->GetOverlappingActors(near_chars, AAghsCloneCharacter::StaticClass());
+		vision_bounds->GetOverlappingActors(near_chars);//, AAghsCloneCharacter::StaticClass());
 		FCollisionQueryParams ignore_me;
 		ignore_me.AddIgnoredActor(act);
 	
 		for (auto& near_actor : near_chars)
 		{
 			auto near_aghs_unit = Cast<AAghsCloneCharacter>(near_actor);
-			if (act == near_actor || near_aghs_unit->GetTeam() == vision_team)
-			{
-				team_vision_sets[vision_team].insert(near_actor);
-				continue;
-			}
+            if (near_aghs_unit)
+            {
+                if (act == near_actor || near_aghs_unit->GetTeam() == vision_team)
+                {
+                    team_vision_sets[vision_team].insert(near_actor);
+                    continue;
+                }
+            }
 			FHitResult out_hit;
 			FVector distance_vector = near_actor->GetActorLocation() - act->GetActorLocation();
 			FVector shoot_vector = distance_vector;
@@ -78,6 +82,8 @@ void AVisionManager::Tick(float DeltaTime)
 				vision_bounds->GetComponentLocation() + shoot_vector * vision_bounds->GetScaledSphereRadius(), 
 				ECollisionChannel::ECC_WorldDynamic,
 				ignore_me);
+
+            team_actor_sets[vision_team].push_back(near_actor);
 			if (out_hit.Actor == near_actor)
 			{
 				team_vision_sets[vision_team].insert(near_actor);
@@ -96,7 +102,7 @@ void AVisionManager::Tick(float DeltaTime)
 		auto pc = Cast<AAghsClonePlayerController>(pit->Get());
 		if (pc)
 		{
-			for (auto& act : vision_actors)
+			for (auto& act : team_actor_sets[pc->GetTeam()])
 			{
 				if (GetGameTimeSinceCreation() > 2.0)
 				{
@@ -113,67 +119,5 @@ void AVisionManager::Tick(float DeltaTime)
 		}
 	}
 	return;
-	for (auto& act : vision_actors)
-	{
-		auto pi = GetWorld()->GetPlayerControllerIterator();
-		for (pi; pi; ++pi)
-		{
-			auto aghs_cont = Cast<AAghsClonePlayerController>(pi->Get());
-			auto found = team_vision_sets[aghs_cont->GetTeam()].find(act);
-			if (GetGameTimeSinceCreation() > 2.0)
-			{
-				if (found == team_vision_sets[aghs_cont->GetTeam()].end())
-				{
-					aghs_cont->SetLocalActorVisibility(act, true);
-				}
-				else
-				{
-					aghs_cont->SetLocalActorVisibility(act, false);
-				}
-			}
-		}
-		auto aghs_act = Cast<AAghsCloneCharacter>(act);
-		for (auto& k : team_vision_sets)
-		{
-			{
-				//auto aghs_unit = Cast<AAghsCloneCharacter>(act);
-				//act->SetActorHiddenInGame(true);
-
-				
-					auto aghs_cont = Cast<AAghsClonePlayerController>(pi->Get());
-					auto nc = pi->Get()->NetConnection;
-					UNetDriver* nd;
-					FNetworkObjectList fbol;
-					if (nc)
-					{
-						nd = nc->GetDriver();
-						fbol = nd->GetNetworkObjectList();
-					}
-					auto found = team_vision_sets[k.first].find(act);
-					auto found_old = old_sets[k.first].find(act);
-					if (aghs_cont->GetTeam() == aghs_act->GetTeam() || (found != team_vision_sets[k.first].end() && found_old == old_sets[k.first].end()))
-					{
-						//fbol.MarkActive(act, nc, nd);
-						if (aghs_cont->GetPawn() && GetGameTimeSinceCreation() > 2.0)
-						{
-							aghs_cont->SetLocalActorVisibility(act, true);
-						}
-					}
-					if (aghs_cont->GetTeam() != aghs_act->GetTeam() && (found == team_vision_sets[k.first].end() && found_old != old_sets[k.first].end()))
-					{
-						//fbol.MarkDormant(act, nc, 1, nd);
-						if (aghs_cont->GetPawn() && GetGameTimeSinceCreation() > 2.0)
-						{
-							aghs_cont->SetLocalActorVisibility(act, false);
-						}
-					}
-					count += 1;
-			}
-			//else
-			{
-				//act->SetActorHiddenInGame(false);
-			}
-		}
-	}
 }
 
