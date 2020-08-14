@@ -96,11 +96,11 @@ public:
 				auto char_health_interface = Cast<IHealthInterface>(sc);
 				if (char_health_interface)
 				{
-					DrawHealthBar(char_health_interface, FVector2D(x_center, vy - 100));
+					DrawHealthBar(char_health_interface, FVector2D(x_center, vy - 30));
 					auto char_mana_interface = Cast<IManaInterface>(sc);
 					if (char_mana_interface)
 					{
-						DrawManaBar(char_mana_interface, FVector2D(x_center, vy - 83));
+						DrawManaBar(char_mana_interface, FVector2D(x_center, vy - 13));
 					}
 					break;
 				}
