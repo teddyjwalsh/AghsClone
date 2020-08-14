@@ -88,7 +88,7 @@ void AUnitController::BeginPlay()
 	//GetWorld()->SpawnCh
 	//FActorSpawnParameters fasp;
 	//my_character->SetActorLocation(FVector(0, 0, 0));
-	selected.Add(my_character);
+	//selected.Add(my_character);
 }
 
 // Called every frame

@@ -99,8 +99,10 @@ protected:
 
 	void OnLeftClick();
 
+	void OnAbilityTrigger();
+
 	UFUNCTION(reliable, server)
-	void OnTrigger();
+	void OnTrigger(FHitResult Hit, int32 ability_num);
 
 	void OnTriggerRelease();
 };

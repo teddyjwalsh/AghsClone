@@ -112,6 +112,7 @@ void AAghsClonePlayerController::SetSelected(const TArray<AAghsCloneCharacter*>&
 			}
 		}
 		MyPawn->SetSelected(selected_units);
+		MyPawn->selected = selected_units;
 		if (!GetWorld()->IsServer())
 		{
 			SetSelectedServer(selected_units);
@@ -305,19 +306,25 @@ void AAghsClonePlayerController::OnLeftClick()
 	}
 	else
 	{
-		OnTrigger();
+		OnAbilityTrigger();
 	}
 }
 
-void AAghsClonePlayerController::OnTrigger_Implementation()
+void AAghsClonePlayerController::OnAbilityTrigger()
+{
+	// Trace to see what is under the mouse cursor
+	FHitResult Hit;
+	GetHitResultUnderCursor(ECC_Visibility, false, Hit);
+	OnTrigger(Hit, targeted_ability_num);
+}
+
+void AAghsClonePlayerController::OnTrigger_Implementation(FHitResult Hit, int32 ability_num)
 {
 	{
 		UE_LOG(LogTemp, Warning, TEXT("LEFT CLOCK"));
 		if (AUnitController* MyPawn = Cast<AUnitController>(GetPawn()))
 		{
-			// Trace to see what is under the mouse cursor
-			FHitResult Hit;
-			GetHitResultUnderCursor(ECC_Visibility, false, Hit);
+			
 			AAghsCloneCharacter* main_character = MyPawn->GetPrimaryUnit();
 			if (Hit.bBlockingHit && main_character)
 			{

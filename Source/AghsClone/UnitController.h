@@ -14,11 +14,13 @@ class AGHSCLONE_API AUnitController : public APawn, public ICommandInterface
 {
 	GENERATED_BODY()
 
-	TArray<AAghsCloneCharacter*> selected;
+	
 	AAghsCloneCharacter* my_character;
 	int32 team;
 	
 public:
+	TArray<AAghsCloneCharacter*> selected;
+
 	// Sets default values for this pawn's properties
 	AUnitController();
 
@@ -29,9 +31,18 @@ public:
 	/** Returns CursorToWorld subobject **/
 	FORCEINLINE class UDecalComponent* GetCursorToWorld() { return CursorToWorld; }
 
+	//void SetSelectedServer_Implementation(const TArray<AAghsCloneCharacter*>& in_selected)
+	//{
+	//	selected = in_selected;
+	//}
+
 	void SetSelected(const TArray<AAghsCloneCharacter*>& in_selected)
 	{
 		selected = in_selected;
+		if (!GetWorld()->IsServer())
+		{
+			//SetSelectedServer(in_selected);
+		}
 	}
 
 	void AssignTeam(int32 in_team);
