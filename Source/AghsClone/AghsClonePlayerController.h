@@ -112,6 +112,7 @@ protected:
 
 	void CleanSelected()
 	{
+		return;
 		// Check if any of our selected units have been destroyed
 		temp_units = selected_units;
 		for (auto& s : temp_units)

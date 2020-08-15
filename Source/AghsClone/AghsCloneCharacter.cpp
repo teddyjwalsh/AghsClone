@@ -140,7 +140,6 @@ AAghsCloneCharacter::AAghsCloneCharacter() :
 	GetCharacterMovement()->RotationRate.Yaw = 180;
 	GetCapsuleComponent()->SetIsReplicated(true);
 	GetMesh()->SetIsReplicated(true);
-	
 }
 
 void AAghsCloneCharacter::Tick(float DeltaSeconds)

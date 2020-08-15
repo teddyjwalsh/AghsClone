@@ -18,6 +18,7 @@
 #include "HealthInterface.h"
 #include "CommandInterface.h"
 #include "VisionInterface.h"
+#include "FieldActorInterface.h"
 #include "AghsCloneCharacter.generated.h"
 
 class CommonUnitStats
@@ -57,7 +58,8 @@ class AAghsCloneCharacter : public ACharacter,
 	public IHealthInterface,
 	public IManaInterface,
 	public ICommandInterface,
-	public IVisionInterface
+	public IVisionInterface,
+	public IFieldActorInterface
 	//public CommonUnitStats
 	
 {

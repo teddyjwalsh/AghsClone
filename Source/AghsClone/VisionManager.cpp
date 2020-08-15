@@ -1,5 +1,7 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
+#include "VisionManager.h"
+
 #include "EngineUtils.h"
 #include "Kismet/GameplayStatics.h"
 #include "Engine/NetDriver.h"
@@ -7,7 +9,6 @@
 
 
 #include "VisionInterface.h"
-#include "VisionManager.h"
 #include "AghsClonePlayerController.h"
 
 // Sets default values
@@ -36,7 +37,6 @@ void AVisionManager::BeginPlay()
 void AVisionManager::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-
 	TArray<AActor*> vision_actors;
 	if (!GetWorld()->IsServer())
 	{
@@ -46,7 +46,6 @@ void AVisionManager::Tick(float DeltaTime)
 	for (auto& k : team_vision_sets)
 	{
 		team_vision_sets[k.first].clear();
-		team_actor_sets[k.first].clear();
 	}
 	auto old_sets = team_vision_sets;
 	for (auto& act : vision_actors)
@@ -83,7 +82,6 @@ void AVisionManager::Tick(float DeltaTime)
 				ECollisionChannel::ECC_WorldDynamic,
 				ignore_me);
 
-            team_actor_sets[vision_team].push_back(near_actor);
 			if (out_hit.Actor == near_actor)
 			{
 				team_vision_sets[vision_team].insert(near_actor);
@@ -97,12 +95,14 @@ void AVisionManager::Tick(float DeltaTime)
 	}
 	auto pit = GetWorld()->GetPlayerControllerIterator();
 	int count = 0;
+	TArray<AActor*> field_actors;
+	UGameplayStatics::GetAllActorsWithInterface(GetWorld(), UFieldActorInterface::StaticClass(), field_actors);
 	for (pit; pit; ++pit)
 	{
 		auto pc = Cast<AAghsClonePlayerController>(pit->Get());
 		if (pc)
 		{
-			for (auto& act : team_actor_sets[pc->GetTeam()])
+			for (auto& act : field_actors)
 			{
 				if (GetGameTimeSinceCreation() > 2.0)
 				{

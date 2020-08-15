@@ -1,7 +1,8 @@
 // Copyright Epic Games, Inc. All Rights Reserved.
 
-#include "GameFramework/PlayerController.h"
 #include "AghsClonePlayerController.h"
+
+#include "GameFramework/PlayerController.h"
 #include "Blueprint/AIBlueprintHelperLibrary.h"
 #include "Runtime/Engine/Classes/Components/DecalComponent.h"
 #include "Components/CapsuleComponent.h"
@@ -41,15 +42,23 @@ void AAghsClonePlayerController::SetTargetedAbility_Implementation(UAbility* in_
 void AAghsClonePlayerController::SetLocalActorVisibility_Implementation(AActor* in_actor, bool is_visible)
 {
 	//in_actor->SetActorHiddenInGame(!is_visible);
-	auto ap = Cast<AAghsCloneCharacter>(in_actor);
-	if (ap)
+	auto field_actor = Cast<IFieldActorInterface>(in_actor);
+	if (field_actor)
 	{
+		auto ap = Cast<AAghsCloneCharacter>(in_actor);
 		//ap->GetMesh()->SetVisibility(is_visible);
 		//ap->GetCapsuleComponent()->SetVisibleFlag(is_visible);
-		ap->SetActorHiddenInGame(!is_visible);
-		if (ap->GetTeam() != GetTeam())
+		in_actor->SetActorHiddenInGame(!is_visible);
+		if (ap)
 		{
-			ap->GetVisionLight()->SetVisibility(false);
+			if (ap->GetTeam() != GetTeam())
+			{
+				ap->GetVisionLight()->SetVisibility(false);
+			}
+		}
+		else
+		{
+
 		}
 	}
 }

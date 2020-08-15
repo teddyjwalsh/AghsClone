@@ -30,9 +30,13 @@ public:
 			AAghsCloneCharacter* new_character = Cast< AAghsCloneCharacter>(UAIBlueprintHelperLibrary::SpawnAIFromClass(GetWorld(), AAghsCloneCharacter::StaticClass(), nullptr, NavPoint.Location));
 			new_character->SetTeam(GetNumPlayers());
 			new_character->SetUnitOwner(aghs_cont->GetPawn());
+			TArray<AAghsCloneCharacter*> init_select;
+			init_select.Add(new_character);
 			//NavSys->ProjectPointToNavigation(FVector(0,0,0), FNav)
+			
 			aghs_cont->team = GetNumPlayers();
 			aghs_cont->AssignTeam(GetNumPlayers());
+			aghs_cont->SetSelected(init_select);
 		}
 	}
 };

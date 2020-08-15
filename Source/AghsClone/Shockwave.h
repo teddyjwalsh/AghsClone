@@ -6,11 +6,13 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
+#include "FieldActorInterface.h"
 #include "Components/SphereComponent.h"
 #include "Shockwave.generated.h"
 
 UCLASS()
-class AGHSCLONE_API AShockwave : public AActor
+class AGHSCLONE_API AShockwave : public AActor,
+	public IFieldActorInterface
 {
 	GENERATED_BODY()
 	

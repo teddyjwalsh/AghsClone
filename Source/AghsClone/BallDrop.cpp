@@ -20,6 +20,7 @@ ABallDrop::ABallDrop()
 	sphere->SetNotifyRigidBodyCollision(true);
 	sphere->OnComponentHit.AddDynamic(this, &ABallDrop::OnTouch);
 	SetReplicates(true);
+	sphere->ComponentTags.Add(FName("AffectedByVision"));
 }
 
 // Called when the game starts or when spawned

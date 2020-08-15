@@ -34,7 +34,6 @@ public:
 	virtual void DrawHUD() override
 	{
 		Super::DrawHUD();
-
 		auto pc = Cast<AAghsClonePlayerController>(GetWorld()->GetFirstPlayerController());
 
 		auto pawn = pc->GetPawn();
@@ -54,12 +53,13 @@ public:
 
 		if (pc != nullptr)
 		{
+			
 			// Health bars
 			int32 vx, vy;
 			pc->GetViewportSize(vx, vy);
 			TArray<AAghsCloneCharacter*> screen_chars;
 			GetActorsInSelectionRectangle(FVector2D(0,0), FVector2D(vx, vy), screen_chars, false);
-
+			
 			// Draw health bars above units
 			for (auto& sc : screen_chars)
 			{
@@ -105,7 +105,7 @@ public:
 					break;
 				}
 			}
-
+			
 			if (pc->SelectBoxOn())
 			{
 				pc->GetSelectBox(box_start, box_end);
@@ -136,6 +136,7 @@ public:
 				}
 				UE_LOG(LogTemp, Warning, TEXT("CHARACTERS"));
 			}
+			
 		}
 		
 	}

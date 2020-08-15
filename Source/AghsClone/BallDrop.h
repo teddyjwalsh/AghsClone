@@ -5,10 +5,12 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
 #include "Components/SphereComponent.h"
+#include "FieldActorInterface.h"
 #include "BallDrop.generated.h"
 
 UCLASS()
-class AGHSCLONE_API ABallDrop : public AActor
+class AGHSCLONE_API ABallDrop : public AActor,
+	public IFieldActorInterface
 {
 	GENERATED_BODY()
 	
