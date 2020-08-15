@@ -222,72 +222,41 @@ void AAghsCloneCharacter::Tick(float DeltaSeconds)
 	}
 }
 
-void AAghsCloneCharacter::CommandStateMachine(float dt)
+void AAghsCloneCharacter::ProcessAbilityCommand(const FCommand& in_command, float dt)
 {
-	static float MoveTolerance = 10.0;
+	auto forward_vec = (GetActorForwardVector());
+	auto my_loc3 = GetActorLocation();
+	auto my_loc = FVector2D(my_loc3);
 
-	switch (current_command.command_type)
+	auto ability_vec = ((in_command.location) - my_loc3);
+	ability_vec.Z = 0;
+	ability_vec.Normalize();
+	float angle_diff = acos(FVector::DotProduct(forward_vec, ability_vec)) * 180 / PI;
+	if ((my_loc - FVector2D(in_command.location)).Size() > Abilities[in_command.ability_num]->CastRange)
 	{
-		case MOVE:
-		{
-			auto my_loc3 = GetActorLocation();
-			auto my_loc = FVector2D(my_loc3);
-			if ((my_loc - FVector2D(current_command.location)).Size() < MoveTolerance)
-			{
-				UE_LOG(LogTemp, Warning, TEXT("Completed Move"));
-				NextCommand();
-			}
-			else if (current_destination != current_command.location)
-			{
-				current_destination = current_command.location;
-				UAIBlueprintHelperLibrary::SimpleMoveToLocation(GetController(), current_destination);
-			}
-			break;
-		}
-		case ATTACK_MOVE:
-		{
-			break;
-		}
-		case ABILITY:
-		{
-			auto forward_vec = (GetActorForwardVector());
-			auto my_loc3 = GetActorLocation();
-			auto my_loc = FVector2D(my_loc3);
+		current_destination = in_command.location;
 
-			auto ability_vec = ((current_command.location) - my_loc3);
-			ability_vec.Z = 0;
-			ability_vec.Normalize();
-			float angle_diff = acos(FVector::DotProduct(forward_vec, ability_vec)) * 180 / PI;
-			if ((my_loc - FVector2D(current_command.location)).Size() > Abilities[current_command.ability_num]->CastRange)
-			{
-				current_destination = current_command.location;
-				
-				UAIBlueprintHelperLibrary::SimpleMoveToLocation(GetController(), current_destination);
-				
-			}
-			else if (angle_diff > 15.0)
-			{
-				auto char_rot = UKismetMathLibrary::FindLookAtRotation(forward_vec, ability_vec);
-				ability_vec.Z = 0;
-				char_rot = FRotationMatrix::MakeFromX(ability_vec).Rotator();
-				auto deg_between = char_rot.GetManhattanDistance(GetActorRotation());
-				float turn_rate = 180.0;
-				float inc = dt*1/(deg_between / turn_rate);
-				char_rot = UKismetMathLibrary::RLerp(GetActorRotation(), char_rot, inc, true);
-				char_rot.Normalize();
-				SetActorRelativeRotation(char_rot);
-			}
-			else
-			{
-				if (TriggerTargetedAbility(current_command.ability_num, current_command.location))
-				{
-					UAIBlueprintHelperLibrary::SimpleMoveToLocation(GetController(), my_loc3);
-					NextCommand();
-				}
-			}
-			break;
+		UAIBlueprintHelperLibrary::SimpleMoveToLocation(GetController(), current_destination);
+
+	}
+	else if (angle_diff > 15.0)
+	{
+		auto char_rot = UKismetMathLibrary::FindLookAtRotation(forward_vec, ability_vec);
+		ability_vec.Z = 0;
+		char_rot = FRotationMatrix::MakeFromX(ability_vec).Rotator();
+		auto deg_between = char_rot.GetManhattanDistance(GetActorRotation());
+		float turn_rate = 180.0;
+		float inc = dt * 1 / (deg_between / turn_rate);
+		char_rot = UKismetMathLibrary::RLerp(GetActorRotation(), char_rot, inc, true);
+		char_rot.Normalize();
+		SetActorRelativeRotation(char_rot);
+	}
+	else
+	{
+		if (TriggerTargetedAbility(current_command.ability_num, current_command.location))
+		{
+			UAIBlueprintHelperLibrary::SimpleMoveToLocation(GetController(), my_loc3);
+			NextCommand();
 		}
-		default:
-			break;
 	}
 }

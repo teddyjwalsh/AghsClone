@@ -92,22 +92,29 @@ public:
 
 	virtual FCommand GetCurrentCommand() const
 	{
+		UE_LOG(LogTemp, Fatal, TEXT("Called GetCurrentCommand without implementing it"));
 		return FCommand(NONE);
 	}
 
 	virtual FVector GetCurrentDestination() const
 	{
+		UE_LOG(LogTemp, Fatal, TEXT("Called GetCurrentDestination without implementing it"));
 		return FVector(0);
 	}
 
-	virtual void ProcessAbilityCommand(const FCommand& in_command) {}
+	virtual void SetCurrentDestination(FVector in_dest)
+	{
+		UE_LOG(LogTemp, Fatal, TEXT("Called SetCurrentDestination without implementing it"));
+	}
+
+	virtual void ProcessAbilityCommand(const FCommand& in_command, float dt) {}
 
 	virtual void CommandStateMachine(float dt)
 	{
 		static float MoveTolerance = 10.0;
 
 		FCommand current_command = GetCurrentCommand();
-		FVector current_destination = GetCurrentDestination();
+		FVector dest = GetCurrentDestination();
 		auto my_actor = Cast<APawn>(this);
 
 		switch (current_command.command_type)
@@ -123,10 +130,10 @@ public:
 						UE_LOG(LogTemp, Warning, TEXT("Completed Move"));
 						NextCommand();
 					}
-					else if (current_destination != current_command.location)
+					else if (GetCurrentDestination() != current_command.location)
 					{
-						current_destination = current_command.location;
-						UAIBlueprintHelperLibrary::SimpleMoveToLocation(my_actor->GetController(), current_destination);
+						SetCurrentDestination(current_command.location);
+						UAIBlueprintHelperLibrary::SimpleMoveToLocation(my_actor->GetController(), GetCurrentDestination());
 					}
 					break;
 				}
@@ -138,7 +145,7 @@ public:
 			}
 			case ABILITY:
 			{
-				ProcessAbilityCommand(current_command);
+				ProcessAbilityCommand(current_command, dt);
 				break;
 			}
 			default:

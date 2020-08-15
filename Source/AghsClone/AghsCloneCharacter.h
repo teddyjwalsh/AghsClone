@@ -313,7 +313,22 @@ public:
 		}
 	}
 
-	virtual void CommandStateMachine(float dt) override;
+	virtual FVector GetCurrentDestination() const override
+	{
+		return current_destination;
+	}
+
+	virtual void SetCurrentDestination(FVector in_dest) override
+	{
+		current_destination = in_dest;
+	}
+
+	virtual FCommand GetCurrentCommand() const override
+	{
+		return current_command;
+	}
+
+	void ProcessAbilityCommand(const FCommand& in_command, float dt);
 	// END COMMAND INTERFACE
 
 	// VISION INTERFACE IMPLEMENTATION
