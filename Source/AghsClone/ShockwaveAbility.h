@@ -36,7 +36,7 @@ class AGHSCLONE_API UShockwaveAbility : public UAbility
 		//auto new_instance = NewObject<UBallDrop>(this);
 		auto new_instance = GetWorld()->SpawnActor<AShockwave>();
 		new_instance->SetOwner(GetOwner());
-		new_instance->SetActorLocation(GetOwner()->GetActorLocation() + FVector(500,0,0));
+		new_instance->SetActorLocation(GetOwner()->GetActorLocation());
 		//new_instance->SetPos(target + FVector(0, 0, 200));
 		instances.push_back(new_instance);
 	}

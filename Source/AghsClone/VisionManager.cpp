@@ -37,12 +37,15 @@ void AVisionManager::BeginPlay()
 void AVisionManager::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-	TArray<AActor*> vision_actors;
+	
 	if (!GetWorld()->IsServer())
 	{
 		return;
 	}
+	TArray<AActor*> vision_actors;
 	UGameplayStatics::GetAllActorsWithInterface(GetWorld(), UVisionInterface::StaticClass(), vision_actors);
+	TArray<AActor*> field_actors;
+	UGameplayStatics::GetAllActorsWithInterface(GetWorld(), UFieldActorInterface::StaticClass(), field_actors);
 	for (auto& k : team_vision_sets)
 	{
 		team_vision_sets[k.first].clear();
@@ -58,7 +61,8 @@ void AVisionManager::Tick(float DeltaTime)
 		TSet<AActor*> near_chars;
 		vision_bounds->GetOverlappingActors(near_chars);//, AAghsCloneCharacter::StaticClass());
 		FCollisionQueryParams ignore_me;
-		ignore_me.AddIgnoredActor(act);
+		//ignore_me.AddIgnoredActor(act);
+		ignore_me.AddIgnoredActors(field_actors);
 	
 		for (auto& near_actor : near_chars)
 		{
@@ -81,8 +85,8 @@ void AVisionManager::Tick(float DeltaTime)
 				vision_bounds->GetComponentLocation() + shoot_vector * vision_bounds->GetScaledSphereRadius(), 
 				ECollisionChannel::ECC_WorldDynamic,
 				ignore_me);
-
-			if (out_hit.Actor == near_actor)
+			float actor_distance = (act->GetActorLocation() - near_actor->GetActorLocation()).Size();
+			if (out_hit.Distance > actor_distance || !out_hit.bBlockingHit)
 			{
 				team_vision_sets[vision_team].insert(near_actor);
 				//act->Relev
@@ -95,8 +99,7 @@ void AVisionManager::Tick(float DeltaTime)
 	}
 	auto pit = GetWorld()->GetPlayerControllerIterator();
 	int count = 0;
-	TArray<AActor*> field_actors;
-	UGameplayStatics::GetAllActorsWithInterface(GetWorld(), UFieldActorInterface::StaticClass(), field_actors);
+	
 	for (pit; pit; ++pit)
 	{
 		auto pc = Cast<AAghsClonePlayerController>(pit->Get());

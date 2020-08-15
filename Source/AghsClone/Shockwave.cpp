@@ -10,12 +10,13 @@ AShockwave::AShockwave()
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 	static ConstructorHelpers::FObjectFinder<UStaticMesh> ScreenMesh(TEXT("StaticMesh'/Engine/BasicShapes/Sphere.Sphere'"));
-	static ConstructorHelpers::FObjectFinder<UMaterialInterface> ScreenMat(TEXT("MaterialInstanceConstant'/Game/StarterContent/Materials/M_Glass.M_Glass'"));
+	static ConstructorHelpers::FObjectFinder<UMaterialInterface> ScreenMat(TEXT("MaterialInstanceConstant'/Game/Materials/Shockwave.Shockwave'"));
 	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 	sphere = CreateDefaultSubobject<UStaticMeshComponent>("Sphere");
 	bounds = CreateDefaultSubobject<USphereComponent>("Bounds");
 	bounds->SetupAttachment(sphere);
+	bounds->SetSphereRadius(50);
 	sphere->SetStaticMesh(ScreenMesh.Object);
 	SetRootComponent(sphere);
 	sphere->SetWorldScale3D(FVector(scale));
@@ -62,7 +63,7 @@ void AShockwave::Tick(float DeltaTime)
 		}
 	}
 	Super::Tick(DeltaTime);
-	scale += 0.5;
+	scale += 0.25;
 	sphere->SetWorldScale3D(FVector(scale));
 	if (scale > 40)
 	{
