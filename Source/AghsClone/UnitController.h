@@ -13,7 +13,6 @@ UCLASS()
 class AGHSCLONE_API AUnitController : public APawn, public ICommandInterface
 {
 	GENERATED_BODY()
-
 	
 	AAghsCloneCharacter* my_character;
 	int32 team;

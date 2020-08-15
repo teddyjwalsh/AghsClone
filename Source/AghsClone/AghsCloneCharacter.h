@@ -198,6 +198,10 @@ public:
 	}
 	// END MANA INTERFACE
 
+	// AUTO ATTACK IMPLEMENTATION
+
+	// END AUTO ATTACK IMPLEMENTATION
+
 	void SetTargetingActive(int32 ability_num)
 	{
 		int count = 1;
@@ -308,6 +312,8 @@ public:
 			current_command.command_type = NONE;
 		}
 	}
+
+	virtual void CommandStateMachine(float dt) override;
 	// END COMMAND INTERFACE
 
 	// VISION INTERFACE IMPLEMENTATION
@@ -316,8 +322,7 @@ public:
 		return vision_radius;
 	}
 
-	UFUNCTION()
-	void CommandStateMachine(float dt);
+	
 
 	void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override
 	{

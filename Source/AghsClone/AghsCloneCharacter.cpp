@@ -241,7 +241,6 @@ void AAghsCloneCharacter::CommandStateMachine(float dt)
 			{
 				current_destination = current_command.location;
 				UAIBlueprintHelperLibrary::SimpleMoveToLocation(GetController(), current_destination);
-
 			}
 			break;
 		}
