@@ -60,7 +60,7 @@ public:
         }
         case PhysicalDamage:
         {
-            float value = -(1 - ((0.06 * GetArmor()) / (1 + 0.06 * abs(GetArmor()))));
+            float value = -raw_value*(1 - ((0.06 * GetArmor()) / (1 + 0.06 * abs(GetArmor()))));
             AddToHealth(value);
             break;
         }

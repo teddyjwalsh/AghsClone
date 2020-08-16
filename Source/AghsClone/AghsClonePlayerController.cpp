@@ -13,6 +13,7 @@
 #include "Engine/World.h"
 #include "GameFramework/HUD.h"
 #include "GameFramework/SpringArmComponent.h"
+#include "FieldActorInterface.h"
 
 AAghsClonePlayerController::AAghsClonePlayerController()
 {
@@ -197,9 +198,17 @@ void AAghsClonePlayerController::MoveToMouseCursor()
 	{
 		// Trace to see what is under the mouse cursor
 		FHitResult Hit;
-		GetHitResultUnderCursor(ECC_Visibility, false, Hit);
+		GetHitResultUnderCursor(ECC_WorldDynamic, false, Hit);
 
-		if (Hit.bBlockingHit)
+		auto field_unit = Cast<IFieldActorInterface>(Hit.Actor);
+		if (field_unit)
+		{
+			FCommand move_command;
+			move_command.command_type = ATTACK_MOVE;
+			move_command.target = Hit.Actor.Get();
+			CommandAttack(move_command);
+		}
+		else if (Hit.bBlockingHit)
 		{
 			// We hit something, move there
 			SetNewMoveDestination(Hit.ImpactPoint);
@@ -237,6 +246,14 @@ void AAghsClonePlayerController::SetNewMoveDestination_Implementation(const FVec
 			move_command.location = DestLocation;
 			MyPawn->SetCommand(move_command);
 		}
+	}
+}
+
+void AAghsClonePlayerController::CommandAttack_Implementation(const FCommand& in_command)
+{
+	if (AUnitController* MyPawn = Cast<AUnitController>(GetPawn()))
+	{
+		MyPawn->SetCommand(in_command);
 	}
 }
 

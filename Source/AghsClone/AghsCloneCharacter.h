@@ -19,6 +19,7 @@
 #include "CommandInterface.h"
 #include "VisionInterface.h"
 #include "FieldActorInterface.h"
+#include "AttackProjectile.h"
 #include "AghsCloneCharacter.generated.h"
 
 class CommonUnitStats
@@ -85,6 +86,8 @@ class AAghsCloneCharacter : public ACharacter,
 	UPROPERTY(Replicated, EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
 	AActor* unit_owner;
 	float vision_radius;
+	float attack_range;
+	float attack_damage;
 
 
 public:
@@ -200,6 +203,21 @@ public:
 
 	// AUTO ATTACK IMPLEMENTATION
 
+	bool AttackActor(AActor* in_target)
+	{
+		auto proj = GetWorld()->SpawnActor<AAttackProjectile>();
+		proj->SetActorLocation(GetActorLocation());
+		proj->SetTarget(in_target);
+		proj->SetShooter(this);
+		return true;
+
+	}
+
+	float GetAttackDamage() const
+	{
+		return attack_damage;
+	}
+
 	// END AUTO ATTACK IMPLEMENTATION
 
 	void SetTargetingActive(int32 ability_num)
@@ -292,7 +310,7 @@ public:
 		command_queue.Empty();
 	}
 
-	//UFUNCTION(reliable, server, WithValidation)
+	//UFUNCTION(reliable, server)
 	virtual void SetCommand(const FCommand& in_command) override
 	{
 		ClearCommandQueue();
@@ -327,6 +345,8 @@ public:
 	{
 		return current_command;
 	}
+
+	void ProcessAttackMove(const FCommand& in_command, float dt);
 
 	void ProcessAbilityCommand(const FCommand& in_command, float dt);
 	// END COMMAND INTERFACE

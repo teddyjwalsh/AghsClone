@@ -86,6 +86,9 @@ protected:
 	UFUNCTION(reliable, server)
 	void SetNewMoveDestination(const FVector DestLocation);
 
+	UFUNCTION(reliable, server)
+	void CommandAttack(const FCommand& in_command);
+
 	/** Input handlers for SetDestination action. */
 	void OnSetDestinationPressed();
 	void OnSetDestinationReleased();

@@ -109,6 +109,8 @@ public:
 
 	virtual void ProcessAbilityCommand(const FCommand& in_command, float dt) {}
 
+	virtual void ProcessAttackMove(const FCommand& in_command, float dt) {}
+
 	virtual void CommandStateMachine(float dt)
 	{
 		static float MoveTolerance = 10.0;
@@ -141,6 +143,7 @@ public:
 			}
 			case ATTACK_MOVE:
 			{
+				ProcessAttackMove(current_command, dt);
 				break;
 			}
 			case ABILITY:

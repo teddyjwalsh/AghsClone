@@ -32,11 +32,13 @@ AAghsCloneCharacter::AAghsCloneCharacter() :
 	IsSpellImmune(false),
 	IsAttackImmune(false),
 	MaxMana(100.0),
+	attack_damage(20),
 	vision_radius(1000)	
 {
 	//AutoPossessAI = EAutoPossessAI::PlacedInWorldOrSpawned;
 	Health = MaxHealth;
 	Mana = MaxMana;
+	attack_range = 600;
 	//bReplicates = true;
 	SetReplicates(true);
 	bReplicates = true;
@@ -137,7 +139,7 @@ AAghsCloneCharacter::AAghsCloneCharacter() :
 	//GetMesh()->SetIsReplicated(true);
 	//GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
 	//GetCapsuleComponent()->SetGenerateOverlapEvents(true);
-	GetCharacterMovement()->RotationRate.Yaw = 180;
+	GetCharacterMovement()->RotationRate.Yaw = 1146;
 	GetCapsuleComponent()->SetIsReplicated(true);
 	GetMesh()->SetIsReplicated(true);
 }
@@ -232,6 +234,7 @@ void AAghsCloneCharacter::ProcessAbilityCommand(const FCommand& in_command, floa
 	ability_vec.Z = 0;
 	ability_vec.Normalize();
 	float angle_diff = acos(FVector::DotProduct(forward_vec, ability_vec)) * 180 / PI;
+	float turn_rate = 1146.0;
 	if ((my_loc - FVector2D(in_command.location)).Size() > Abilities[in_command.ability_num]->CastRange)
 	{
 		current_destination = in_command.location;
@@ -244,16 +247,86 @@ void AAghsCloneCharacter::ProcessAbilityCommand(const FCommand& in_command, floa
 		auto char_rot = UKismetMathLibrary::FindLookAtRotation(forward_vec, ability_vec);
 		ability_vec.Z = 0;
 		char_rot = FRotationMatrix::MakeFromX(ability_vec).Rotator();
+		auto char_rotator = char_rot.GetEquivalentRotator();
+		char_rotator.Pitch = 0;
+		char_rotator.Roll = 0;
+		auto diff_rot = char_rot - GetActorRotation();
 		auto deg_between = char_rot.GetManhattanDistance(GetActorRotation());
-		float turn_rate = 180.0;
-		float inc = dt * 1 / (deg_between / turn_rate);
-		char_rot = UKismetMathLibrary::RLerp(GetActorRotation(), char_rot, inc, true);
-		char_rot.Normalize();
-		SetActorRelativeRotation(char_rot);
+
+		float inc = dt * turn_rate;
+		if (deg_between < inc)
+		{
+			inc = deg_between;
+		}
+		//char_rot = UKismetMathLibrary::RLerp(GetActorRotation(), char_rot, inc, true);
+		//char_rot.Normalize();
+		AddActorLocalRotation(FRotator(0, inc, 0));
+		//SetActorRelativeRotation(char_rot);
 	}
 	else
 	{
 		if (TriggerTargetedAbility(current_command.ability_num, current_command.location))
+		{
+			UAIBlueprintHelperLibrary::SimpleMoveToLocation(GetController(), my_loc3);
+			NextCommand();
+		}
+	}
+}
+
+template <typename T> int sgn(T val) {
+	return (T(0) < val) - (val < T(0));
+}
+
+void AAghsCloneCharacter::ProcessAttackMove(const FCommand& in_command, float dt)
+{
+	auto forward_vec = (GetActorForwardVector());
+	auto my_loc3 = GetActorLocation();
+	auto my_loc = FVector2D(my_loc3);
+
+	auto target_2d = FVector2D(in_command.target->GetActorLocation());
+
+	auto ability_vec = ((in_command.target->GetActorLocation()) - my_loc3);
+	ability_vec.Z = 0;
+	ability_vec.Normalize();
+	float angle_diff = acos(FVector::DotProduct(forward_vec, ability_vec)) * 180 / PI;
+	float turn_rate = 1146.0;
+	if (FVector::DotProduct(FVector::CrossProduct(forward_vec, ability_vec), FVector(0, 0, 1)) < 0)
+	{
+		turn_rate = -turn_rate;
+	}
+	if (in_command.target == this)
+	{
+		NextCommand();
+	}
+	if ((my_loc - target_2d).Size() > attack_range)
+	{
+		current_destination = in_command.location;
+		UAIBlueprintHelperLibrary::SimpleMoveToActor(GetController(), in_command.target);
+	}
+	else if (angle_diff > 15.0)
+	{
+		auto char_rot = UKismetMathLibrary::FindLookAtRotation(forward_vec, ability_vec);
+		ability_vec.Z = 0;
+		char_rot = FRotationMatrix::MakeFromX(ability_vec).Rotator();
+		auto char_rotator = char_rot.GetEquivalentRotator();
+		char_rotator.Pitch = 0;
+		char_rotator.Roll = 0;
+		auto diff_rot = char_rot - GetActorRotation();
+		auto deg_between = char_rot.GetManhattanDistance(GetActorRotation());
+		
+		float inc = dt * turn_rate;
+		if (deg_between < inc)
+		{
+			inc = deg_between;
+		}
+		//char_rot = UKismetMathLibrary::RLerp(GetActorRotation(), char_rot, inc, true);
+		//char_rot.Normalize();
+		AddActorLocalRotation(FRotator(0, inc, 0));
+		//SetActorRelativeRotation(char_rot);
+	}
+	else
+	{
+		if (AttackActor(in_command.target))
 		{
 			UAIBlueprintHelperLibrary::SimpleMoveToLocation(GetController(), my_loc3);
 			NextCommand();

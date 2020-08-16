@@ -37,7 +37,6 @@ void AVisionManager::BeginPlay()
 void AVisionManager::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-	
 	if (!GetWorld()->IsServer())
 	{
 		return;
