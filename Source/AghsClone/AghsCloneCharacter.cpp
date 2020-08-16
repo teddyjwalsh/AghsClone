@@ -33,7 +33,10 @@ AAghsCloneCharacter::AAghsCloneCharacter() :
 	IsAttackImmune(false),
 	MaxMana(100.0),
 	attack_damage(20),
-	vision_radius(1000)	
+	vision_radius(1000),
+	AttackSpeed(0),
+	InitialAttackSpeed(100),
+	BaseAttackTime(1.7)
 {
 	//AutoPossessAI = EAutoPossessAI::PlacedInWorldOrSpawned;
 	Health = MaxHealth;
@@ -294,8 +297,9 @@ void AAghsCloneCharacter::ProcessAttackMove(const FCommand& in_command, float dt
 	{
 		turn_rate = -turn_rate;
 	}
-	if (in_command.target == this)
+	if (in_command.target == this || !IsValid(in_command.target))
 	{
+		UAIBlueprintHelperLibrary::SimpleMoveToLocation(GetController(), my_loc3);
 		NextCommand();
 	}
 	if ((my_loc - target_2d).Size() > attack_range)
@@ -329,7 +333,7 @@ void AAghsCloneCharacter::ProcessAttackMove(const FCommand& in_command, float dt
 		if (AttackActor(in_command.target))
 		{
 			UAIBlueprintHelperLibrary::SimpleMoveToLocation(GetController(), my_loc3);
-			NextCommand();
+			//NextCommand();
 		}
 	}
 }

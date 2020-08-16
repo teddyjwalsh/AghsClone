@@ -19,6 +19,8 @@ AAttackProjectile::AAttackProjectile()
 	model->SetWorldScale3D(FVector(0.2));
 	//SetActorEnableCollision(false);
 	model->OnComponentBeginOverlap.AddDynamic(this, &AAttackProjectile::OnOverlap);
+	model->SetIsReplicated(true);
+	bReplicates = true;
 }
 
 // Called when the game starts or when spawned

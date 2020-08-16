@@ -69,16 +69,16 @@ class AAghsCloneCharacter : public ACharacter,
 	UPROPERTY(Replicated)
 	float MaxHealth;
 	UPROPERTY(Replicated)
-		float Health;
+	float Health;
 	UPROPERTY(Replicated)
-		float HealthRegeneration;
+	float HealthRegeneration;
 	UPROPERTY(Replicated)
-		float Armor;
+	float Armor;
 	float MagicResist;
 	UPROPERTY(Replicated)
-		float Mana;
+	float Mana;
 	UPROPERTY(Replicated)
-		float MaxMana;
+	float MaxMana;
 	bool IsSpellImmune;
 	bool IsAttackImmune;
 	UPROPERTY(Replicated, EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
@@ -88,6 +88,10 @@ class AAghsCloneCharacter : public ACharacter,
 	float vision_radius;
 	float attack_range;
 	float attack_damage;
+	float BaseAttackTime;
+	float InitialAttackSpeed;
+	float AttackSpeed;
+	double last_attack_time;
 
 
 public:
@@ -205,17 +209,41 @@ public:
 
 	bool AttackActor(AActor* in_target)
 	{
-		auto proj = GetWorld()->SpawnActor<AAttackProjectile>();
-		proj->SetActorLocation(GetActorLocation());
-		proj->SetTarget(in_target);
-		proj->SetShooter(this);
-		return true;
-
+		FDateTime t = FDateTime::UtcNow();
+		double ts = t.ToUnixTimestamp() + t.GetMillisecond() * 1.0 / 1000;
+		float attack_time = GetAttackTime();
+		double t_diff = ts - last_attack_time;
+		if (t_diff >= attack_time)
+		{
+			auto proj = GetWorld()->SpawnActor<AAttackProjectile>();
+			proj->SetActorLocation(GetActorLocation());
+			proj->SetTarget(in_target);
+			proj->SetShooter(this);
+			ResetAttackTimer(ts);
+			return true;
+		}
+		return false;
 	}
 
 	float GetAttackDamage() const
 	{
 		return attack_damage;
+	}
+
+	float GetAttackSpeed() const
+	{
+		return InitialAttackSpeed + AttackSpeed;
+	}
+
+	float GetAttackTime() const
+	{
+		float attack_time = BaseAttackTime / (GetAttackSpeed() * 0.01);
+		return attack_time;
+	}
+
+	void ResetAttackTimer(double in_time)
+	{
+		last_attack_time = in_time;
 	}
 
 	// END AUTO ATTACK IMPLEMENTATION
@@ -362,6 +390,9 @@ public:
 	void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override
 	{
 		Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+		DOREPLIFETIME(AAghsCloneCharacter, Health);
+		DOREPLIFETIME(AAghsCloneCharacter, MaxHealth);
+		DOREPLIFETIME(AAghsCloneCharacter, MaxMana);
 		DOREPLIFETIME(AAghsCloneCharacter, Mana);
 		DOREPLIFETIME(AAghsCloneCharacter, team);
 		DOREPLIFETIME(AAghsCloneCharacter, unit_owner);

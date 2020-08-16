@@ -45,11 +45,12 @@ void AVisionManager::Tick(float DeltaTime)
 	UGameplayStatics::GetAllActorsWithInterface(GetWorld(), UVisionInterface::StaticClass(), vision_actors);
 	TArray<AActor*> field_actors;
 	UGameplayStatics::GetAllActorsWithInterface(GetWorld(), UFieldActorInterface::StaticClass(), field_actors);
+	auto old_sets = team_vision_sets;
 	for (auto& k : team_vision_sets)
 	{
 		team_vision_sets[k.first].clear();
 	}
-	auto old_sets = team_vision_sets;
+	
 	for (auto& act : vision_actors)
 	{
 		auto aghs_unit = Cast<AAghsCloneCharacter>(act);
@@ -108,11 +109,13 @@ void AVisionManager::Tick(float DeltaTime)
 			{
 				if (GetGameTimeSinceCreation() > 2.0)
 				{
-					if (team_vision_sets[pc->GetTeam()].find(act) == team_vision_sets[pc->GetTeam()].end())
+					if (team_vision_sets[pc->GetTeam()].find(act) == team_vision_sets[pc->GetTeam()].end() &&
+						old_sets[pc->GetTeam()].find(act) != old_sets[pc->GetTeam()].end())
 					{
 						pc->SetLocalActorVisibility(act, false);
 					}
-					else
+					else if (team_vision_sets[pc->GetTeam()].find(act) != team_vision_sets[pc->GetTeam()].end() &&
+						old_sets[pc->GetTeam()].find(act) == old_sets[pc->GetTeam()].end())
 					{
 						pc->SetLocalActorVisibility(act, true);
 					}
