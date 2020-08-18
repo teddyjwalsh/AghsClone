@@ -37,12 +37,14 @@ bool UStoreWidget::Initialize()
     for (auto& si : shop_items)
     {
         auto l_button = WidgetTree->ConstructWidget<UMultiButton>(UMultiButton::StaticClass(), FName("Button%d",count));
+        
         l_button->SetVisibility(ESlateVisibility::Visible);
         buttons.Add(l_button, si.Key);
         //auto button_func = ::CreateStatic([&, l_button]() { this->OnItemClicked(l_button); });
         //click_delegate.AddLambda([&, l_button]() { this->OnItemClicked(l_button); });
         //click_delegate.CreateLambda([&, l_button]() { this->OnItemClicked(l_button); });
         TFunction<void(void)> test_func;
+        l_button->hover.AddDynamic(this, &UStoreWidget::OnItemHovered);
         l_button->load.AddDynamic(this, &UStoreWidget::OnItemClicked);
         //on_item_click = [&, l_button]() { this->OnItemClicked(l_button); };
         //l_button->OnClicked.AddDynamic(this, &UStoreWidget::OnItemClicked);
@@ -73,5 +75,18 @@ void UStoreWidget::OnItemClicked(UMultiButton* in_button)
     pc->RequestBuy(buttons[in_button]);
 
     UE_LOG(LogTemp, Warning, TEXT("Bought %d"), child_index)
+
+}
+
+void UStoreWidget::OnItemHovered(UMultiButton* in_button)
+{
+    auto child_index = grid->GetChildIndex(in_button);
+    auto pc = Cast<AAghsClonePlayerController>(GetWorld()->GetFirstLocalPlayerFromController()->GetPlayerController(GetWorld()));
+    if (pc->WasInputKeyJustPressed(EKeys::RightMouseButton))
+    {
+        pc->RequestBuy(buttons[in_button]);
+
+        UE_LOG(LogTemp, Warning, TEXT("Bought %d"), child_index)
+    }
 
 }
