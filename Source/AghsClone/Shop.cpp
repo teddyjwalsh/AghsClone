@@ -3,6 +3,8 @@
 
 #include "Shop.h"
 
+TArray<AShop*> AShop::shops = TArray<AShop*>();
+
 // Sets default values
 AShop::AShop()
 {

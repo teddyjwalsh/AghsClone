@@ -12,6 +12,8 @@ class AGHSCLONE_API UWalletComponent : public UActorComponent
 {
 	GENERATED_BODY()
 
+	float money;
+
 public:	
 	// Sets default values for this component's properties
 	UWalletComponent();
@@ -24,5 +26,24 @@ public:
 	// Called every frame
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
-		
+	virtual bool Debit(float amount)
+	{
+		if (money >= amount)
+		{
+			money -= amount;
+			return true;
+		}
+		return false;
+	}
+	
+	virtual bool Deposit(float amount)
+	{
+		money += amount;
+		return true;
+	}
+
+	virtual float Balance() const
+	{
+		return money;
+	}
 };
