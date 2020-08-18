@@ -41,6 +41,7 @@ AAghsCloneGameMode::AAghsCloneGameMode()
 void AAghsCloneGameMode::StartPlay()
 {
 	Super::StartPlay();
+	AShop::DestroyShops();
 
 	UNavigationSystemV1* NavSys = Cast<UNavigationSystemV1>(GetWorld()->GetNavigationSystem());
 	FNavLocation NavPoint;

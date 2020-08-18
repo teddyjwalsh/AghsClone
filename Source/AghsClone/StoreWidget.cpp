@@ -44,8 +44,7 @@ bool UStoreWidget::Initialize()
         //click_delegate.AddLambda([&, l_button]() { this->OnItemClicked(l_button); });
         //click_delegate.CreateLambda([&, l_button]() { this->OnItemClicked(l_button); });
         TFunction<void(void)> test_func;
-        l_button->hover.AddDynamic(this, &UStoreWidget::OnItemHovered);
-        l_button->load.AddDynamic(this, &UStoreWidget::OnItemClicked);
+        l_button->RightClick.AddDynamic(this, &UStoreWidget::OnItemClicked);
         //on_item_click = [&, l_button]() { this->OnItemClicked(l_button); };
         //l_button->OnClicked.AddDynamic(this, &UStoreWidget::OnItemClicked);
         //l_button->OnClicked.AddDynamic(this, test_func);
@@ -70,6 +69,7 @@ void UStoreWidget::NativeConstruct()
 
 void UStoreWidget::OnItemClicked(UMultiButton* in_button)
 {
+    
     auto child_index = grid->GetChildIndex(in_button);
     auto pc = Cast<AAghsClonePlayerController>(GetWorld()->GetFirstLocalPlayerFromController()->GetPlayerController(GetWorld()));
     pc->RequestBuy(buttons[in_button]);

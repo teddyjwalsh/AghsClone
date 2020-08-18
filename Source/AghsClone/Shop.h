@@ -117,6 +117,11 @@ public:
 		return shops.Last();
 	}
 
+	static void DestroyShops()
+	{
+		shops.Empty();
+	}
+
 	static AShop* GetClosestShop(AActor* in_actor, ItemId item_id = -1)
 	{
 		for (auto& s : shops)
