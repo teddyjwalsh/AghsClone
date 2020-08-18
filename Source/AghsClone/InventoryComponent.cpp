@@ -10,6 +10,11 @@ UInventoryComponent::UInventoryComponent()
 	// off to improve performance if you don't need them.
 	PrimaryComponentTick.bCanEverTick = true;
 	items.Reserve(slot_count);
+	
+	for (int i = 0; i < slot_count; ++i)
+	{
+		items.Add(nullptr);
+	}
 	// ...
 }
 

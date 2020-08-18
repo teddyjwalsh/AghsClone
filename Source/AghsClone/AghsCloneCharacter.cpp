@@ -40,8 +40,8 @@ AAghsCloneCharacter::AAghsCloneCharacter() :
 	BaseAttackTime(1.7)
 {
 	//AutoPossessAI = EAutoPossessAI::PlacedInWorldOrSpawned;
-	Health = MaxHealth;
-	Mana = MaxMana;
+	Health = 1.0;
+	Mana = 1.0;
 	attack_range = 600;
 	//bReplicates = true;
 	SetReplicates(true);
@@ -93,6 +93,9 @@ AAghsCloneCharacter::AAghsCloneCharacter() :
 	VisionLight->SetIntensity(20);
 
 	Inventory = CreateDefaultSubobject<UInventoryComponent>(TEXT("Inventory"));
+	Inventory->SetIsReplicated(true);
+	Wallet = CreateDefaultSubobject<UWalletComponent>(TEXT("Wallet"));
+	Wallet->SetIsReplicated(true);
 
 	// Create a decal in the world to show the cursor's location
 	CursorToWorld = CreateDefaultSubobject<UDecalComponent>("CursorToWorld");

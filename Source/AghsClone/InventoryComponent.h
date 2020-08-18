@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "Net/UnrealNetwork.h"
 #include "Components/ActorComponent.h"
 #include "Item.h"
 #include "InventoryComponent.generated.h"
@@ -14,7 +15,9 @@ class AGHSCLONE_API UInventoryComponent : public UActorComponent
 {
 	GENERATED_BODY()
 
+	UPROPERTY(Replicated)
 	TArray<AItem*> items;
+
 	const int32 slot_count = 6;
 
 public:	
@@ -59,6 +62,66 @@ public:
 		items[slot_number1] = items[slot_number2];
 		items[slot_number2] = temp_item;
 	}
+
+	float GetHealth() const
+	{
+		float health_sum = 0;
+		for (auto& it : items)
+		{
+			if (it != nullptr)
+			{
+				health_sum += it->Health;
+			}
+		}
+		return health_sum;
+	}
+
+	float GetMana() const
+	{
+		float mana_sum = 0;
+		for (auto& it : items)
+		{
+			if (it != nullptr)
+			{
+				mana_sum += it->Mana;
+			}
+		}
+		return mana_sum;
+	}
+
+	float GetAttackDamage() const
+	{
+		float mana_sum = 0;
+		for (auto& it : items)
+		{
+			if (it != nullptr)
+			{
+				mana_sum += it->AttackDamage;
+			}
+		}
+		return mana_sum;
+	}
+
+	float GetAttackSpeed() const
+	{
+		float mana_sum = 0;
+		for (auto& it : items)
+		{
+			if (it != nullptr)
+			{
+				mana_sum += it->AttackSpeed;
+			}
+		}
+		return mana_sum;
+	}
+
+	
+	void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override
+	{
+		Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+		DOREPLIFETIME(UInventoryComponent, items);
+	}
+	
 
 protected:
 	// Called when the game starts

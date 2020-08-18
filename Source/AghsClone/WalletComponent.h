@@ -12,7 +12,7 @@ class AGHSCLONE_API UWalletComponent : public UActorComponent
 {
 	GENERATED_BODY()
 
-	float money;
+	float money = 600;
 
 public:	
 	// Sets default values for this component's properties

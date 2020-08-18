@@ -71,10 +71,13 @@ public:
 	UFUNCTION(Reliable, Client)
 	void SetLocalActorVisibility(AActor* in_actor, bool is_visible);
 
+	UFUNCTION(Reliable, Server)
+	void RequestBuy(int32 item_id);
 
 protected:
 	/** True if the controlled character should navigate to the mouse cursor. */
 	uint32 bMoveToMouseCursor : 1;
+	bool shop_on = false;
 
 	// Begin PlayerController interface
 	virtual void PlayerTick(float DeltaTime) override;
@@ -113,6 +116,8 @@ protected:
 	template<int32 ability_num>
 	void OnAbilityRelease();
 
+	void OnShopPress();
+
 	void OnLeftClick();
 
 	void OnAbilityTrigger();
@@ -140,8 +145,7 @@ protected:
 		SetSelected(temp_units);
 	}
 
-	UFUNCTION( Reliable, Server)
-	void RequestBuy(int32 item_id);
+
 };
 
 

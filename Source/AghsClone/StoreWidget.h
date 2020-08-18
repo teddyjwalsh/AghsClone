@@ -8,6 +8,7 @@
 #include "Components/UniformGridPanel.h"
 #include "Components/UniformGridSlot.h"
 #include <functional>
+#include "Shop.h"
 #include "StoreWidget.generated.h"
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FLoadDelegate, UMultiButton*, in_button);
@@ -90,7 +91,8 @@ class AGHSCLONE_API UStoreWidget : public UUserWidget
 public:
     UMultiButton* button;
 	UUniformGridPanel* grid;
-	TArray<UMultiButton*> buttons;
+	//TArray<UMultiButton*> buttons;
+	TMap<UMultiButton*, ItemId> buttons;
 	virtual bool Initialize() override;
 
 	virtual void NativeConstruct() override;

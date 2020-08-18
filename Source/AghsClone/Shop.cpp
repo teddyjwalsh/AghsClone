@@ -26,4 +26,3 @@ void AShop::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 
 }
-

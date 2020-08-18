@@ -16,7 +16,9 @@
 #include "GameFramework/SpringArmComponent.h"
 #include "StoreWidget.h"
 #include "FieldActorInterface.h"
-//#include "WalletComponent.h"
+#include "WalletComponent.h"
+#include "InventoryComponent.h"
+#include "Shop.h"
 
 AAghsClonePlayerController::AAghsClonePlayerController()
 {
@@ -31,25 +33,7 @@ AAghsClonePlayerController::AAghsClonePlayerController()
 
 void AAghsClonePlayerController::BeginPlay()
 {
-	if (IsLocalController())
-	{
-		StoreWidgetClass = UStoreWidget::StaticClass();
-		StoreWidget = CreateWidget<UStoreWidget>(this, StoreWidgetClass);
-		//FInputModeGameAndUI Mode;
-		//Mode.SetLockMouseToViewportBehavior(EMouseLockMode::true);
-		//Mode.SetHideCursorDuringCapture(false);
-		//SetInputMode(Mode);
-		StoreWidget->AddToViewport(9999); // Z-order, this just makes it render on the very top.
-		//StoreWidget->SetAlignmentInViewport(FVector2D(0.1, 0.1));
-		//StoreWidget->SetPadding(FMargin(0.1,0.1,0,0));
-		//auto canvas_slot = Cast<UCanvasPanelSlot>(StoreWidget);
-		//canvas_slot->SetDesiredPosition(FVector2D(30, 30));
-		StoreWidget->SetPositionInViewport(FVector2D(40, 40));
-		//StoreWidget->SetDesiredSizeInViewport(FVector2D(400, 800));
-		FAnchors anchor(100,100,100,100);
-		StoreWidget->SetVisibility(ESlateVisibility::Visible);
-		//StoreWidget->SetAnchorsInViewport(anchor);
-	}
+	shop_on = false;
 }
 
 void AAghsClonePlayerController::AssignTeam_Implementation(int32 in_team)
@@ -181,7 +165,7 @@ void AAghsClonePlayerController::SetupInputComponent()
 	// set up gameplay key bindings
 	Super::SetupInputComponent();
 
-	InputComponent->BindAction("SetDestination", IE_Pressed, this, &AAghsClonePlayerController::OnSetDestinationPressed);
+	InputComponent->BindAction("SetDestination", IE_Pressed, this, &AAghsClonePlayerController::OnSetDestinationPressed); void OnShopPress();
 	InputComponent->BindAction("Trigger", IE_Pressed, this, &AAghsClonePlayerController::OnLeftClick);
 	InputComponent->BindAction("Trigger", IE_Released, this, &AAghsClonePlayerController::OnTriggerRelease);
 	InputComponent->BindAction("SetDestination", IE_Released, this, &AAghsClonePlayerController::OnSetDestinationReleased);
@@ -193,6 +177,7 @@ void AAghsClonePlayerController::SetupInputComponent()
 	InputComponent->BindAction("Ability2", IE_Released, this, &AAghsClonePlayerController::OnAbilityRelease<1>);
 	InputComponent->BindAction("Ability3", IE_Released, this, &AAghsClonePlayerController::OnAbilityRelease<2>);
 	InputComponent->BindAction("Ability4", IE_Released, this, &AAghsClonePlayerController::OnAbilityRelease<3>);
+	InputComponent->BindAction("ShopOpen", IE_Pressed, this, &AAghsClonePlayerController::OnShopPress);
 
 	// support touch devices 
 	InputComponent->BindTouch(EInputEvent::IE_Pressed, this, &AAghsClonePlayerController::MoveToTouchLocation);
@@ -362,6 +347,45 @@ void AAghsClonePlayerController::OnAbilityRelease()
 	
 }
 
+void AAghsClonePlayerController::OnShopPress()
+{
+	if (IsLocalController())
+	{
+		if (!shop_on)
+		{
+			StoreWidgetClass = UStoreWidget::StaticClass();
+			StoreWidget = CreateWidget<UStoreWidget>(this, StoreWidgetClass);
+			if (!StoreWidget)
+			{
+				shop_on = false;
+			}
+			else
+			{
+				//FInputModeGameAndUI Mode;
+				//Mode.SetLockMouseToViewportBehavior(EMouseLockMode::true);
+				//Mode.SetHideCursorDuringCapture(false);
+				//SetInputMode(Mode);
+				StoreWidget->AddToViewport(9999); // Z-order, this just makes it render on the very top.
+				//StoreWidget->SetAlignmentInViewport(FVector2D(0.1, 0.1));
+				//StoreWidget->SetPadding(FMargin(0.1,0.1,0,0));
+				//auto canvas_slot = Cast<UCanvasPanelSlot>(StoreWidget);
+				//canvas_slot->SetDesiredPosition(FVector2D(30, 30));
+				StoreWidget->SetPositionInViewport(FVector2D(40, 40));
+				//StoreWidget->SetDesiredSizeInViewport(FVector2D(400, 800));
+				FAnchors anchor(100, 100, 100, 100);
+				StoreWidget->SetVisibility(ESlateVisibility::Visible);
+				//StoreWidget->SetAnchorsInViewport(anchor);
+				shop_on = true;
+			}
+		}
+		else
+		{
+			StoreWidget->RemoveFromViewport();
+			shop_on = false;
+		}
+	}
+}
+
 void AAghsClonePlayerController::OnLeftClick()
 {
 	CleanSelected();
@@ -416,19 +440,17 @@ void AAghsClonePlayerController::OnTriggerRelease()
 
 void AAghsClonePlayerController::RequestBuy_Implementation(int32 item_id)
 {
-	/*
 	if (AUnitController* MyPawn = Cast<AUnitController>(GetPawn()))
 	{
-		IWalletInterface* wallet = Cast<IWalletInterface>(MyPawn);
-		auto inventory_comp = Cast<UInventoryComponent>(MyPawn->GetComponentByClass(UInventoryComponent::StaticClass()));
+		auto wallet = Cast<UWalletComponent>(MyPawn->GetPrimaryUnit()->GetComponentByClass(UWalletComponent::StaticClass()));
+		auto inventory_comp = Cast<UInventoryComponent>(MyPawn->GetPrimaryUnit()->GetComponentByClass(UInventoryComponent::StaticClass()));
 		auto Shop = AShop::GetClosestShop(MyPawn, item_id);
 		if (wallet && inventory_comp)
 		{
 			if (wallet->Debit(Shop->GetPrice(item_id)))
 			{
-				inventory_comp->InsertItem(Shop->CreateItem(item_id));
+				inventory_comp->InsertItem(Shop->BuyItem(item_id));
 			}
 		}
 	}
-	*/
 }

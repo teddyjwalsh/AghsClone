@@ -20,6 +20,8 @@
 #include "VisionInterface.h"
 #include "FieldActorInterface.h"
 #include "AttackProjectile.h"
+#include "WalletComponent.h"
+#include "InventoryComponent.h"
 #include "AghsCloneCharacter.generated.h"
 
 class CommonUnitStats
@@ -34,7 +36,7 @@ public:
 		IsAttackImmune(false),
 		MaxMana(100.0)
 	{ 
-		Health = MaxHealth; 
+		Health = 1.0; 
 		Mana = MaxMana;
 	}
 	UPROPERTY(Replicated)
@@ -145,17 +147,17 @@ public:
 	// HEALTH INTERFACE IMPLEMENTATION
 	virtual float GetHealth() const override
 	{
-		return Health;
+		return Health*GetMaxHealth();
 	}
 
 	virtual float GetDelayedHealth() const override
 	{
-		return Health;
+		return Health*GetMaxHealth();
 	}
 
 	virtual void SetHealth(float in_val) override
 	{
-		Health = std::min(GetMaxHealth(), std::max(0.0f, in_val));
+		Health = std::min(GetMaxHealth(), std::max(0.0f, in_val))*1.0/GetMaxHealth();
 		if (Health == 0)
 		{
 			Destroy();
@@ -179,19 +181,19 @@ public:
 
 	virtual float GetMaxHealth() const override
 	{
-		return MaxHealth;
+		return MaxHealth + Inventory->GetHealth();
 	}
 	// END HEALTH INTERFACE
 
 	// MANA INTERFACE IMPLEMENTATION
 	virtual float GetMana()
 	{
-		return Mana;
+		return Mana*GetMaxMana();
 	}
 
 	virtual void SetMana(float in_val)
 	{
-		Mana = std::min(GetMaxMana(), std::max(0.0f, in_val));
+		Mana = std::min(GetMaxMana(), std::max(0.0f, in_val))/GetMaxMana();
 	}
 
 	virtual void SetMaxMana(float in_val)
@@ -201,7 +203,7 @@ public:
 
 	virtual float GetMaxMana() const
 	{
-		return MaxMana;
+		return MaxMana + Inventory->GetMana();;
 	}
 	// END MANA INTERFACE
 
@@ -227,12 +229,12 @@ public:
 
 	float GetAttackDamage() const
 	{
-		return attack_damage;
+		return attack_damage + Inventory->GetAttackDamage();
 	}
 
 	float GetAttackSpeed() const
 	{
-		return InitialAttackSpeed + AttackSpeed;
+		return InitialAttackSpeed + AttackSpeed + Inventory->GetAttackSpeed();
 	}
 
 	float GetAttackTime() const
@@ -396,6 +398,7 @@ public:
 		DOREPLIFETIME(AAghsCloneCharacter, Mana);
 		DOREPLIFETIME(AAghsCloneCharacter, team);
 		DOREPLIFETIME(AAghsCloneCharacter, unit_owner);
+		DOREPLIFETIME(AAghsCloneCharacter, Inventory);
 	}
 
 	std::vector<UAbility*> Abilities;
@@ -418,8 +421,11 @@ private:
 	class UPointLightComponent* VisionLight;
 
 	/** A decal that projects to the cursor location. */
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
+	UPROPERTY( Replicated, VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
 	class UInventoryComponent* Inventory;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
+	class UWalletComponent* Wallet;
 	
 
 	//UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Replicated, meta = (AllowPrivateAccess = "true"))

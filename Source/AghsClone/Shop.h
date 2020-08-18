@@ -11,14 +11,20 @@
 
 typedef int32 ItemId;
 
+struct ShopItemSlot
+{
+	float price;
+	int32 stock = -1;
+	AItem* proto;
+};
+
 UCLASS()
 class AGHSCLONE_API AShop : public AActor
 {
 	GENERATED_BODY()
 
 	static TArray<AShop*> shops;
-	TArray<ItemId> items;
-	std::map<ItemId, int32> stock;
+	TMap<ItemId, ShopItemSlot> items;
 	float radius;
 
 	AShop();
@@ -29,20 +35,23 @@ public:
 
 	AItem* BuyItem(ItemId item)
 	{
-		int32 item_index;
-		if (items.Find(item, item_index))
+		if (items.Contains(item))
 		{
-			if (stock.find(item) == stock.end())
+			if (items[item].stock == -1)
 			{
-				auto new_item = GetWorld()->SpawnActor<AItem>();
+				FActorSpawnParameters act_par;
+				act_par.Template = items[item].proto;
+				auto new_item = GetWorld()->SpawnActor<AItem>(act_par);
 				return new_item;
 			}
 			else
 			{
-				if (stock[item] > 0)
+				if (items[item].stock > 0)
 				{
-					auto new_item = GetWorld()->SpawnActor<AItem>();
-					stock[item] -= 1;
+					FActorSpawnParameters act_par;
+					act_par.Template = items[item].proto;
+					auto new_item = GetWorld()->SpawnActor<AItem>(act_par);
+					items[item].stock -= 1;
 					return new_item;
 				}
 			}
@@ -52,25 +61,44 @@ public:
 
 	bool InStock(ItemId item, int32& stock_count)
 	{
-		int32 item_index;
-		if (items.Find(item, item_index))
+		if (items.Contains(item))
 		{
-			if (stock.find(item) == stock.end())
+			if (items[item].stock == -1)
 			{
 				stock_count = -1;
 				return true;
 			}
 			else
 			{
-				if (stock[item] > 0)
+				if (items[item].stock > 0)
 				{
-					stock_count = stock[item];
+					stock_count = items[item].stock;
 					return true;
 				}
 			}
 		}
 		stock_count = 0;
 		return false;
+	}
+
+	float GetPrice(ItemId in_item) const
+	{
+		return items[in_item].price;
+	}
+
+	bool AddItem(AItem* in_item, ItemId id, float price, int32 in_stock = -1)
+	{
+		ShopItemSlot new_slot;
+		new_slot.price = price;
+		new_slot.stock = in_stock;
+		new_slot.proto = in_item;
+		items.Add(id, new_slot);
+		return true;
+	}
+
+	const TMap<ItemId, ShopItemSlot>& GetItems()
+	{
+		return items;
 	}
 
 protected:
@@ -81,10 +109,9 @@ public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
-	static AShop* CreateShop(UWorld* in_world, const FVector& location, const TArray<ItemId>& in_items, float in_radius = 800)
+	static AShop* CreateShop(UWorld* in_world, const FVector& location, float in_radius = 800)
 	{
-		AShop* new_shop = in_world->SpawnActor<AShop>(location, FRotator());// (in_items, in_radius);
-		new_shop->items = in_items;
+		AShop* new_shop = in_world->SpawnActor<AShop>(location, FRotator());
 		new_shop->radius = in_radius;
 		shops.Add(new_shop);
 		return shops.Last();
@@ -96,6 +123,10 @@ public:
 		{
 			if ((in_actor->GetActorLocation() - s->GetActorLocation()).Size() < s->radius)
 			{
+				if (item_id == -1)
+				{
+					return s;
+				}
 				int32 item_stock;
 				if (s->InStock(item_id, item_stock))
 				{

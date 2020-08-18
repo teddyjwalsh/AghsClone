@@ -13,9 +13,11 @@ UCLASS(minimalapi)
 class AAghsCloneGameMode : public AGameModeBase
 {
 	GENERATED_BODY()
-
+	void StartPlay() override;
 public:
 	AAghsCloneGameMode();
+
+	
 
 	virtual void PostLogin(APlayerController * NewPlayer) override
 	{
