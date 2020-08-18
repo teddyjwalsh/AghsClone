@@ -22,6 +22,7 @@
 #include "Engine/World.h"
 #include "BallDropAbility.h"
 #include "ShockwaveAbility.h"
+#include "InventoryComponent.h"
 #include "AIController.h"
 
 AAghsCloneCharacter::AAghsCloneCharacter() :
@@ -90,7 +91,8 @@ AAghsCloneCharacter::AAghsCloneCharacter() :
 	VisionLight->bUseInverseSquaredFalloff = false;
 	VisionLight->SetAttenuationRadius(GetVisionRadius());
 	VisionLight->SetIntensity(20);
-	
+
+	Inventory = CreateDefaultSubobject<UInventoryComponent>(TEXT("Inventory"));
 
 	// Create a decal in the world to show the cursor's location
 	CursorToWorld = CreateDefaultSubobject<UDecalComponent>("CursorToWorld");

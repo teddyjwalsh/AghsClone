@@ -3,10 +3,12 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "Components/Button.h"
 #include "GameFramework/PlayerController.h"
 #include "AghsCloneCharacter.h"
 #include "UnitController.h"
 #include "Ability.h"
+#include "StoreWidget.h"
 #include "AghsClonePlayerController.generated.h"
 
 UCLASS()
@@ -17,6 +19,8 @@ class AAghsClonePlayerController : public APlayerController
 	float mx, my;
 	bool select_box_on;
 	
+	
+
 	FVector2D select_box_start;
 	FVector2D select_box_end;
 	UAbility* targeted_ability;
@@ -25,6 +29,10 @@ class AAghsClonePlayerController : public APlayerController
 	TArray<AAghsCloneCharacter*> temp_units;
 
 public:
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "UMG")
+	TSubclassOf<class UStoreWidget> StoreWidgetClass;
+	UStoreWidget* StoreWidget;
+
 	int32 team;
 
 	AAghsClonePlayerController();
@@ -70,6 +78,7 @@ protected:
 
 	// Begin PlayerController interface
 	virtual void PlayerTick(float DeltaTime) override;
+	virtual void BeginPlay() override;
 	virtual void SetupInputComponent() override;
 	// End PlayerController interface
 
@@ -113,6 +122,8 @@ protected:
 
 	void OnTriggerRelease();
 
+	void CreateStoreWidget();
+
 	void CleanSelected()
 	{
 		return;
@@ -128,6 +139,9 @@ protected:
 		temp_units.Remove(nullptr);
 		SetSelected(temp_units);
 	}
+
+	UFUNCTION( Reliable, Server)
+	void RequestBuy(int32 item_id);
 };
 
 

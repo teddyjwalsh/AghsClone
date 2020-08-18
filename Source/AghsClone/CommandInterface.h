@@ -34,6 +34,8 @@ public:
 	FVector location;
 	UPROPERTY(BlueprintReadWrite)
 	AActor* target;
+	UPROPERTY(BlueprintReadWrite)
+	int32 item_id;
 
 	inline bool operator!=(const FCommand& rhs) const
 	{

@@ -8,20 +8,48 @@
 #include "Components/CapsuleComponent.h"
 #include "Components/PointLightComponent.h"
 #include "HeadMountedDisplayFunctionLibrary.h"
+#include "Components/CanvasPanelSlot.h"
 #include "AghsCloneCharacter.h"
 #include "UnitController.h"
 #include "Engine/World.h"
 #include "GameFramework/HUD.h"
 #include "GameFramework/SpringArmComponent.h"
+#include "StoreWidget.h"
 #include "FieldActorInterface.h"
+//#include "WalletComponent.h"
 
 AAghsClonePlayerController::AAghsClonePlayerController()
 {
 	bShowMouseCursor = true;
 	DefaultMouseCursor = EMouseCursor::Crosshairs;
-	
+	ClickEventKeys.Add(EKeys::RightMouseButton);
 	//bReplicates = true;
 	//SetReplicateMovement(true);
+
+
+}
+
+void AAghsClonePlayerController::BeginPlay()
+{
+	if (IsLocalController())
+	{
+		StoreWidgetClass = UStoreWidget::StaticClass();
+		StoreWidget = CreateWidget<UStoreWidget>(this, StoreWidgetClass);
+		//FInputModeGameAndUI Mode;
+		//Mode.SetLockMouseToViewportBehavior(EMouseLockMode::true);
+		//Mode.SetHideCursorDuringCapture(false);
+		//SetInputMode(Mode);
+		StoreWidget->AddToViewport(9999); // Z-order, this just makes it render on the very top.
+		//StoreWidget->SetAlignmentInViewport(FVector2D(0.1, 0.1));
+		//StoreWidget->SetPadding(FMargin(0.1,0.1,0,0));
+		//auto canvas_slot = Cast<UCanvasPanelSlot>(StoreWidget);
+		//canvas_slot->SetDesiredPosition(FVector2D(30, 30));
+		StoreWidget->SetPositionInViewport(FVector2D(40, 40));
+		//StoreWidget->SetDesiredSizeInViewport(FVector2D(400, 800));
+		FAnchors anchor(100,100,100,100);
+		StoreWidget->SetVisibility(ESlateVisibility::Visible);
+		//StoreWidget->SetAnchorsInViewport(anchor);
+	}
 }
 
 void AAghsClonePlayerController::AssignTeam_Implementation(int32 in_team)
@@ -259,8 +287,12 @@ void AAghsClonePlayerController::CommandAttack_Implementation(const FCommand& in
 
 void AAghsClonePlayerController::OnSetDestinationPressed()
 {
+	bool hud_clicked = false;
 	// set flag to keep updating destination until released
-	bMoveToMouseCursor = true;
+	if (!hud_clicked)
+	{
+		bMoveToMouseCursor = true;
+	}
 
 	UE_LOG(LogTemp, Warning, TEXT("RIGHT CLOCK"));
 }
@@ -333,6 +365,7 @@ void AAghsClonePlayerController::OnAbilityRelease()
 void AAghsClonePlayerController::OnLeftClick()
 {
 	CleanSelected();
+
 	if (!targeted_ability)
 	{
 		select_box_on = true;
@@ -379,4 +412,23 @@ void AAghsClonePlayerController::OnTrigger_Implementation(FHitResult Hit, int32 
 void AAghsClonePlayerController::OnTriggerRelease()
 {
 	select_box_on = false;
+}
+
+void AAghsClonePlayerController::RequestBuy_Implementation(int32 item_id)
+{
+	/*
+	if (AUnitController* MyPawn = Cast<AUnitController>(GetPawn()))
+	{
+		IWalletInterface* wallet = Cast<IWalletInterface>(MyPawn);
+		auto inventory_comp = Cast<UInventoryComponent>(MyPawn->GetComponentByClass(UInventoryComponent::StaticClass()));
+		auto Shop = AShop::GetClosestShop(MyPawn, item_id);
+		if (wallet && inventory_comp)
+		{
+			if (wallet->Debit(Shop->GetPrice(item_id)))
+			{
+				inventory_comp->InsertItem(Shop->CreateItem(item_id));
+			}
+		}
+	}
+	*/
 }

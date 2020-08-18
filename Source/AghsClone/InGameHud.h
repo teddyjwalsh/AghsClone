@@ -12,6 +12,9 @@
 #include "Blueprint/UserWidget.h"
 #include "AghsCloneCharacter.h"
 #include "AghsClonePlayerController.h"
+#include "InventoryComponent.h"
+#include "Components/Button.h"
+#include "StoreWidget.h"
 #include "InGameHud.generated.h"
 
 /**
@@ -23,16 +26,29 @@ class AGHSCLONE_API AInGameHud : public AHUD
 	GENERATED_BODY()
 
 	TArray<AAghsCloneCharacter*> selected;
+	TArray<UButton*> buttons;
 
 public:
-	//AInGameHud()
-	//{
+	AInGameHud()
+	{
 		
-	//}
+	}
+
+	virtual void BeginPlay() override
+	{
+		//auto UserInterface = CreateWidget<UStoreWidget>(this, UStoreWidget::StaticClass());
+		//FInputModeGameAndUI Mode;
+		//Mode.SetLockMouseToViewportBehavior(EMouseLockMode::true);
+		//Mode.SetHideCursorDuringCapture(false);
+		//SetInputMode(Mode);
+		//UserInterface->AddToViewport(9999); // Z-order, this just makes it render on the very top.
+	}
 
 	/** Primary draw call for the HUD */
 	virtual void DrawHUD() override
 	{
+		EnableInput(GetWorld()->GetFirstPlayerController());
+		
 		Super::DrawHUD();
 		auto pc = Cast<AAghsClonePlayerController>(GetWorld()->GetFirstPlayerController());
 
@@ -50,10 +66,12 @@ public:
 			health_text.Position = FVector2D(100, 100);
 			Canvas->DrawItem(health_text);
 		}
-
+		
 		if (pc != nullptr)
 		{
-			
+			float mx, my;
+			pc->GetMousePosition(mx, my);
+			UpdateAndDispatchHitBoxClickEvents(FVector2D(mx, my), EInputEvent::IE_Pressed);
 			// Health bars
 			int32 vx, vy;
 			pc->GetViewportSize(vx, vy);
@@ -102,10 +120,26 @@ public:
 					{
 						DrawManaBar(char_mana_interface, FVector2D(x_center, vy - 15));
 					}
+					auto inventory_comp = Cast<UInventoryComponent>(sc->GetComponentByClass(UInventoryComponent::StaticClass()));
+					if (inventory_comp)
+					{
+						//DrawInventory(inventory_comp, FVector2D(vx - (3 *(item_slot_width) + 2 * (between_space)), vy - (2 * (item_slot_height) + between_space)));
+					}
+
 					break;
 				}
 			}
 			
+			if (1)
+			{
+				TArray<AItem*> store_items;
+				for (int i = 0; i < 22; ++i)
+				{
+					store_items.Add(nullptr);
+				}
+				//DrawStore(store_items, FVector2D(0,0));
+			}
+
 			if (pc->SelectBoxOn())
 			{
 				pc->GetSelectBox(box_start, box_end);
@@ -201,6 +235,88 @@ public:
 		Canvas->DrawItem(health_text);
 	}
 
+	void DrawInventory(UInventoryComponent* inventory, FVector2D screen_loc)
+	{
+		FLinearColor tile_color(0.2, 0.2, 0.2);
+
+		TArray<FCanvasTileItem> tile_items;
+
+		FVector2D offset(0, 0);
+		tile_items.Add(FCanvasTileItem(screen_loc + offset, FVector2D(item_slot_width, item_slot_height), tile_color));
+		offset.X += item_slot_width + between_space;
+		tile_items.Add(FCanvasTileItem(screen_loc + offset, FVector2D(item_slot_width, item_slot_height), tile_color));
+		offset.X += item_slot_width + between_space;
+		tile_items.Add(FCanvasTileItem(screen_loc + offset, FVector2D(item_slot_width, item_slot_height), tile_color));
+		offset.X = 0;
+		offset.Y += item_slot_height + between_space;
+		tile_items.Add(FCanvasTileItem(screen_loc + offset, FVector2D(item_slot_width, item_slot_height), tile_color));
+		offset.X += item_slot_width + between_space;
+		tile_items.Add(FCanvasTileItem(screen_loc + offset, FVector2D(item_slot_width, item_slot_height), tile_color));
+		offset.X += item_slot_width + between_space;
+		tile_items.Add(FCanvasTileItem(screen_loc + offset, FVector2D(item_slot_width, item_slot_height), tile_color));
+
+		for (auto& ti : tile_items)
+		{
+			Canvas->DrawItem(ti);
+		}
+	}
+
+	void DrawStore(const TArray<AItem*>& store_items, FVector2D screen_loc)
+	{
+		static bool hitboxes_added = false;
+		bShowHitBoxDebugInfo = true;
+		int32 num_columns = 6;
+		int32 col_offset = 0;
+
+		int32 full_width = num_columns * item_slot_width + between_space * (num_columns - 1);
+
+		FLinearColor tile_color(0.2, 0.2, 0.2);
+		
+		TArray<FCanvasTileItem> tile_items;
+		FVector2D offset(0, 0);
+		int count = 0;
+		for (auto& si : store_items)
+		{
+			count += 1;
+			if (col_offset >= num_columns)
+			{
+				col_offset = 0;
+				offset.X = 0;
+				offset.Y += item_slot_height + between_space;
+			}
+
+			tile_items.Add(FCanvasTileItem(screen_loc + offset, FVector2D(item_slot_width, item_slot_height), tile_color));
+			if (!hitboxes_added)
+			{
+				AddHitBox(screen_loc + offset, FVector2D(item_slot_width, item_slot_height), FName("TileHitBox%d", count), true, 0);
+				hitboxes_added = true;
+			}
+			offset.X += item_slot_width + between_space;
+			col_offset += 1;
+		}
+		float full_height = offset.Y;
+
+		FCanvasTileItem background(FCanvasTileItem(screen_loc, FVector2D(full_width, full_height), FLinearColor(0.1,0.1,0.1)));
+		
+		for (auto& ti : tile_items)
+		{
+			Canvas->DrawItem(ti);
+		}
+		RenderHitBoxes(Canvas->Canvas);
+		for (auto& hbh : HitBoxHits)
+		{
+			FString temp_str = hbh->GetName().ToString();
+			UE_LOG(LogTemp, Warning, TEXT("HITBOX %s"), *temp_str);
+		}
+	}
+
+	void NotifyHitBoxBeginCursorOver
+	(const FName BoxName) override
+	{
+		FString box_name;
+		BoxName.ToString(box_name);
+		UE_LOG(LogTemp, Warning, TEXT("%s"), *box_name);
+	}
 
 	//virtual void BeginPlay() override
 	//{
@@ -212,6 +328,9 @@ private:
 	bool select_was_on;
 	FVector2D box_loc, box_size;
 	FVector2D box_start, box_end;
+	float item_slot_width = 25;
+	float item_slot_height = 25;
+	float between_space = 2;
 	/** Crosshair asset pointer */
 	//class UTexture2D* CrosshairTex;
 
