@@ -123,7 +123,7 @@ public:
 			{
 				if (it->bOnHit)
 				{
-					it->OnAttackHit(damage, unit);
+					it->OnHit(damage, unit);
 				}
 			}
         }

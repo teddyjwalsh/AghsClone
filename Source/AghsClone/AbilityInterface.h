@@ -64,14 +64,14 @@ public:
 			OnActivation();
 		}
 	}
-	void OnUnitActivationMeta(FVector target)
+	void OnUnitActivationMeta(AActor* target)
 	{
 		if (CostMana())
 		{
 			OnUnitActivation(target);
 		}
 	}
-	void OnGroundActivationMeta(FVector target)
+	void OnGroundActivationMeta(const FVector& target)
 	{
 		if (CostMana())
 		{
@@ -80,9 +80,9 @@ public:
 	}
     virtual float GetManaCost() const = 0;
 	virtual void OnActivation() { UE_LOG(LogTemp, Warning, TEXT("Non-targeted activation")); }
-	virtual void OnUnitActivation(FVector target) { UE_LOG(LogTemp, Warning, TEXT("Unit-targeted activation")); }
+	virtual void OnUnitActivation(AActor* target) { UE_LOG(LogTemp, Warning, TEXT("Unit-targeted activation")); }
 	virtual void OnHit(DamageInstance& damage, AActor* unit) { UE_LOG(LogTemp, Warning, TEXT("OnHit activation")); }
-	virtual void OnGroundActivation(FVector target) 
+	virtual void OnGroundActivation(const FVector& target) 
 	{ 
 		UE_LOG(LogTemp, Warning, TEXT("Ground-targeted activation, %f, %f"), target.X, target.Y); 
 	}

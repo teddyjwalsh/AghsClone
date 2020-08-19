@@ -7,11 +7,13 @@
 #include "Net/UnrealNetwork.h"
 
 #include "HealthInterface.h"
+#include "AbilityInterface.h"
 
 #include "Item.generated.h"
 
 UCLASS()
-class AGHSCLONE_API AItem : public AActor
+class AGHSCLONE_API AItem : public AActor,
+    public IAbilityInterface
 {
 	GENERATED_BODY()
 
@@ -60,15 +62,15 @@ public:
     {
     }
 
-    virtual void OnAttackHit(DamageInstance& damage, AActor* unit_attacked)
+    virtual void OnHit(DamageInstance& damage, AActor* unit_attacked) override
     {
     }
 
-    virtual void OnActivation()
+    virtual void OnActivation() override
     {
     }
 
-    virtual void OnGroundActivation(FVector ground_target)
+    virtual void OnGroundActivation(const FVector& ground_target) override
     {
     }
 
@@ -76,8 +78,13 @@ public:
     {
     }
 
-    virtual void OnUnitActivation(AActor* unit)
+    virtual void OnUnitActivation(AActor* unit) override
     {
+    }
+
+    virtual float GetManaCost() const override
+    {
+        return ManaCost;
     }
 
 	class USphereComponent* bounds;
@@ -98,6 +105,8 @@ public:
 	UPROPERTY(Replicated)
     bool bOnHit;
     
+	UPROPERTY(Replicated)
+	float ManaCost;
 	UPROPERTY(Replicated)
 	float Health;
 	UPROPERTY(Replicated)
