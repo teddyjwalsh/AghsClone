@@ -139,6 +139,11 @@ public:
     {
         return Cast<IAbilityInterface>(items[inventory_index]);
     }
+
+	TArray<AItem*>& GetItems()
+	{
+		return items;
+	}
 	
 
 protected:

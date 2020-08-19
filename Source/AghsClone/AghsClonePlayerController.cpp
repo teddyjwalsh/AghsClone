@@ -81,7 +81,6 @@ void AAghsClonePlayerController::SetLocalActorVisibility_Implementation(AActor* 
 void AAghsClonePlayerController::PlayerTick(float DeltaTime)
 {
 	Super::PlayerTick(DeltaTime);
-	int32 wx, wy;
 
 	GetMousePosition(mx, my);
 	GetViewportSize(wx, wy);
@@ -110,6 +109,10 @@ void AAghsClonePlayerController::PlayerTick(float DeltaTime)
 	AUnitController* MyPawn = Cast<AUnitController>(GetPawn());
 	if (MyPawn != nullptr)
 	{
+		if (InventoryWidget)
+		{
+			InventoryWidget->DrawInventory();
+		}
 		auto cb = MyPawn->GetCameraBoom();
 		if (abs(mx - wx) <= 20)
 		{
@@ -158,6 +161,25 @@ void AAghsClonePlayerController::SetSelected(const TArray<AAghsCloneCharacter*>&
 		if (!GetWorld()->IsServer())
 		{
 			SetSelectedServer(selected_units);
+		}
+
+		if (IsLocalController())
+		{
+			InventoryWidgetClass = UInventoryWidget::StaticClass();
+			InventoryWidget = CreateWidget<UInventoryWidget>(this, InventoryWidgetClass);
+			
+			if (!InventoryWidget)
+			{
+			}
+			else
+			{
+				InventoryWidget->SetItems();
+				InventoryWidget->DrawInventory();
+				InventoryWidget->AddToViewport(9999); // Z-order, this just makes it render on the very top.
+				InventoryWidget->SetPositionInViewport(FVector2D(wx - 120, wy - 100));
+				FAnchors anchor(100, 100, 100, 100);
+				InventoryWidget->SetVisibility(ESlateVisibility::Visible);
+			}
 		}
 	}
 }

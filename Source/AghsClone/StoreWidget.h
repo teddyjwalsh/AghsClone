@@ -12,8 +12,10 @@
 #include <functional>
 #include "Components/ButtonSlot.h"
 #include "Blueprint/WidgetTree.h"
-#include "Shop.h"
 #include "InputCoreTypes.h"
+
+#include "Shop.h"
+#include "InventoryComponent.h"
 
 #include "StoreWidget.generated.h"
 
@@ -114,6 +116,7 @@ public:
 	UUniformGridPanel* grid;
 	//TArray<UMultiButton*> buttons;
 	TMap<UMultiButton*, ItemId> buttons;
+
 	virtual bool Initialize() override;
 
 	virtual void NativeConstruct() override;
@@ -126,3 +129,33 @@ public:
 
 	bool GridIsHovered() const;
 };
+
+/**
+ * 
+ */
+UCLASS()
+class AGHSCLONE_API UInventoryWidget : public UUserWidget
+{
+	GENERATED_BODY()
+public:
+	UMultiButton* button;
+	UUniformGridPanel* grid;
+	//TArray<UMultiButton*> buttons;
+	TMap<UMultiButton*, AItem*> buttons;
+    UInventoryComponent* current_inventory = nullptr;
+	virtual bool Initialize() override;
+    bool DrawInventory();
+
+	virtual void NativeConstruct() override;
+
+	UFUNCTION()
+	void OnItemClicked(UMultiButton* in_button);
+
+	UFUNCTION()
+	void OnItemHovered(UMultiButton* in_button);
+
+	void SetItems();
+
+	bool GridIsHovered() const;
+};
+

@@ -19,6 +19,7 @@ class AAghsClonePlayerController : public APlayerController
 	GENERATED_BODY()
 
 	float mx, my;
+	int32 wx, wy;
 	bool select_box_on;
 	
 	
@@ -33,7 +34,9 @@ class AAghsClonePlayerController : public APlayerController
 public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "UMG")
 	TSubclassOf<class UStoreWidget> StoreWidgetClass;
+	TSubclassOf<class UInventoryWidget> InventoryWidgetClass;
 	UStoreWidget* StoreWidget;
+	UInventoryWidget* InventoryWidget;
 
 	int32 team;
 
@@ -131,6 +134,8 @@ protected:
 	void OnTriggerRelease();
 
 	void CreateStoreWidget();
+
+	void CreateInventoryWidget();
 
 	void CleanSelected()
 	{
