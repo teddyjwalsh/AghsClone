@@ -6,10 +6,12 @@
 #include "Blueprint/UserWidget.h"
 #include "Components/Button.h"
 #include "Components/Border.h"
+#include "Components/Image.h"
 #include "Components/UniformGridPanel.h"
 #include "Components/UniformGridSlot.h"
 #include <functional>
 #include "Components/ButtonSlot.h"
+#include "Blueprint/WidgetTree.h"
 #include "Shop.h"
 #include "InputCoreTypes.h"
 
@@ -30,11 +32,15 @@ class AGHSCLONE_API UMultiButton : public UBorder
 	UPROPERTY(EditAnywhere, Category = Events, meta = (IsBindableEvent = "True"))
 	FOnPointerEvent OnLeftMouseButtonDownEvent;
 
+	UImage* image;
+
 public:
 	UMultiButton()
 	{
 		OnRightMouseButtonDownEvent.BindUFunction(this, "OnRightClick");
 		OnLeftMouseButtonDownEvent.BindUFunction(this, "OnLeftClick");
+		//auto image_widget = WidgetTree->ConstructWidget<UImage>(UImage::StaticClass(), "Grid");
+		//SetBrushColor(FLinearColor(1, 0, 0));
 	}
 
     UPROPERTY()

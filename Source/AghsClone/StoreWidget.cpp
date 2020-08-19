@@ -18,7 +18,8 @@ bool UStoreWidget::Initialize()
         return false;
     }
     AShop* shop = AShop::GetClosestShop(buyer);
-    int32 col_count = 5;
+    int32 max_col_count = 5;
+    int32 col_count = 0;
     int32 item_count = 22;
     Super::Initialize();
     //button = CreateDefaultSubobject<UButton>("Button");
@@ -27,8 +28,10 @@ bool UStoreWidget::Initialize()
     SetVisibility(ESlateVisibility::Visible);
     WidgetTree->RootWidget = grid;
     grid->SetIsEnabled(true);
-    grid->SetMinDesiredSlotHeight(20);
-    grid->SetMinDesiredSlotWidth(20);
+    int32 el_height = 80;
+    int32 el_width = 80;
+    grid->SetMinDesiredSlotHeight(el_height);
+    grid->SetMinDesiredSlotWidth(el_width);
     grid->SetSlotPadding(FMargin(5, 5));
     
     //button->SetRenderScale(FVector2D(10, 10));
@@ -50,13 +53,15 @@ bool UStoreWidget::Initialize()
         //on_item_click = [&, l_button]() { this->OnItemClicked(l_button); };
         //l_button->OnClicked.AddDynamic(this, &UStoreWidget::OnItemClicked);
         //l_button->OnClicked.AddDynamic(this, test_func);
-        auto slot = grid->AddChildToUniformGrid(l_button, count / col_count, count % col_count);
+        auto slot = grid->AddChildToUniformGrid(l_button, count / max_col_count, count % max_col_count);
+        l_button->SetBrushFromTexture(si.Value.proto->GetMaterial());
         slot->SetVerticalAlignment(EVerticalAlignment::VAlign_Fill);
         slot->SetHorizontalAlignment(EHorizontalAlignment::HAlign_Fill);
-        row_count = count / col_count + 1;
         count += 1;
+        col_count = std::min(count, max_col_count);
+        row_count = count / max_col_count + 1;
     }
-    SetDesiredSizeInViewport(FVector2D(400, row_count * 400.0 / col_count));
+    SetDesiredSizeInViewport(FVector2D(el_width*col_count, el_height*row_count));
     SetVisibility(ESlateVisibility::Visible);
     return true;
 }

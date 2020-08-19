@@ -51,10 +51,13 @@ void AAghsCloneGameMode::StartPlay()
 	auto new_item = GetWorld()->SpawnActor<AItem>();
 	new_item->Health = 125;
 	new_item->Mana = 200;
+	new_item->SetMaterial("kotlguyp");
 	shop->AddItem(new_item, 1, 500);
 
 	new_item = GetWorld()->SpawnActor<AItem>();
 	new_item->AttackSpeed = 100;
 	new_item->AttackDamage = 50;
+	new_item->SetMaterial("kotlguyp");
 	shop->AddItem(new_item, 2, 200);
+
 }

@@ -5,13 +5,20 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
 #include "Net/UnrealNetwork.h"
+
+#include "HealthInterface.h"
+
 #include "Item.generated.h"
 
 UCLASS()
 class AGHSCLONE_API AItem : public AActor
 {
 	GENERATED_BODY()
-	
+
+	static TMap<FString, UTexture2D*> materials;
+	static TMap<FString, int32> materials2;
+	static bool materials_loaded;
+
 public:	
 	// Sets default values for this actor's properties
 	AItem();
@@ -28,14 +35,67 @@ protected:
 		DOREPLIFETIME(AItem, Mana);
 		DOREPLIFETIME(AItem, AttackDamage);
 		DOREPLIFETIME(AItem, Armor);
+		DOREPLIFETIME(AItem, MyMat);
 	}
 
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
+	void SetMaterial(FString mat_name)
+	{
+		MyMat = materials[mat_name];
+	}
+
+	UTexture2D* GetMaterial()
+	{
+		return MyMat;
+	}
+
+    virtual void OnDamage(DamageInstance& damage)
+    {
+    }
+
+    virtual void OnAttacked(DamageInstance& damage)
+    {
+    }
+
+    virtual void OnAttackHit(DamageInstance& damage, AActor* unit_attacked)
+    {
+    }
+
+    virtual void OnActivation()
+    {
+    }
+
+    virtual void OnGroundActivation(FVector ground_target)
+    {
+    }
+
+    virtual void OnToggle()
+    {
+    }
+
+    virtual void OnUnitActivation(AActor* unit)
+    {
+    }
+
 	class USphereComponent* bounds;
 
+
+	UPROPERTY( Replicated )
+	UTexture2D* MyMat;
+
+
+	UPROPERTY(Replicated)
+    bool bActive;
+	UPROPERTY(Replicated)
+    bool bToggleable;
+	UPROPERTY(Replicated)
+    bool bUnitTargeted;
+	UPROPERTY(Replicated)
+    bool bGroundTargeted;
+    
 	UPROPERTY(Replicated)
 	float Health;
 	UPROPERTY(Replicated)

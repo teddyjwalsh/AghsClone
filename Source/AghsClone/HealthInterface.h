@@ -13,6 +13,13 @@ enum DamageType
     MagicDamage
 };
 
+struct DamageInstance
+{
+    float value;
+    DamageType damage_type;
+    bool is_attack;
+};
+
 // This class does not need to be modified.
 UINTERFACE(MinimalAPI)
 class UHealthInterface : public UInterface
