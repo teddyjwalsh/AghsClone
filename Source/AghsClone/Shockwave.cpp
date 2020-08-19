@@ -54,7 +54,11 @@ void AShockwave::Tick(float DeltaTime)
 					auto health_comp = Cast<IHealthInterface>(act);
 					if (health_comp)
 					{
-						health_comp->ApplyDamage(20, MagicDamage);
+                        DamageInstance shock_damage;
+                        shock_damage.value = 20;
+                        shock_damage.damage_type = MagicDamage;
+                        shock_damage.is_attack = false;
+						health_comp->ApplyDamage(shock_damage);
 						hit.insert(act->GetUniqueID());
 						UE_LOG(LogTemp, Warning, TEXT("SHOCK HIT CHARACTER: %f"), health_comp->GetHealth());
 					}
