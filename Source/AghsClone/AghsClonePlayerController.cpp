@@ -189,6 +189,18 @@ void AAghsClonePlayerController::SetupInputComponent()
 	InputComponent->BindAction("Ability2", IE_Released, this, &AAghsClonePlayerController::OnAbilityRelease<1>);
 	InputComponent->BindAction("Ability3", IE_Released, this, &AAghsClonePlayerController::OnAbilityRelease<2>);
 	InputComponent->BindAction("Ability4", IE_Released, this, &AAghsClonePlayerController::OnAbilityRelease<3>);
+	InputComponent->BindAction("Item1",IE_Pressed, this, &AAghsClonePlayerController::OnAbilityPress<4>);
+	InputComponent->BindAction("Item2",IE_Pressed, this, &AAghsClonePlayerController::OnAbilityPress<5>);
+	InputComponent->BindAction("Item3",IE_Pressed, this, &AAghsClonePlayerController::OnAbilityPress<6>);
+	InputComponent->BindAction("Item4",IE_Pressed, this, &AAghsClonePlayerController::OnAbilityPress<7>);
+	InputComponent->BindAction("Item5",IE_Pressed, this, &AAghsClonePlayerController::OnAbilityPress<8>);
+	InputComponent->BindAction("Item6",IE_Pressed, this, &AAghsClonePlayerController::OnAbilityPress<9>);
+	InputComponent->BindAction("Item1",IE_Released, this, &AAghsClonePlayerController::OnAbilityRelease<4>);
+	InputComponent->BindAction("Item2",IE_Released, this, &AAghsClonePlayerController::OnAbilityRelease<5>);
+	InputComponent->BindAction("Item3",IE_Released, this, &AAghsClonePlayerController::OnAbilityRelease<6>);
+	InputComponent->BindAction("Item4",IE_Released, this, &AAghsClonePlayerController::OnAbilityRelease<7>);
+	InputComponent->BindAction("Item5",IE_Released, this, &AAghsClonePlayerController::OnAbilityRelease<8>);
+	InputComponent->BindAction("Item6",IE_Released, this, &AAghsClonePlayerController::OnAbilityRelease<9>);
 	InputComponent->BindAction("ShopOpen", IE_Pressed, this, &AAghsClonePlayerController::OnShopPress);
 
 	// support touch devices 
