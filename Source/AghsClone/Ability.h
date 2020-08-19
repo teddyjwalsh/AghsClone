@@ -6,11 +6,13 @@
 #include "Components/ActorComponent.h"
 #include "ManaInterface.h"
 #include "HealthInterface.h"
+#include "AbilityInterface.h"
 #include "Ability.generated.h"
 
 
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
-class AGHSCLONE_API UAbility : public UActorComponent
+class AGHSCLONE_API UAbility : public UActorComponent,
+    public IAbilityInterface
 {
 	GENERATED_BODY()
 
@@ -36,47 +38,14 @@ public:
 
 	// Called every frame
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
-	
-	bool CostMana()
-	{
-		bool retval = false;
-		auto mi = Cast<IManaInterface>(GetOwner());
-		if (mi->GetMana() >= ManaCost)
-		{
-			mi->AddToMana(-ManaCost);
-			retval = true;
-		}
-		else
-		{
-			retval = false;
-		}
-		return retval;
-	}
-	void OnActivationMeta() 
-	{ 
-		if (CostMana()) 
-		{ 
-			OnActivation();
-		}
-	}
-	void OnUnitActivationMeta(FVector target)
-	{
-		if (CostMana())
-		{
-			OnUnitActivation(target);
-		}
-	}
-	void OnGroundActivationMeta(FVector target)
-	{
-		if (CostMana())
-		{
-			OnGroundActivation(target);
-		}
-	}
-	virtual void OnActivation() { UE_LOG(LogTemp, Warning, TEXT("Non-targeted activation")); }
-	virtual void OnUnitActivation(FVector target) { UE_LOG(LogTemp, Warning, TEXT("Unit-targeted activation")); }
-	virtual void OnHit(DamageInstance& damage, AActor* unit) { UE_LOG(LogTemp, Warning, TEXT("OnHit activation")); }
-	virtual void OnGroundActivation(FVector target) 
+	virtual float GetManaCost() const override 
+    {
+        return ManaCost;
+    }
+	virtual void OnActivation() override { UE_LOG(LogTemp, Warning, TEXT("Non-targeted activation")); }
+	virtual void OnUnitActivation(FVector target) override { UE_LOG(LogTemp, Warning, TEXT("Unit-targeted activation")); }
+	virtual void OnHit(DamageInstance& damage, AActor* unit) override { UE_LOG(LogTemp, Warning, TEXT("OnHit activation")); }
+	virtual void OnGroundActivation(FVector target) override
 	{ 
 		UE_LOG(LogTemp, Warning, TEXT("Ground-targeted activation, %f, %f"), target.X, target.Y); 
 	}
