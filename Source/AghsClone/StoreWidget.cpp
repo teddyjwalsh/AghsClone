@@ -11,6 +11,7 @@
 
 bool UStoreWidget::Initialize()
 {
+    
     auto buyer = Cast<AUnitController>(GetWorld()->GetFirstPlayerController()->GetPawn())->GetPrimaryUnit();
     if (!buyer)
     {
@@ -29,6 +30,7 @@ bool UStoreWidget::Initialize()
     grid->SetMinDesiredSlotHeight(20);
     grid->SetMinDesiredSlotWidth(20);
     grid->SetSlotPadding(FMargin(5, 5));
+    
     //button->SetRenderScale(FVector2D(10, 10));
     int row_count = 1;
     auto shop_items = shop->GetItems();
@@ -55,6 +57,7 @@ bool UStoreWidget::Initialize()
         count += 1;
     }
     SetDesiredSizeInViewport(FVector2D(400, row_count * 400.0 / col_count));
+    SetVisibility(ESlateVisibility::Visible);
     return true;
 }
 
@@ -89,4 +92,9 @@ void UStoreWidget::OnItemHovered(UMultiButton* in_button)
         UE_LOG(LogTemp, Warning, TEXT("Bought %d"), child_index)
     }
 
+}
+
+bool UStoreWidget::GridIsHovered() const
+{
+    return grid->IsHovered();
 }

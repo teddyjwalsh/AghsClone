@@ -93,6 +93,18 @@ void AAghsClonePlayerController::PlayerTick(float DeltaTime)
 		bMoveToMouseCursor = false;
 	}
 
+	if (StoreWidget)
+	{
+		if (StoreWidget->GridIsHovered())
+		{
+			hud_clicked = true;
+		}
+		else
+		{
+			hud_clicked = false;
+		}
+	}
+
 	AUnitController* MyPawn = Cast<AUnitController>(GetPawn());
 	if (MyPawn != nullptr)
 	{
@@ -272,7 +284,13 @@ void AAghsClonePlayerController::CommandAttack_Implementation(const FCommand& in
 
 void AAghsClonePlayerController::OnSetDestinationPressed()
 {
-	bool hud_clicked = false;
+	if (StoreWidget)
+	{
+		if (StoreWidget->GridIsHovered())
+		{
+			//hud_clicked = true;
+		}
+	}
 	// set flag to keep updating destination until released
 	if (!hud_clicked)
 	{

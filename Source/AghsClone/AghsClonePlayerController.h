@@ -78,6 +78,7 @@ protected:
 	/** True if the controlled character should navigate to the mouse cursor. */
 	uint32 bMoveToMouseCursor : 1;
 	bool shop_on = false;
+	bool hud_clicked = false;
 
 	// Begin PlayerController interface
 	virtual void PlayerTick(float DeltaTime) override;

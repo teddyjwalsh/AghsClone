@@ -71,6 +71,7 @@ public:
 		return FReply::Unhandled();
 	}
 
+
 	virtual void SynchronizeProperties() override
 	{
 		Super::Super::SynchronizeProperties();
@@ -116,4 +117,6 @@ public:
 
 	UFUNCTION()
 	void OnItemHovered(UMultiButton* in_button);
+
+	bool GridIsHovered() const;
 };
