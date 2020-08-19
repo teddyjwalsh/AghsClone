@@ -22,6 +22,7 @@
 #include "AttackProjectile.h"
 #include "WalletComponent.h"
 #include "InventoryComponent.h"
+#include "AbilityContainerInterface.h"
 #include "AghsCloneCharacter.generated.h"
 
 class CommonUnitStats
@@ -62,7 +63,8 @@ class AAghsCloneCharacter : public ACharacter,
 	public IManaInterface,
 	public ICommandInterface,
 	public IVisionInterface,
-	public IFieldActorInterface
+	public IFieldActorInterface,
+	public IAbilityContainerInterface
 	//public CommonUnitStats
 	
 {
@@ -302,6 +304,19 @@ public:
 		current_destination = in_destination;
 	}
 
+    virtual IAbilityInterface* GetAbility(int32 ability_num)
+    {
+        if (ability_num < 4)
+        {
+            return Cast<IAbilityInterface>(Abilities[ability_num]);
+        }
+        else if (ability_num < 10)
+        {
+            return Cast<IAbilityInterface>(Inventory->GetAbility(ability_num - 4));
+        }
+		return nullptr;
+    }
+
 	bool TriggerTargetedAbility(FVector target_loc)
 	{
 		bool retval = false;
@@ -325,14 +340,15 @@ public:
 	bool TriggerTargetedAbility(int32 ability_num, FVector target_loc)
 	{
 		bool retval = false;
-		if (ability_num >= 0 && ability_num < Abilities.size())
+        auto ability = GetAbility(ability_num);
+		if (ability)
 		{
-			if ((GetActorLocation() - target_loc).Size() < Abilities[ability_num]->CastRange)
+			if ((GetActorLocation() - target_loc).Size() < ability->GetCastRange())
 			{
-				Abilities[ability_num]->OnGroundActivationMeta(target_loc);
+				ability->OnGroundActivationMeta(target_loc);
 				retval = true;
 			}
-			Abilities[ability_num]->TargetingDecal->SetVisibility(false);
+			//ability->TargetingDecal->SetVisibility(false);
 		}
 		else
 		{

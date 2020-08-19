@@ -38,6 +38,10 @@ public:
 
 	// Called every frame
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
+	virtual float GetCastRange() const override 
+    {
+        return CastRange;
+    }
 	virtual float GetManaCost() const override 
     {
         return ManaCost;
@@ -49,4 +53,28 @@ public:
 	{ 
 		UE_LOG(LogTemp, Warning, TEXT("Ground-targeted activation, %f, %f"), target.X, target.Y); 
 	}
+    virtual bool IsToggleable() const override
+    {
+        return bToggleable;
+    }
+    virtual bool IsToggled() const override
+    {
+        return bToggled;
+    }
+    virtual bool IsPassive() const override
+    {
+        return bPassive;
+    }
+    virtual bool IsUnitTargeted() const override
+    {
+        return bUnitTargeted;
+    }
+    virtual bool IsGroundTargeted() const override
+    {
+        return bGroundTargeted;
+    }
+    virtual void Toggle() override
+    {
+        bToggled = !bToggled;
+    }
 };

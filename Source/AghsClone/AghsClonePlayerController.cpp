@@ -27,8 +27,6 @@ AAghsClonePlayerController::AAghsClonePlayerController()
 	ClickEventKeys.Add(EKeys::RightMouseButton);
 	//bReplicates = true;
 	//SetReplicateMovement(true);
-
-
 }
 
 void AAghsClonePlayerController::BeginPlay()
@@ -46,10 +44,14 @@ int32 AAghsClonePlayerController::GetTeam()
 	return team;
 }
 
-void AAghsClonePlayerController::SetTargetedAbility_Implementation(UAbility* in_ability, int32 in_ability_num)
+void AAghsClonePlayerController::SetTargetedAbility_Implementation(UObject* in_ability, int32 in_ability_num)
 {
-	targeted_ability = in_ability;
-	targeted_ability_num = in_ability_num;
+	auto ability = Cast<IAbilityInterface>(in_ability);
+	if (ability)
+	{
+		targeted_ability = ability;
+		targeted_ability_num = in_ability_num;
+	}
 }
 
 void AAghsClonePlayerController::SetLocalActorVisibility_Implementation(AActor* in_actor, bool is_visible)
@@ -329,18 +331,19 @@ void AAghsClonePlayerController::ActivateAbility_Implementation(int32 ability_nu
 {
 	if (AUnitController* MyPawn = Cast<AUnitController>(GetPawn()))
 	{
-		AAghsCloneCharacter * main_character = MyPawn->GetPrimaryUnit();
+		IAbilityContainerInterface* main_character = Cast<IAbilityContainerInterface>(MyPawn->GetPrimaryUnit());
 		if (main_character)
 		{
-			if (main_character->Abilities.size() > ability_num)
+			if (main_character->AbilityCount() > ability_num)
 			{
-				if (main_character->Abilities[ability_num]->bToggleable && GetLocalRole() == ROLE_Authority)
+                IAbilityInterface* ability = main_character->GetAbility(ability_num);
+				if (ability->IsToggleable() && GetLocalRole() == ROLE_Authority)
 				{
-					main_character->Abilities[ability_num]->bToggled = !main_character->Abilities[ability_num]->bToggled;
+					ability->Toggle();// = !ability->IsToggled();
 				}
-				else if (!main_character->Abilities[ability_num]->bPassive && GetLocalRole() == ROLE_Authority)
+				else if (!ability->IsPassive() && GetLocalRole() == ROLE_Authority)
 				{
-					main_character->Abilities[ability_num]->OnActivationMeta();
+					ability->OnActivationMeta();
 				}
             }
         }
@@ -351,15 +354,16 @@ void AAghsClonePlayerController::OnAbilityNumPress(int32 ability_num)
 {
 	if (AUnitController* MyPawn = Cast<AUnitController>(GetPawn()))
 	{
-		AAghsCloneCharacter * main_character = MyPawn->GetPrimaryUnit();
+		IAbilityContainerInterface* main_character = Cast<IAbilityContainerInterface>(MyPawn->GetPrimaryUnit());
 		if (main_character)
 		{
-			if (main_character->Abilities.size() > ability_num)
+			if (main_character->AbilityCount() > ability_num)
 			{
-				if (main_character->Abilities[ability_num]->bUnitTargeted || main_character->Abilities[ability_num]->bGroundTargeted)
+                IAbilityInterface* ability = main_character->GetAbility(ability_num);
+				if (ability->IsUnitTargeted() || ability->IsGroundTargeted())
 				{
 					// main_character->SetTargetingActive(ability_num);
-					targeted_ability = main_character->Abilities[ability_num];
+					targeted_ability = ability;
 					targeted_ability_num = ability_num;
 				}
 				else

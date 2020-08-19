@@ -79,6 +79,10 @@ public:
 		}
 	}
     virtual float GetManaCost() const = 0;
+    virtual float GetCastRange() const
+    {
+        return 0;
+    }
 	virtual void OnActivation() { UE_LOG(LogTemp, Warning, TEXT("Non-targeted activation")); }
 	virtual void OnUnitActivation(AActor* target) { UE_LOG(LogTemp, Warning, TEXT("Unit-targeted activation")); }
 	virtual void OnHit(DamageInstance& damage, AActor* unit) { UE_LOG(LogTemp, Warning, TEXT("OnHit activation")); }
@@ -86,4 +90,27 @@ public:
 	{ 
 		UE_LOG(LogTemp, Warning, TEXT("Ground-targeted activation, %f, %f"), target.X, target.Y); 
 	}
+    virtual bool IsToggleable() const
+    {
+        return false;
+    }
+    virtual bool IsToggled() const
+    {
+        return false;
+    }
+    virtual bool IsPassive() const
+    {
+        return false;
+    }
+    virtual bool IsUnitTargeted() const
+    {
+        return false;
+    }
+    virtual bool IsGroundTargeted() const
+    {
+        return false;
+    }
+    virtual void Toggle() 
+    {
+    }
 };

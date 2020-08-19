@@ -9,6 +9,8 @@
 #include "UnitController.h"
 #include "Ability.h"
 #include "StoreWidget.h"
+#include "AbilityContainerInterface.h"
+#include "AbilityInterface.h"
 #include "AghsClonePlayerController.generated.h"
 
 UCLASS()
@@ -23,7 +25,7 @@ class AAghsClonePlayerController : public APlayerController
 
 	FVector2D select_box_start;
 	FVector2D select_box_end;
-	UAbility* targeted_ability;
+	IAbilityInterface* targeted_ability;
 	int32 targeted_ability_num;
 	TArray<AAghsCloneCharacter*> selected_units;
 	TArray<AAghsCloneCharacter*> temp_units;
@@ -48,7 +50,7 @@ public:
 	}
 
 	UFUNCTION(Reliable, Client)
-	void SetTargetedAbility(UAbility* in_ability, int32 in_ability_num);
+	void SetTargetedAbility(UObject* in_ability, int32 in_ability_num);
 
 	void GetSelectBox(FVector2D& out_box_start, FVector2D& out_box_end)
 	{

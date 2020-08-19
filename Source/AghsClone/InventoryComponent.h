@@ -134,6 +134,11 @@ public:
 		Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 		DOREPLIFETIME(UInventoryComponent, items);
 	}
+
+    IAbilityInterface* GetAbility(int32 inventory_index) const
+    {
+        return Cast<IAbilityInterface>(items[inventory_index]);
+    }
 	
 
 protected:

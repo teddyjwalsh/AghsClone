@@ -82,9 +82,38 @@ public:
     {
     }
 
+    virtual float GetCastRange() const override
+    {
+        return CastRange;
+    }
     virtual float GetManaCost() const override
     {
         return ManaCost;
+    }
+
+    virtual bool IsToggleable() const override
+    {
+        return bToggleable;
+    }
+    virtual bool IsToggled() const override
+    {
+        return bToggled;
+    }
+    virtual bool IsPassive() const override
+    {
+        return bPassive;
+    }
+    virtual bool IsUnitTargeted() const override
+    {
+        return bUnitTargeted;
+    }
+    virtual bool IsGroundTargeted() const override
+    {
+        return bGroundTargeted;
+    }
+    virtual void Toggle() override
+    {
+        bToggled = !bToggled;
     }
 
 	class USphereComponent* bounds;
@@ -104,7 +133,11 @@ public:
     bool bGroundTargeted;
 	UPROPERTY(Replicated)
     bool bOnHit;
+	bool bToggled = false;
+	bool bPassive = false;
     
+	UPROPERTY(Replicated)
+	float CastRange;
 	UPROPERTY(Replicated)
 	float ManaCost;
 	UPROPERTY(Replicated)
