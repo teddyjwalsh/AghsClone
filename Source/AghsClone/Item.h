@@ -95,6 +95,8 @@ public:
     bool bUnitTargeted;
 	UPROPERTY(Replicated)
     bool bGroundTargeted;
+	UPROPERTY(Replicated)
+    bool bOnHit;
     
 	UPROPERTY(Replicated)
 	float Health;

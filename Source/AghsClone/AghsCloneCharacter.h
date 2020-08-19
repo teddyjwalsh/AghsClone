@@ -227,6 +227,23 @@ public:
 		return false;
 	}
 
+    void ApplyOnHit(AAghsCloneCharacter* other_char)
+    {
+        DamageInstance attack_damage_instance;
+		attack_damage_instance.value = GetAttackDamage();
+		attack_damage_instance.damage_type = PhysicalDamage;
+		attack_damage_instance.is_attack = true;
+		other_char->ApplyDamage(attack_damage_instance);
+		for (auto& ab : Abilities)
+        {
+            if (ab->bOnHit)
+            {
+                ab->OnHit(attack_damage_instance, other_char);
+            }
+        }
+        Inventory->OnHit(attack_damage_instance, other_char);
+    }
+
 	float GetAttackDamage() const
 	{
 		return attack_damage + Inventory->GetAttackDamage();

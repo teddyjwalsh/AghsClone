@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
 #include "ManaInterface.h"
+#include "HealthInterface.h"
 #include "Ability.generated.h"
 
 
@@ -27,6 +28,7 @@ public:
 	bool bToggleable = false;
 	bool bToggled = false;
 	bool bPassive = false;
+    bool bOnHit = false;
 	float DefaultCooldown;
 	float ManaCost;
 	float CastRange;
@@ -73,6 +75,7 @@ public:
 	}
 	virtual void OnActivation() { UE_LOG(LogTemp, Warning, TEXT("Non-targeted activation")); }
 	virtual void OnUnitActivation(FVector target) { UE_LOG(LogTemp, Warning, TEXT("Unit-targeted activation")); }
+	virtual void OnHit(DamageInstance& damage, AActor* unit) { UE_LOG(LogTemp, Warning, TEXT("OnHit activation")); }
 	virtual void OnGroundActivation(FVector target) 
 	{ 
 		UE_LOG(LogTemp, Warning, TEXT("Ground-targeted activation, %f, %f"), target.X, target.Y); 

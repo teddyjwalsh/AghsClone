@@ -52,11 +52,10 @@ void AAttackProjectile::OnOverlap(UPrimitiveComponent* OverlappedComp, AActor* O
 	{
 		auto character = Cast<IHealthInterface>(target);
 		auto owner_char = Cast<AAghsCloneCharacter>(owner);
-        DamageInstance attack_damage;
-        attack_damage.value = owner_char->GetAttackDamage();
-        attack_damage.damage_type = PhysicalDamage;
-        attack_damage.is_attack = true;
-		character->ApplyDamage(attack_damage);
+		if (auto unit = Cast<AAghsCloneCharacter>(target))
+		{
+			owner_char->ApplyOnHit(unit);
+		}
 		Destroy();
 	}
 }

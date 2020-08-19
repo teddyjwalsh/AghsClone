@@ -115,6 +115,19 @@ public:
 		return mana_sum;
 	}
 
+    void OnHit(DamageInstance& damage, AActor* unit)
+    {
+		for (auto& it : items)
+		{
+			if (it)
+			{
+				if (it->bOnHit)
+				{
+					it->OnAttackHit(damage, unit);
+				}
+			}
+        }
+    }
 	
 	void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override
 	{
