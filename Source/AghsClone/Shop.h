@@ -16,6 +16,7 @@ struct ShopItemSlot
 	float price;
 	int32 stock = -1;
 	AItem* proto;
+	UClass* item_class = AItem::StaticClass();
 };
 
 UCLASS()
@@ -42,7 +43,7 @@ public:
 			{
 				FActorSpawnParameters act_par;
 				act_par.Template = items[item].proto;
-				auto new_item = GetWorld()->SpawnActor<AItem>(act_par);
+				auto new_item = GetWorld()->SpawnActor<AItem>(items[item].item_class, act_par);
 				return new_item;
 			}
 			else
@@ -51,7 +52,7 @@ public:
 				{
 					FActorSpawnParameters act_par;
 					act_par.Template = items[item].proto;
-					auto new_item = GetWorld()->SpawnActor<AItem>(act_par);
+					auto new_item = GetWorld()->SpawnActor<AItem>(items[item].item_class, act_par);
 					items[item].stock -= 1;
 					return new_item;
 				}
@@ -93,6 +94,7 @@ public:
 		new_slot.price = price;
 		new_slot.stock = in_stock;
 		new_slot.proto = in_item;
+		new_slot.item_class = in_item->GetClass();
 		items.Add(id, new_slot);
 		return true;
 	}

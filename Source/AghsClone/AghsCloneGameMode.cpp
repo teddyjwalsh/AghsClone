@@ -7,6 +7,7 @@
 #include "UObject/ConstructorHelpers.h"
 #include "InGameHud.h"
 #include "Shop.h"
+#include "BlinkDagger.h"
 #include "GameFramework/GameUserSettings.h"
 
 AAghsCloneGameMode::AAghsCloneGameMode()
@@ -70,4 +71,9 @@ void AAghsCloneGameMode::StartPlay()
 	new_item->AttackDamage = -50;
 	new_item->SetMaterial("serpentblade");
 	shop->AddItem(new_item, 4, 123);
+
+	new_item = GetWorld()->SpawnActor<ABlinkDagger>();
+	new_item->CastRange = 1200;
+	new_item->SetMaterial("blink_dagger");
+	shop->AddItem(new_item, 5, 800);
 }

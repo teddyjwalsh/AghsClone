@@ -246,7 +246,7 @@ void AAghsCloneCharacter::ProcessAbilityCommand(const FCommand& in_command, floa
 	ability_vec.Normalize();
 	float angle_diff = acos(FVector::DotProduct(forward_vec, ability_vec)) * 180 / PI;
 	float turn_rate = 1146.0;
-	if ((my_loc - FVector2D(in_command.location)).Size() > Abilities[in_command.ability_num]->CastRange)
+	if ((my_loc - FVector2D(in_command.location)).Size() > GetAbility(in_command.ability_num)->GetCastRange())
 	{
 		current_destination = in_command.location;
 
@@ -278,6 +278,7 @@ void AAghsCloneCharacter::ProcessAbilityCommand(const FCommand& in_command, floa
 	{
 		if (TriggerTargetedAbility(current_command.ability_num, current_command.location))
 		{
+			my_loc3 = GetActorLocation();
 			UAIBlueprintHelperLibrary::SimpleMoveToLocation(GetController(), my_loc3);
 			NextCommand();
 		}

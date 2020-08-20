@@ -163,7 +163,7 @@ void AAghsClonePlayerController::SetSelected(const TArray<AAghsCloneCharacter*>&
 			SetSelectedServer(selected_units);
 		}
 
-		if (IsLocalController())
+		if (IsLocalController() && selected_units.Num())
 		{
 			InventoryWidgetClass = UInventoryWidget::StaticClass();
 			InventoryWidget = CreateWidget<UInventoryWidget>(this, InventoryWidgetClass);
@@ -382,15 +382,18 @@ void AAghsClonePlayerController::OnAbilityNumPress(int32 ability_num)
 			if (main_character->AbilityCount() > ability_num)
 			{
                 IAbilityInterface* ability = main_character->GetAbility(ability_num);
-				if (ability->IsUnitTargeted() || ability->IsGroundTargeted())
+				if (ability)
 				{
-					// main_character->SetTargetingActive(ability_num);
-					targeted_ability = ability;
-					targeted_ability_num = ability_num;
-				}
-				else
-				{
-                    ActivateAbility(ability_num);
+					if (ability->IsUnitTargeted() || ability->IsGroundTargeted())
+					{
+						// main_character->SetTargetingActive(ability_num);
+						targeted_ability = ability;
+						targeted_ability_num = ability_num;
+					}
+					else
+					{
+						ActivateAbility(ability_num);
+					}
 				}
 			}
 		}
@@ -478,7 +481,7 @@ void AAghsClonePlayerController::OnTrigger_Implementation(FHitResult Hit, int32 
 				//MyPawn->TriggerTargetedAbility(Hit.ImpactPoint);
 				FCommand move_command;
 				move_command.command_type = ABILITY;
-				move_command.ability_num = targeted_ability_num;// main_character->GetTargetingActive();
+				move_command.ability_num = ability_num;// main_character->GetTargetingActive();
 				move_command.location = Hit.ImpactPoint;
 				main_character->SetCommand(move_command);
 				
