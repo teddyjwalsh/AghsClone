@@ -116,14 +116,15 @@ AAghsCloneCharacter::AAghsCloneCharacter() :
 	PrimaryActorTick.bStartWithTickEnabled = true;
 
 	auto new_ab = CreateDefaultSubobject<UBallDropAbility>((std::string("Ability") + std::to_string(0)).c_str());
-	Abilities.push_back(new_ab);
+	Abilities.Add(new_ab);
 
 	auto new_ab3 = CreateDefaultSubobject<UShockwaveAbility>((std::string("Ability") + std::to_string(1)).c_str());
-	Abilities.push_back(new_ab3);
+	new_ab3->SetMaterial("shockwave");
+	Abilities.Add(new_ab3);
 	for (int i = 2; i < 4; ++i)
 	{
 		auto new_ab2 = CreateDefaultSubobject<UAbility>((std::string("Ability") + std::to_string(i)).c_str());
-		Abilities.push_back(new_ab2);
+		Abilities.Add(new_ab2);
 	}
 	auto ai_cont = Cast<AAIController>(GetController());
 	//Abilities[0]->bGroundTargeted = true;

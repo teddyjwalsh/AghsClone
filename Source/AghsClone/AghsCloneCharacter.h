@@ -310,6 +310,11 @@ public:
 		current_destination = in_destination;
 	}
 
+    TArray<UAbility*>& GetAbilityArray()
+    {
+        return Abilities;
+    }
+
     virtual IAbilityInterface* GetAbility(int32 ability_num)
     {
         if (ability_num < 4)
@@ -326,7 +331,7 @@ public:
 	bool TriggerTargetedAbility(FVector target_loc)
 	{
 		bool retval = false;
-		if (targeting_active >= 0 && targeting_active < Abilities.size())
+		if (targeting_active >= 0 && targeting_active < Abilities.Num())
 		{
 			if ((GetActorLocation() - target_loc).Size() < Abilities[targeting_active]->CastRange)
 			{
@@ -441,7 +446,7 @@ public:
 		DOREPLIFETIME(AAghsCloneCharacter, Wallet);
 	}
 
-	std::vector<UAbility*> Abilities;
+	TArray<UAbility*> Abilities;
 
 private:
 	/** Top down camera */

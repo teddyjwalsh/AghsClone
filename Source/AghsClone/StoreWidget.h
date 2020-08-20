@@ -16,6 +16,7 @@
 
 #include "Shop.h"
 #include "InventoryComponent.h"
+#include "Ability.h"
 
 #include "StoreWidget.generated.h"
 
@@ -138,6 +139,8 @@ class AGHSCLONE_API UInventoryWidget : public UUserWidget
 {
 	GENERATED_BODY()
 public:
+	int32 el_height;
+	int32 el_width;
 	UMultiButton* button;
 	UUniformGridPanel* grid;
 	//TArray<UMultiButton*> buttons;
@@ -159,3 +162,31 @@ public:
 	bool GridIsHovered() const;
 };
 
+UCLASS()
+class AGHSCLONE_API UAbilitiesWidget: public UUserWidget
+{
+	GENERATED_BODY()
+public:
+	int32 el_height;
+	int32 el_width;
+	UMultiButton* button;
+	UUniformGridPanel* grid;
+	//TArray<UMultiButton*> buttons;
+	TMap<UMultiButton*, UAbility*> buttons;
+    TArray<UAbility*> abilities;
+	virtual bool Initialize() override;
+
+    bool DrawAbilities();
+
+	virtual void NativeConstruct() override;
+
+	UFUNCTION()
+	void OnItemClicked(UMultiButton* in_button);
+
+	UFUNCTION()
+	void OnItemHovered(UMultiButton* in_button);
+
+	void SetAbilities();
+
+	bool GridIsHovered() const;
+};

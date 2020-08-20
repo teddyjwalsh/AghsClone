@@ -4,6 +4,8 @@
 #include "Ability.h"
 #include "Components/DecalComponent.h"
 
+TMap<FString, UTexture2D*> UAbility::materials;
+
 // Sets default values for this component's properties
 UAbility::UAbility()
 {
@@ -38,7 +40,10 @@ void UAbility::BeginPlay()
 void UAbility::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
-
+	if (CurrentCooldown > 0)
+	{
+		CurrentCooldown = std::max(0.0f, CurrentCooldown - DeltaTime);
+	}
 	// ...
 }
 

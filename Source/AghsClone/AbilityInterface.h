@@ -59,26 +59,49 @@ public:
 	}
 	void OnActivationMeta() 
 	{ 
-		if (CostMana()) 
-		{ 
-			OnActivation();
+		if (GetCurrentCooldown() == 0)
+		{
+			if (CostMana())
+			{
+				OnActivation();
+				SetCurrentCooldown(GetCooldown());
+			}
 		}
 	}
 	void OnUnitActivationMeta(AActor* target)
 	{
-		if (CostMana())
+		if (GetCurrentCooldown() == 0)
 		{
-			OnUnitActivation(target);
+			if (CostMana() && GetCurrentCooldown() == 0)
+			{
+				OnUnitActivation(target);
+				SetCurrentCooldown(GetCooldown());
+			}
 		}
 	}
 	void OnGroundActivationMeta(const FVector& target)
 	{
-		if (CostMana())
+		if (GetCurrentCooldown() == 0)
 		{
-			OnGroundActivation(target);
+			if (CostMana())
+			{
+				OnGroundActivation(target);
+				SetCurrentCooldown(GetCooldown());
+			}
 		}
 	}
     virtual float GetManaCost() const = 0;
+	virtual float GetCurrentCooldown() const
+	{
+		return 0;
+	}
+	virtual float GetCooldown() const
+	{
+		return 0;
+	}
+	virtual void SetCurrentCooldown(float in_val)
+	{
+	}
     virtual float GetCastRange() const
     {
         return 0;

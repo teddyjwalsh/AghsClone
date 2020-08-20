@@ -35,8 +35,10 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "UMG")
 	TSubclassOf<class UStoreWidget> StoreWidgetClass;
 	TSubclassOf<class UInventoryWidget> InventoryWidgetClass;
+	TSubclassOf<class UAbilitiesWidget> AbilitiesWidgetClass;
 	UStoreWidget* StoreWidget;
 	UInventoryWidget* InventoryWidget;
+	UAbilitiesWidget* AbilitiesWidget;
 
 	int32 team;
 

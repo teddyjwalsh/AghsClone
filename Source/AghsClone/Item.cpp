@@ -5,7 +5,7 @@
 #include "Components/SphereComponent.h"
 #include "Factories/MaterialFactoryNew.h"
 
-std::vector<FString> mats_to_load = { "kotlguyp", "moon_shard", "brown_boots", "serpentblade", "blink_dagger" };
+std::vector<FString> mats_to_load = {};// "kotlguyp", "moon_shard", "brown_boots", "serpentblade", "blink_dagger" };
 
 TMap<FString, UTexture2D*> AItem::materials;
 TMap<FString, int32> AItem::materials2;
@@ -50,6 +50,9 @@ void AItem::BeginPlay()
 void AItem::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-
+	if (CurrentCooldown > 0)
+	{
+		CurrentCooldown = std::max(0.0f, CurrentCooldown - DeltaTime);
+	}
 }
 

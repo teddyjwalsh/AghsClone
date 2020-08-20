@@ -37,17 +37,43 @@ protected:
 		DOREPLIFETIME(AItem, Mana);
 		DOREPLIFETIME(AItem, AttackDamage);
 		DOREPLIFETIME(AItem, Armor);
-		DOREPLIFETIME(AItem, MyMat);
+        DOREPLIFETIME(AItem, MyMat);
+        DOREPLIFETIME(AItem, Cooldown);
+        DOREPLIFETIME(AItem, CurrentCooldown);
 	}
 
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
-	void SetMaterial(FString mat_name)
+	void SetMaterial(FString to_load)
 	{
-		MyMat = materials[mat_name];
+        if (!materials.Find(to_load))
+        {
+            //ConstructorHelpers::FObjectFinder<UTexture2D> ScreenMat(*FString::Printf(TEXT("Texture2D'/Game/Textures/%s.%s'"), *to_load, *to_load));
+            auto item_tex = Cast<UTexture2D>(
+                StaticLoadObject(UTexture2D::StaticClass(), 
+                    NULL, 
+                    *FString::Printf(TEXT("/Game/Textures/%s.%s"), 
+                        *to_load, 
+                        *to_load)));
+            materials.Add(to_load, item_tex);
+        }
+		MyMat = materials[to_load];
 	}
+
+    virtual float GetCooldown() const override
+    {
+        return Cooldown;
+    }
+    virtual float GetCurrentCooldown() const override
+    {
+        return CurrentCooldown;
+    }
+    virtual void SetCurrentCooldown(float in_val) override
+    {
+        CurrentCooldown = in_val;
+    }
 
 	UTexture2D* GetMaterial()
 	{
@@ -122,6 +148,10 @@ public:
 	UPROPERTY( Replicated )
 	UTexture2D* MyMat;
 
+    UPROPERTY(Replicated)
+    float Cooldown;
+    UPROPERTY(Replicated)
+    float CurrentCooldown;
 
 	UPROPERTY(Replicated)
     bool bActive;

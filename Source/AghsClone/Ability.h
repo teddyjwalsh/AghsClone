@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
+#include "Net/UnrealNetwork.h"
 #include "ManaInterface.h"
 #include "HealthInterface.h"
 #include "AbilityInterface.h"
@@ -15,6 +16,11 @@ class AGHSCLONE_API UAbility : public UActorComponent,
     public IAbilityInterface
 {
 	GENERATED_BODY()
+
+    static TMap<FString, UTexture2D*> materials;
+
+    UPROPERTY(Replicated)
+    UTexture2D* MyMat;
 
 public:	
 	// Sets default values for this component's properties
@@ -34,13 +40,32 @@ public:
 	float DefaultCooldown;
 	float ManaCost;
 	float CastRange;
+    float Cooldown;
+    float CurrentCooldown;
 	class UDecalComponent* TargetingDecal;
+
+    virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override
+    {
+        Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+        DOREPLIFETIME(UAbility, ManaCost);
+        DOREPLIFETIME(UAbility, Cooldown);
+        DOREPLIFETIME(UAbility, MyMat);
+        DOREPLIFETIME(UAbility, CurrentCooldown);
+    }
 
 	// Called every frame
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
-	virtual float GetCastRange() const override 
+    virtual float GetCooldown() const override
     {
-        return CastRange;
+        return Cooldown;
+    }
+    virtual float GetCurrentCooldown() const override 
+    {
+        return CurrentCooldown;
+    }
+    virtual void SetCurrentCooldown(float in_val) override
+    {
+        CurrentCooldown = in_val;
     }
 	virtual float GetManaCost() const override 
     {
@@ -76,5 +101,33 @@ public:
     virtual void Toggle() override
     {
         bToggled = !bToggled;
+    }
+    void SetMaterial(FString to_load)
+    {
+        if (!materials.Find(to_load))
+        {
+            //ConstructorHelpers::FObjectFinder<UTexture2D> ScreenMat(*FString::Printf(TEXT("Texture2D'/Game/Textures/%s.%s'"), *to_load, *to_load));
+            auto item_tex = Cast<UTexture2D>(
+                StaticLoadObject(UTexture2D::StaticClass(),
+                    NULL,
+                    *FString::Printf(TEXT("/Game/Textures/%s.%s"),
+                        *to_load,
+                        *to_load)));
+            if (item_tex)
+            {
+                materials.Add(to_load, item_tex);
+                MyMat = materials[to_load];
+            }
+        }
+        else
+        {
+            MyMat = materials[to_load];
+        }
+        
+    }
+
+    UTexture2D* GetMaterial()
+    {
+        return MyMat;
     }
 };
