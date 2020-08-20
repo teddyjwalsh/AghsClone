@@ -20,7 +20,8 @@ class AGHSCLONE_API AShockwave : public AActor,
 	USphereComponent* bounds;
 	
 	float scale = 0.1;
-	std::set<int32> hit;
+	//std::set<int32> hit;
+	TSet<AActor*> hit;
 
 public:	
 	// Sets default values for this actor's properties

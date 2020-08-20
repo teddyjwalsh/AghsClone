@@ -45,7 +45,11 @@ void ABallDrop::OnTouch(UPrimitiveComponent* HitComponent, AActor* OtherActor, U
 	auto health_comp = Cast<IHealthInterface>(OtherActor);
 	if (health_comp != nullptr)
 	{
-		health_comp->ApplyDamage(20, MagicDamage);
+        DamageInstance shock_damage;
+        shock_damage.value = 20;
+        shock_damage.damage_type = MagicDamage;
+        shock_damage.is_attack = false;
+        health_comp->ApplyDamage(shock_damage);
 		UE_LOG(LogTemp, Warning, TEXT("HIT CHARACTER: %f"), health_comp->GetHealth());
 	}
 }

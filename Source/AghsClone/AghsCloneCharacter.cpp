@@ -22,6 +22,7 @@
 #include "Engine/World.h"
 #include "BallDropAbility.h"
 #include "ShockwaveAbility.h"
+#include "InventoryComponent.h"
 #include "AIController.h"
 
 AAghsCloneCharacter::AAghsCloneCharacter() :
@@ -36,11 +37,12 @@ AAghsCloneCharacter::AAghsCloneCharacter() :
 	vision_radius(1000),
 	AttackSpeed(0),
 	InitialAttackSpeed(100),
+	BaseMovespeed(300),
 	BaseAttackTime(1.7)
 {
 	//AutoPossessAI = EAutoPossessAI::PlacedInWorldOrSpawned;
-	Health = MaxHealth;
-	Mana = MaxMana;
+	Health = 1.0;
+	Mana = 1.0;
 	attack_range = 600;
 	//bReplicates = true;
 	SetReplicates(true);
@@ -63,6 +65,7 @@ AAghsCloneCharacter::AAghsCloneCharacter() :
 	GetCharacterMovement()->RotationRate = FRotator(0.f, 640.f, 0.f);
 	GetCharacterMovement()->bConstrainToPlane = true;
 	GetCharacterMovement()->bSnapToPlaneAtStart = true;
+	GetCharacterMovement()->MaxWalkSpeed = 300;
 
 	// Create a camera boom...
 	CameraBoom = CreateDefaultSubobject<USpringArmComponent>(TEXT("CameraBoom"));
@@ -90,7 +93,11 @@ AAghsCloneCharacter::AAghsCloneCharacter() :
 	VisionLight->bUseInverseSquaredFalloff = false;
 	VisionLight->SetAttenuationRadius(GetVisionRadius());
 	VisionLight->SetIntensity(20);
-	
+
+	Inventory = CreateDefaultSubobject<UInventoryComponent>(TEXT("Inventory"));
+	Inventory->SetIsReplicated(true);
+	Wallet = CreateDefaultSubobject<UWalletComponent>(TEXT("Wallet"));
+	Wallet->SetIsReplicated(true);
 
 	// Create a decal in the world to show the cursor's location
 	CursorToWorld = CreateDefaultSubobject<UDecalComponent>("CursorToWorld");
@@ -152,6 +159,7 @@ void AAghsCloneCharacter::Tick(float DeltaSeconds)
     Super::Tick(DeltaSeconds);
 
 	//UStaticMesh::Array
+	GetCharacterMovement()->MaxWalkSpeed = GetMovespeed();
 
 	if (!GetWorld()->IsServer())
 	{
@@ -238,7 +246,7 @@ void AAghsCloneCharacter::ProcessAbilityCommand(const FCommand& in_command, floa
 	ability_vec.Normalize();
 	float angle_diff = acos(FVector::DotProduct(forward_vec, ability_vec)) * 180 / PI;
 	float turn_rate = 1146.0;
-	if ((my_loc - FVector2D(in_command.location)).Size() > Abilities[in_command.ability_num]->CastRange)
+	if ((my_loc - FVector2D(in_command.location)).Size() > GetAbility(in_command.ability_num)->GetCastRange())
 	{
 		current_destination = in_command.location;
 
@@ -270,6 +278,7 @@ void AAghsCloneCharacter::ProcessAbilityCommand(const FCommand& in_command, floa
 	{
 		if (TriggerTargetedAbility(current_command.ability_num, current_command.location))
 		{
+			my_loc3 = GetActorLocation();
 			UAIBlueprintHelperLibrary::SimpleMoveToLocation(GetController(), my_loc3);
 			NextCommand();
 		}

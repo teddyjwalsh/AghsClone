@@ -20,6 +20,9 @@
 #include "VisionInterface.h"
 #include "FieldActorInterface.h"
 #include "AttackProjectile.h"
+#include "WalletComponent.h"
+#include "InventoryComponent.h"
+#include "AbilityContainerInterface.h"
 #include "AghsCloneCharacter.generated.h"
 
 class CommonUnitStats
@@ -34,7 +37,7 @@ public:
 		IsAttackImmune(false),
 		MaxMana(100.0)
 	{ 
-		Health = MaxHealth; 
+		Health = 1.0; 
 		Mana = MaxMana;
 	}
 	UPROPERTY(Replicated)
@@ -60,7 +63,8 @@ class AAghsCloneCharacter : public ACharacter,
 	public IManaInterface,
 	public ICommandInterface,
 	public IVisionInterface,
-	public IFieldActorInterface
+	public IFieldActorInterface,
+	public IAbilityContainerInterface
 	//public CommonUnitStats
 	
 {
@@ -91,6 +95,7 @@ class AAghsCloneCharacter : public ACharacter,
 	float BaseAttackTime;
 	float InitialAttackSpeed;
 	float AttackSpeed;
+	float BaseMovespeed;
 	double last_attack_time;
 
 
@@ -145,17 +150,17 @@ public:
 	// HEALTH INTERFACE IMPLEMENTATION
 	virtual float GetHealth() const override
 	{
-		return Health;
+		return Health*GetMaxHealth();
 	}
 
 	virtual float GetDelayedHealth() const override
 	{
-		return Health;
+		return Health*GetMaxHealth();
 	}
 
 	virtual void SetHealth(float in_val) override
 	{
-		Health = std::min(GetMaxHealth(), std::max(0.0f, in_val));
+		Health = std::min(GetMaxHealth(), std::max(0.0f, in_val))*1.0/GetMaxHealth();
 		if (Health == 0)
 		{
 			Destroy();
@@ -179,19 +184,24 @@ public:
 
 	virtual float GetMaxHealth() const override
 	{
-		return MaxHealth;
+		return MaxHealth + Inventory->GetHealth();
 	}
 	// END HEALTH INTERFACE
+
+	virtual float GetMovespeed() const
+	{
+		return BaseMovespeed + Inventory->GetMovespeed();
+	}
 
 	// MANA INTERFACE IMPLEMENTATION
 	virtual float GetMana()
 	{
-		return Mana;
+		return Mana*GetMaxMana();
 	}
 
 	virtual void SetMana(float in_val)
 	{
-		Mana = std::min(GetMaxMana(), std::max(0.0f, in_val));
+		Mana = std::min(GetMaxMana(), std::max(0.0f, in_val))/GetMaxMana();
 	}
 
 	virtual void SetMaxMana(float in_val)
@@ -201,7 +211,7 @@ public:
 
 	virtual float GetMaxMana() const
 	{
-		return MaxMana;
+		return MaxMana + Inventory->GetMana();;
 	}
 	// END MANA INTERFACE
 
@@ -225,14 +235,31 @@ public:
 		return false;
 	}
 
+    void ApplyOnHit(AAghsCloneCharacter* other_char)
+    {
+        DamageInstance attack_damage_instance;
+		attack_damage_instance.value = GetAttackDamage();
+		attack_damage_instance.damage_type = PhysicalDamage;
+		attack_damage_instance.is_attack = true;
+		other_char->ApplyDamage(attack_damage_instance);
+		for (auto& ab : Abilities)
+        {
+            if (ab->bOnHit)
+            {
+                ab->OnHit(attack_damage_instance, other_char);
+            }
+        }
+        Inventory->OnHit(attack_damage_instance, other_char);
+    }
+
 	float GetAttackDamage() const
 	{
-		return attack_damage;
+		return attack_damage + Inventory->GetAttackDamage();
 	}
 
 	float GetAttackSpeed() const
 	{
-		return InitialAttackSpeed + AttackSpeed;
+		return InitialAttackSpeed + AttackSpeed + Inventory->GetAttackSpeed();
 	}
 
 	float GetAttackTime() const
@@ -283,6 +310,19 @@ public:
 		current_destination = in_destination;
 	}
 
+    virtual IAbilityInterface* GetAbility(int32 ability_num)
+    {
+        if (ability_num < 4)
+        {
+            return Cast<IAbilityInterface>(Abilities[ability_num]);
+        }
+        else if (ability_num < 10)
+        {
+            return Cast<IAbilityInterface>(Inventory->GetAbility(ability_num - 4));
+        }
+		return nullptr;
+    }
+
 	bool TriggerTargetedAbility(FVector target_loc)
 	{
 		bool retval = false;
@@ -306,14 +346,15 @@ public:
 	bool TriggerTargetedAbility(int32 ability_num, FVector target_loc)
 	{
 		bool retval = false;
-		if (ability_num >= 0 && ability_num < Abilities.size())
+        auto ability = GetAbility(ability_num);
+		if (ability)
 		{
-			if ((GetActorLocation() - target_loc).Size() < Abilities[ability_num]->CastRange)
+			if ((GetActorLocation() - target_loc).Size() < ability->GetCastRange())
 			{
-				Abilities[ability_num]->OnGroundActivationMeta(target_loc);
+				ability->OnGroundActivationMeta(target_loc);
 				retval = true;
 			}
-			Abilities[ability_num]->TargetingDecal->SetVisibility(false);
+			//ability->TargetingDecal->SetVisibility(false);
 		}
 		else
 		{
@@ -396,6 +437,8 @@ public:
 		DOREPLIFETIME(AAghsCloneCharacter, Mana);
 		DOREPLIFETIME(AAghsCloneCharacter, team);
 		DOREPLIFETIME(AAghsCloneCharacter, unit_owner);
+		DOREPLIFETIME(AAghsCloneCharacter, Inventory);
+		DOREPLIFETIME(AAghsCloneCharacter, Wallet);
 	}
 
 	std::vector<UAbility*> Abilities;
@@ -416,6 +459,13 @@ private:
 	/** A decal that projects to the cursor location. */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
 	class UPointLightComponent* VisionLight;
+
+	/** A decal that projects to the cursor location. */
+	UPROPERTY( Replicated, VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
+	class UInventoryComponent* Inventory;
+
+	UPROPERTY( Replicated, VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
+	class UWalletComponent* Wallet;
 	
 
 	//UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Replicated, meta = (AllowPrivateAccess = "true"))

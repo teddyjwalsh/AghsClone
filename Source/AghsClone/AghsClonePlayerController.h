@@ -3,10 +3,14 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "Components/Button.h"
 #include "GameFramework/PlayerController.h"
 #include "AghsCloneCharacter.h"
 #include "UnitController.h"
 #include "Ability.h"
+#include "StoreWidget.h"
+#include "AbilityContainerInterface.h"
+#include "AbilityInterface.h"
 #include "AghsClonePlayerController.generated.h"
 
 UCLASS()
@@ -15,16 +19,25 @@ class AAghsClonePlayerController : public APlayerController
 	GENERATED_BODY()
 
 	float mx, my;
+	int32 wx, wy;
 	bool select_box_on;
 	
+	
+
 	FVector2D select_box_start;
 	FVector2D select_box_end;
-	UAbility* targeted_ability;
+	IAbilityInterface* targeted_ability;
 	int32 targeted_ability_num;
 	TArray<AAghsCloneCharacter*> selected_units;
 	TArray<AAghsCloneCharacter*> temp_units;
 
 public:
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "UMG")
+	TSubclassOf<class UStoreWidget> StoreWidgetClass;
+	TSubclassOf<class UInventoryWidget> InventoryWidgetClass;
+	UStoreWidget* StoreWidget;
+	UInventoryWidget* InventoryWidget;
+
 	int32 team;
 
 	AAghsClonePlayerController();
@@ -40,7 +53,7 @@ public:
 	}
 
 	UFUNCTION(Reliable, Client)
-	void SetTargetedAbility(UAbility* in_ability, int32 in_ability_num);
+	void SetTargetedAbility(UObject* in_ability, int32 in_ability_num);
 
 	void GetSelectBox(FVector2D& out_box_start, FVector2D& out_box_end)
 	{
@@ -63,13 +76,18 @@ public:
 	UFUNCTION(Reliable, Client)
 	void SetLocalActorVisibility(AActor* in_actor, bool is_visible);
 
+	UFUNCTION(Reliable, Server)
+	void RequestBuy(int32 item_id);
 
 protected:
 	/** True if the controlled character should navigate to the mouse cursor. */
 	uint32 bMoveToMouseCursor : 1;
+	bool shop_on = false;
+	bool hud_clicked = false;
 
 	// Begin PlayerController interface
 	virtual void PlayerTick(float DeltaTime) override;
+	virtual void BeginPlay() override;
 	virtual void SetupInputComponent() override;
 	// End PlayerController interface
 
@@ -104,6 +122,8 @@ protected:
 	template<int32 ability_num>
 	void OnAbilityRelease();
 
+	void OnShopPress();
+
 	void OnLeftClick();
 
 	void OnAbilityTrigger();
@@ -112,6 +132,10 @@ protected:
 	void OnTrigger(FHitResult Hit, int32 ability_num);
 
 	void OnTriggerRelease();
+
+	void CreateStoreWidget();
+
+	void CreateInventoryWidget();
 
 	void CleanSelected()
 	{
@@ -128,6 +152,8 @@ protected:
 		temp_units.Remove(nullptr);
 		SetSelected(temp_units);
 	}
+
+
 };
 
 

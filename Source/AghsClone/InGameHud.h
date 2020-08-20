@@ -12,6 +12,9 @@
 #include "Blueprint/UserWidget.h"
 #include "AghsCloneCharacter.h"
 #include "AghsClonePlayerController.h"
+#include "InventoryComponent.h"
+#include "Components/Button.h"
+#include "StoreWidget.h"
 #include "InGameHud.generated.h"
 
 /**
@@ -23,16 +26,29 @@ class AGHSCLONE_API AInGameHud : public AHUD
 	GENERATED_BODY()
 
 	TArray<AAghsCloneCharacter*> selected;
+	TArray<UButton*> buttons;
 
 public:
-	//AInGameHud()
-	//{
+	AInGameHud()
+	{
 		
-	//}
+	}
+
+	virtual void BeginPlay() override
+	{
+		//auto UserInterface = CreateWidget<UStoreWidget>(this, UStoreWidget::StaticClass());
+		//FInputModeGameAndUI Mode;
+		//Mode.SetLockMouseToViewportBehavior(EMouseLockMode::true);
+		//Mode.SetHideCursorDuringCapture(false);
+		//SetInputMode(Mode);
+		//UserInterface->AddToViewport(9999); // Z-order, this just makes it render on the very top.
+	}
 
 	/** Primary draw call for the HUD */
 	virtual void DrawHUD() override
 	{
+		EnableInput(GetWorld()->GetFirstPlayerController());
+		
 		Super::DrawHUD();
 		auto pc = Cast<AAghsClonePlayerController>(GetWorld()->GetFirstPlayerController());
 
@@ -50,10 +66,12 @@ public:
 			health_text.Position = FVector2D(100, 100);
 			Canvas->DrawItem(health_text);
 		}
-
+		
 		if (pc != nullptr)
 		{
-			
+			float mx, my;
+			pc->GetMousePosition(mx, my);
+			UpdateAndDispatchHitBoxClickEvents(FVector2D(mx, my), EInputEvent::IE_Pressed);
 			// Health bars
 			int32 vx, vy;
 			pc->GetViewportSize(vx, vy);
@@ -96,16 +114,22 @@ public:
 				auto char_health_interface = Cast<IHealthInterface>(sc);
 				if (char_health_interface)
 				{
-					DrawHealthBar(char_health_interface, FVector2D(x_center, vy - 30));
+					DrawHealthBar(char_health_interface, FVector2D(x_center, vy - 32));
 					auto char_mana_interface = Cast<IManaInterface>(sc);
 					if (char_mana_interface)
 					{
-						DrawManaBar(char_mana_interface, FVector2D(x_center, vy - 13));
+						DrawManaBar(char_mana_interface, FVector2D(x_center, vy - 15));
 					}
+					auto wallet_comp = Cast<UWalletComponent>(sc->GetComponentByClass(UWalletComponent::StaticClass()));
+					if (wallet_comp)
+					{
+						DrawWallet(wallet_comp, FVector2D(vx - 120, vy - 100));
+					}
+
 					break;
 				}
 			}
-			
+
 			if (pc->SelectBoxOn())
 			{
 				pc->GetSelectBox(box_start, box_end);
@@ -145,7 +169,7 @@ public:
 	{
 			FVector2D health_box_size(40, 5);
 			FVector2D health_box_loc = screen_loc + FVector2D(-20, -30);
-			FCanvasBoxItem box_item(health_box_loc - FVector2D(1, 1), health_box_size + FVector2D(2, 2));
+			FCanvasBoxItem box_item(health_box_loc - FVector2D(0, 0), health_box_size + FVector2D(1, 1));
 			float health_fraction = char_health_interface->GetHealth() * 1.0 / char_health_interface->GetMaxHealth();
 			FCanvasTileItem tile_item(health_box_loc, health_box_size * FVector2D(health_fraction, 1), in_color);
 			box_item.SetColor(FLinearColor(1, 1, 1));
@@ -160,7 +184,7 @@ public:
 
 		FVector2D main_health_box_size(400, 15);
 		FVector2D main_health_box_loc = FVector2D(screen_loc.X - main_health_box_size.X / 2,  screen_loc.Y);
-		FCanvasBoxItem box_item(main_health_box_loc - FVector2D(1, 1), main_health_box_size + FVector2D(2, 2));
+		FCanvasBoxItem box_item(main_health_box_loc - FVector2D(0, 0), main_health_box_size + FVector2D(1, 1));
 		float cur_health = char_health_interface->GetHealth();
 		float max_health = char_health_interface->GetMaxHealth();
 		float health_fraction = cur_health * 1.0 / max_health;
@@ -185,7 +209,7 @@ public:
 
 		FVector2D main_health_box_size(400, 15);
 		FVector2D main_health_box_loc = FVector2D(screen_loc.X - main_health_box_size.X / 2, screen_loc.Y);
-		FCanvasBoxItem box_item(main_health_box_loc - FVector2D(1, 1), main_health_box_size + FVector2D(2, 2));
+		FCanvasBoxItem box_item(main_health_box_loc - FVector2D(0, 0), main_health_box_size + FVector2D(1, 1));
 		float health_fraction = char_mana_interface->GetMana() * 1.0 / char_mana_interface->GetMaxMana();
 		FString health_string;
 		health_string = FString::Printf(TEXT("%d / %d"),
@@ -201,6 +225,16 @@ public:
 		Canvas->DrawItem(health_text);
 	}
 
+	void DrawWallet(UWalletComponent* wallet_comp, FVector2D screen_loc)
+	{
+		static auto def_font = GetFontFromSizeIndex(10);
+		static FCanvasTextItem health_text(FVector2D(0, 0), FText(), def_font, FLinearColor(1, 1, 1));
+		FString health_string;
+		health_string = FString::Printf(TEXT("%d gold"), int32(wallet_comp->Balance()));
+		health_text.Text = FText::FromString(health_string);
+		health_text.Position = FVector2D(screen_loc.X, screen_loc.Y);
+		Canvas->DrawItem(health_text);
+	}
 
 	//virtual void BeginPlay() override
 	//{
@@ -212,6 +246,9 @@ private:
 	bool select_was_on;
 	FVector2D box_loc, box_size;
 	FVector2D box_start, box_end;
+	float item_slot_width = 25;
+	float item_slot_height = 25;
+	float between_space = 2;
 	/** Crosshair asset pointer */
 	//class UTexture2D* CrosshairTex;
 

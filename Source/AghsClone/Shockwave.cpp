@@ -9,10 +9,10 @@ AShockwave::AShockwave()
 {
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
+
 	static ConstructorHelpers::FObjectFinder<UStaticMesh> ScreenMesh(TEXT("StaticMesh'/Engine/BasicShapes/Sphere.Sphere'"));
 	static ConstructorHelpers::FObjectFinder<UMaterialInterface> ScreenMat(TEXT("MaterialInstanceConstant'/Game/Materials/Shockwave.Shockwave'"));
 	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
-	PrimaryActorTick.bCanEverTick = true;
 	sphere = CreateDefaultSubobject<UStaticMeshComponent>("Sphere");
 	bounds = CreateDefaultSubobject<USphereComponent>("Bounds");
 	bounds->SetupAttachment(sphere);
@@ -34,7 +34,6 @@ AShockwave::AShockwave()
 void AShockwave::BeginPlay()
 {
 	Super::BeginPlay();
-	
 }
 
 // Called every frame
@@ -42,21 +41,25 @@ void AShockwave::Tick(float DeltaTime)
 {
 	TSet<AActor*> set;
 	bounds->GetOverlappingActors(set);
-	if (set.Num() > 0)
+	if (set.Num() > 0 && HasAuthority())
 	{
 		for (auto& act : set)
 		{
 			int32 act_id = act->GetUniqueID();
-			if (hit.find(act_id) == hit.end() && act != GetOwner())
+			if (!hit.Find(act) && act != GetOwner())
 			{
 				if (bounds->GetScaledSphereRadius() - (act->GetActorLocation() - GetActorLocation()).Size() < 20)
 				{
 					auto health_comp = Cast<IHealthInterface>(act);
 					if (health_comp)
 					{
-						health_comp->ApplyDamage(20, MagicDamage);
-						hit.insert(act->GetUniqueID());
-						UE_LOG(LogTemp, Warning, TEXT("SHOCK HIT CHARACTER: %f"), health_comp->GetHealth());
+                        DamageInstance shock_damage;
+                        shock_damage.value = 20;
+                        shock_damage.damage_type = MagicDamage;
+                        shock_damage.is_attack = false;
+						health_comp->ApplyDamage(shock_damage);
+						hit.Add(act);// (act->GetUniqueID());
+						UE_LOG(LogTemp, Warning, TEXT("SHOCK HIT CHARACTER: %f, %d"), health_comp->GetHealth(), act);
 					}
 				}
 			}

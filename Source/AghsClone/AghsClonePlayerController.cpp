@@ -8,20 +8,30 @@
 #include "Components/CapsuleComponent.h"
 #include "Components/PointLightComponent.h"
 #include "HeadMountedDisplayFunctionLibrary.h"
+#include "Components/CanvasPanelSlot.h"
 #include "AghsCloneCharacter.h"
 #include "UnitController.h"
 #include "Engine/World.h"
 #include "GameFramework/HUD.h"
 #include "GameFramework/SpringArmComponent.h"
+#include "StoreWidget.h"
 #include "FieldActorInterface.h"
+#include "WalletComponent.h"
+#include "InventoryComponent.h"
+#include "Shop.h"
 
 AAghsClonePlayerController::AAghsClonePlayerController()
 {
 	bShowMouseCursor = true;
 	DefaultMouseCursor = EMouseCursor::Crosshairs;
-	
+	ClickEventKeys.Add(EKeys::RightMouseButton);
 	//bReplicates = true;
 	//SetReplicateMovement(true);
+}
+
+void AAghsClonePlayerController::BeginPlay()
+{
+	shop_on = false;
 }
 
 void AAghsClonePlayerController::AssignTeam_Implementation(int32 in_team)
@@ -34,10 +44,14 @@ int32 AAghsClonePlayerController::GetTeam()
 	return team;
 }
 
-void AAghsClonePlayerController::SetTargetedAbility_Implementation(UAbility* in_ability, int32 in_ability_num)
+void AAghsClonePlayerController::SetTargetedAbility_Implementation(UObject* in_ability, int32 in_ability_num)
 {
-	targeted_ability = in_ability;
-	targeted_ability_num = in_ability_num;
+	auto ability = Cast<IAbilityInterface>(in_ability);
+	if (ability)
+	{
+		targeted_ability = ability;
+		targeted_ability_num = in_ability_num;
+	}
 }
 
 void AAghsClonePlayerController::SetLocalActorVisibility_Implementation(AActor* in_actor, bool is_visible)
@@ -67,7 +81,6 @@ void AAghsClonePlayerController::SetLocalActorVisibility_Implementation(AActor* 
 void AAghsClonePlayerController::PlayerTick(float DeltaTime)
 {
 	Super::PlayerTick(DeltaTime);
-	int32 wx, wy;
 
 	GetMousePosition(mx, my);
 	GetViewportSize(wx, wy);
@@ -81,9 +94,25 @@ void AAghsClonePlayerController::PlayerTick(float DeltaTime)
 		bMoveToMouseCursor = false;
 	}
 
+	if (IsValid(StoreWidget))
+	{
+		if (StoreWidget->GridIsHovered())
+		{
+			hud_clicked = true;
+		}
+		else
+		{
+			hud_clicked = false;
+		}
+	}
+
 	AUnitController* MyPawn = Cast<AUnitController>(GetPawn());
 	if (MyPawn != nullptr)
 	{
+		if (InventoryWidget)
+		{
+			InventoryWidget->DrawInventory();
+		}
 		auto cb = MyPawn->GetCameraBoom();
 		if (abs(mx - wx) <= 20)
 		{
@@ -133,6 +162,25 @@ void AAghsClonePlayerController::SetSelected(const TArray<AAghsCloneCharacter*>&
 		{
 			SetSelectedServer(selected_units);
 		}
+
+		if (IsLocalController() && selected_units.Num())
+		{
+			InventoryWidgetClass = UInventoryWidget::StaticClass();
+			InventoryWidget = CreateWidget<UInventoryWidget>(this, InventoryWidgetClass);
+			
+			if (!InventoryWidget)
+			{
+			}
+			else
+			{
+				InventoryWidget->SetItems();
+				InventoryWidget->DrawInventory();
+				InventoryWidget->AddToViewport(9999); // Z-order, this just makes it render on the very top.
+				InventoryWidget->SetPositionInViewport(FVector2D(wx - 120, wy - 80));
+				FAnchors anchor(100, 100, 100, 100);
+				InventoryWidget->SetVisibility(ESlateVisibility::Visible);
+			}
+		}
 	}
 }
 
@@ -153,7 +201,7 @@ void AAghsClonePlayerController::SetupInputComponent()
 	// set up gameplay key bindings
 	Super::SetupInputComponent();
 
-	InputComponent->BindAction("SetDestination", IE_Pressed, this, &AAghsClonePlayerController::OnSetDestinationPressed);
+	InputComponent->BindAction("SetDestination", IE_Pressed, this, &AAghsClonePlayerController::OnSetDestinationPressed); void OnShopPress();
 	InputComponent->BindAction("Trigger", IE_Pressed, this, &AAghsClonePlayerController::OnLeftClick);
 	InputComponent->BindAction("Trigger", IE_Released, this, &AAghsClonePlayerController::OnTriggerRelease);
 	InputComponent->BindAction("SetDestination", IE_Released, this, &AAghsClonePlayerController::OnSetDestinationReleased);
@@ -165,6 +213,19 @@ void AAghsClonePlayerController::SetupInputComponent()
 	InputComponent->BindAction("Ability2", IE_Released, this, &AAghsClonePlayerController::OnAbilityRelease<1>);
 	InputComponent->BindAction("Ability3", IE_Released, this, &AAghsClonePlayerController::OnAbilityRelease<2>);
 	InputComponent->BindAction("Ability4", IE_Released, this, &AAghsClonePlayerController::OnAbilityRelease<3>);
+	InputComponent->BindAction("Item1",IE_Pressed, this, &AAghsClonePlayerController::OnAbilityPress<4>);
+	InputComponent->BindAction("Item2",IE_Pressed, this, &AAghsClonePlayerController::OnAbilityPress<5>);
+	InputComponent->BindAction("Item3",IE_Pressed, this, &AAghsClonePlayerController::OnAbilityPress<6>);
+	InputComponent->BindAction("Item4",IE_Pressed, this, &AAghsClonePlayerController::OnAbilityPress<7>);
+	InputComponent->BindAction("Item5",IE_Pressed, this, &AAghsClonePlayerController::OnAbilityPress<8>);
+	InputComponent->BindAction("Item6",IE_Pressed, this, &AAghsClonePlayerController::OnAbilityPress<9>);
+	InputComponent->BindAction("Item1",IE_Released, this, &AAghsClonePlayerController::OnAbilityRelease<4>);
+	InputComponent->BindAction("Item2",IE_Released, this, &AAghsClonePlayerController::OnAbilityRelease<5>);
+	InputComponent->BindAction("Item3",IE_Released, this, &AAghsClonePlayerController::OnAbilityRelease<6>);
+	InputComponent->BindAction("Item4",IE_Released, this, &AAghsClonePlayerController::OnAbilityRelease<7>);
+	InputComponent->BindAction("Item5",IE_Released, this, &AAghsClonePlayerController::OnAbilityRelease<8>);
+	InputComponent->BindAction("Item6",IE_Released, this, &AAghsClonePlayerController::OnAbilityRelease<9>);
+	InputComponent->BindAction("ShopOpen", IE_Pressed, this, &AAghsClonePlayerController::OnShopPress);
 
 	// support touch devices 
 	InputComponent->BindTouch(EInputEvent::IE_Pressed, this, &AAghsClonePlayerController::MoveToTouchLocation);
@@ -259,8 +320,18 @@ void AAghsClonePlayerController::CommandAttack_Implementation(const FCommand& in
 
 void AAghsClonePlayerController::OnSetDestinationPressed()
 {
+	if (StoreWidget)
+	{
+		if (StoreWidget->GridIsHovered())
+		{
+			//hud_clicked = true;
+		}
+	}
 	// set flag to keep updating destination until released
-	bMoveToMouseCursor = true;
+	if (!hud_clicked)
+	{
+		bMoveToMouseCursor = true;
+	}
 
 	UE_LOG(LogTemp, Warning, TEXT("RIGHT CLOCK"));
 }
@@ -282,18 +353,19 @@ void AAghsClonePlayerController::ActivateAbility_Implementation(int32 ability_nu
 {
 	if (AUnitController* MyPawn = Cast<AUnitController>(GetPawn()))
 	{
-		AAghsCloneCharacter * main_character = MyPawn->GetPrimaryUnit();
+		IAbilityContainerInterface* main_character = Cast<IAbilityContainerInterface>(MyPawn->GetPrimaryUnit());
 		if (main_character)
 		{
-			if (main_character->Abilities.size() > ability_num)
+			if (main_character->AbilityCount() > ability_num)
 			{
-				if (main_character->Abilities[ability_num]->bToggleable && GetLocalRole() == ROLE_Authority)
+                IAbilityInterface* ability = main_character->GetAbility(ability_num);
+				if (ability->IsToggleable() && GetLocalRole() == ROLE_Authority)
 				{
-					main_character->Abilities[ability_num]->bToggled = !main_character->Abilities[ability_num]->bToggled;
+					ability->Toggle();// = !ability->IsToggled();
 				}
-				else if (!main_character->Abilities[ability_num]->bPassive && GetLocalRole() == ROLE_Authority)
+				else if (!ability->IsPassive() && GetLocalRole() == ROLE_Authority)
 				{
-					main_character->Abilities[ability_num]->OnActivationMeta();
+					ability->OnActivationMeta();
 				}
             }
         }
@@ -304,20 +376,24 @@ void AAghsClonePlayerController::OnAbilityNumPress(int32 ability_num)
 {
 	if (AUnitController* MyPawn = Cast<AUnitController>(GetPawn()))
 	{
-		AAghsCloneCharacter * main_character = MyPawn->GetPrimaryUnit();
+		IAbilityContainerInterface* main_character = Cast<IAbilityContainerInterface>(MyPawn->GetPrimaryUnit());
 		if (main_character)
 		{
-			if (main_character->Abilities.size() > ability_num)
+			if (main_character->AbilityCount() > ability_num)
 			{
-				if (main_character->Abilities[ability_num]->bUnitTargeted || main_character->Abilities[ability_num]->bGroundTargeted)
+                IAbilityInterface* ability = main_character->GetAbility(ability_num);
+				if (ability)
 				{
-					// main_character->SetTargetingActive(ability_num);
-					targeted_ability = main_character->Abilities[ability_num];
-					targeted_ability_num = ability_num;
-				}
-				else
-				{
-                    ActivateAbility(ability_num);
+					if (ability->IsUnitTargeted() || ability->IsGroundTargeted())
+					{
+						// main_character->SetTargetingActive(ability_num);
+						targeted_ability = ability;
+						targeted_ability_num = ability_num;
+					}
+					else
+					{
+						ActivateAbility(ability_num);
+					}
 				}
 			}
 		}
@@ -330,9 +406,49 @@ void AAghsClonePlayerController::OnAbilityRelease()
 	
 }
 
+void AAghsClonePlayerController::OnShopPress()
+{
+	if (IsLocalController())
+	{
+		if (!shop_on)
+		{
+			StoreWidgetClass = UStoreWidget::StaticClass();
+			StoreWidget = CreateWidget<UStoreWidget>(this, StoreWidgetClass);
+			if (!StoreWidget)
+			{
+				shop_on = false;
+			}
+			else
+			{
+				//FInputModeGameAndUI Mode;
+				//Mode.SetLockMouseToViewportBehavior(EMouseLockMode::true);
+				//Mode.SetHideCursorDuringCapture(false);
+				//SetInputMode(Mode);
+				StoreWidget->AddToViewport(9999); // Z-order, this just makes it render on the very top.
+				//StoreWidget->SetAlignmentInViewport(FVector2D(0.1, 0.1));
+				//StoreWidget->SetPadding(FMargin(0.1,0.1,0,0));
+				//auto canvas_slot = Cast<UCanvasPanelSlot>(StoreWidget);
+				//canvas_slot->SetDesiredPosition(FVector2D(30, 30));
+				StoreWidget->SetPositionInViewport(FVector2D(40, 40));
+				//StoreWidget->SetDesiredSizeInViewport(FVector2D(400, 800));
+				FAnchors anchor(100, 100, 100, 100);
+				StoreWidget->SetVisibility(ESlateVisibility::Visible);
+				//StoreWidget->SetAnchorsInViewport(anchor);
+				shop_on = true;
+			}
+		}
+		else
+		{
+			StoreWidget->RemoveFromViewport();
+			shop_on = false;
+		}
+	}
+}
+
 void AAghsClonePlayerController::OnLeftClick()
 {
 	CleanSelected();
+
 	if (!targeted_ability)
 	{
 		select_box_on = true;
@@ -365,7 +481,7 @@ void AAghsClonePlayerController::OnTrigger_Implementation(FHitResult Hit, int32 
 				//MyPawn->TriggerTargetedAbility(Hit.ImpactPoint);
 				FCommand move_command;
 				move_command.command_type = ABILITY;
-				move_command.ability_num = targeted_ability_num;// main_character->GetTargetingActive();
+				move_command.ability_num = ability_num;// main_character->GetTargetingActive();
 				move_command.location = Hit.ImpactPoint;
 				main_character->SetCommand(move_command);
 				
@@ -379,4 +495,24 @@ void AAghsClonePlayerController::OnTrigger_Implementation(FHitResult Hit, int32 
 void AAghsClonePlayerController::OnTriggerRelease()
 {
 	select_box_on = false;
+}
+
+void AAghsClonePlayerController::RequestBuy_Implementation(int32 item_id)
+{
+	if (AUnitController* MyPawn = Cast<AUnitController>(GetPawn()))
+	{
+		auto wallet = Cast<UWalletComponent>(MyPawn->GetPrimaryUnit()->GetComponentByClass(UWalletComponent::StaticClass()));
+		auto inventory_comp = Cast<UInventoryComponent>(MyPawn->GetPrimaryUnit()->GetComponentByClass(UInventoryComponent::StaticClass()));
+		auto Shop = AShop::GetClosestShop(MyPawn, item_id);
+		if (Shop)
+		{
+			if (wallet && inventory_comp && Shop->CanBuy(wallet->GetOwner()))
+			{
+				if (wallet->Debit(Shop->GetPrice(item_id)))
+				{
+					inventory_comp->InsertItem(Shop->BuyItem(item_id));
+				}
+			}
+		}
+	}
 }

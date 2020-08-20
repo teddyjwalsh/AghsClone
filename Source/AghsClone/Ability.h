@@ -5,11 +5,14 @@
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
 #include "ManaInterface.h"
+#include "HealthInterface.h"
+#include "AbilityInterface.h"
 #include "Ability.generated.h"
 
 
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
-class AGHSCLONE_API UAbility : public UActorComponent
+class AGHSCLONE_API UAbility : public UActorComponent,
+    public IAbilityInterface
 {
 	GENERATED_BODY()
 
@@ -27,6 +30,7 @@ public:
 	bool bToggleable = false;
 	bool bToggled = false;
 	bool bPassive = false;
+    bool bOnHit = false;
 	float DefaultCooldown;
 	float ManaCost;
 	float CastRange;
@@ -34,47 +38,43 @@ public:
 
 	// Called every frame
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
-	
-	bool CostMana()
-	{
-		bool retval = false;
-		auto mi = Cast<IManaInterface>(GetOwner());
-		if (mi->GetMana() >= ManaCost)
-		{
-			mi->AddToMana(-ManaCost);
-			retval = true;
-		}
-		else
-		{
-			retval = false;
-		}
-		return retval;
-	}
-	void OnActivationMeta() 
-	{ 
-		if (CostMana()) 
-		{ 
-			OnActivation();
-		}
-	}
-	void OnUnitActivationMeta(FVector target)
-	{
-		if (CostMana())
-		{
-			OnUnitActivation(target);
-		}
-	}
-	void OnGroundActivationMeta(FVector target)
-	{
-		if (CostMana())
-		{
-			OnGroundActivation(target);
-		}
-	}
+	virtual float GetCastRange() const override 
+    {
+        return CastRange;
+    }
+	virtual float GetManaCost() const override 
+    {
+        return ManaCost;
+    }
 	virtual void OnActivation() { UE_LOG(LogTemp, Warning, TEXT("Non-targeted activation")); }
-	virtual void OnUnitActivation(FVector target) { UE_LOG(LogTemp, Warning, TEXT("Unit-targeted activation")); }
-	virtual void OnGroundActivation(FVector target) 
+	virtual void OnUnitActivation(AActor* target) { UE_LOG(LogTemp, Warning, TEXT("Unit-targeted activation")); }
+	virtual void OnHit(DamageInstance& damage, AActor* unit) { UE_LOG(LogTemp, Warning, TEXT("OnHit activation")); }
+	virtual void OnGroundActivation(const FVector& target) 
 	{ 
 		UE_LOG(LogTemp, Warning, TEXT("Ground-targeted activation, %f, %f"), target.X, target.Y); 
 	}
+    virtual bool IsToggleable() const override
+    {
+        return bToggleable;
+    }
+    virtual bool IsToggled() const override
+    {
+        return bToggled;
+    }
+    virtual bool IsPassive() const override
+    {
+        return bPassive;
+    }
+    virtual bool IsUnitTargeted() const override
+    {
+        return bUnitTargeted;
+    }
+    virtual bool IsGroundTargeted() const override
+    {
+        return bGroundTargeted;
+    }
+    virtual void Toggle() override
+    {
+        bToggled = !bToggled;
+    }
 };

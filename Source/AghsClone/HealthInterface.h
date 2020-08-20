@@ -13,6 +13,13 @@ enum DamageType
     MagicDamage
 };
 
+struct DamageInstance
+{
+    float value;
+    DamageType damage_type;
+    bool is_attack;
+};
+
 // This class does not need to be modified.
 UINTERFACE(MinimalAPI)
 class UHealthInterface : public UInterface
@@ -49,24 +56,25 @@ public:
 
     virtual float GetMaxHealth() const = 0;
 
-    virtual void ApplyDamage(float raw_value, DamageType damage_type)
+    //virtual void ApplyDamage(float raw_value, DamageType damage_type)
+    virtual void ApplyDamage(DamageInstance& damage)
     {
-        switch (damage_type)
+        switch (damage.damage_type)
         {
         case PureDamage:
         {
-            AddToHealth(-raw_value);
+            AddToHealth(-damage.value);
             break;
         }
         case PhysicalDamage:
         {
-            float value = -raw_value*(1 - ((0.06 * GetArmor()) / (1 + 0.06 * abs(GetArmor()))));
+            float value = -damage.value*(1 - ((0.06 * GetArmor()) / (1 + 0.06 * abs(GetArmor()))));
             AddToHealth(value);
             break;
         }
         case MagicDamage:
         {
-            float value = -(1 - GetMagicResist()) * raw_value;
+            float value = -(1 - GetMagicResist()) * damage.value;
             AddToHealth(value);
             break;
         }

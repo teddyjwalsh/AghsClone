@@ -6,7 +6,8 @@
 #include "UnitController.h"
 #include "UObject/ConstructorHelpers.h"
 #include "InGameHud.h"
-#include "AghsReplicationDriver.h"
+#include "Shop.h"
+#include "BlinkDagger.h"
 #include "GameFramework/GameUserSettings.h"
 
 AAghsCloneGameMode::AAghsCloneGameMode()
@@ -35,4 +36,44 @@ AAghsCloneGameMode::AAghsCloneGameMode()
 		MyGameSettings->SetVSyncEnabled(true);
 		MyGameSettings->ApplySettings(true);
 	}
+
+}
+
+void AAghsCloneGameMode::StartPlay()
+{
+	Super::StartPlay();
+	AShop::DestroyShops();
+
+	UNavigationSystemV1* NavSys = Cast<UNavigationSystemV1>(GetWorld()->GetNavigationSystem());
+	FNavLocation NavPoint;
+	NavSys->ProjectPointToNavigation(FVector(0, 0, 0), NavPoint);
+	auto shop = AShop::CreateShop(GetWorld(), NavPoint.Location);
+
+	auto new_item = GetWorld()->SpawnActor<AItem>();
+	new_item->Health = 125;
+	new_item->Mana = 200;
+	new_item->SetMaterial("kotlguyp");
+	shop->AddItem(new_item, 1, 500);
+
+	new_item = GetWorld()->SpawnActor<AItem>();
+	new_item->AttackSpeed = 140;
+	new_item->AttackDamage = 0;
+	new_item->SetMaterial("moon_shard");
+	shop->AddItem(new_item, 2, 200);
+
+	new_item = GetWorld()->SpawnActor<AItem>();
+	new_item->Movespeed = 45;
+	new_item->SetMaterial("brown_boots");
+	shop->AddItem(new_item, 3, 500);
+
+	new_item = GetWorld()->SpawnActor<AItem>();
+	new_item->AttackSpeed = 1000;
+	new_item->AttackDamage = -50;
+	new_item->SetMaterial("serpentblade");
+	shop->AddItem(new_item, 4, 123);
+
+	new_item = GetWorld()->SpawnActor<ABlinkDagger>();
+	new_item->CastRange = 1200;
+	new_item->SetMaterial("blink_dagger");
+	shop->AddItem(new_item, 5, 800);
 }
