@@ -38,9 +38,12 @@ public:
 	bool bPassive = false;
     bool bOnHit = false;
 	float DefaultCooldown;
+    UPROPERTY( Replicated )
 	float ManaCost;
 	float CastRange;
+    UPROPERTY(Replicated)
     float Cooldown;
+    UPROPERTY(Replicated)
     float CurrentCooldown;
 	class UDecalComponent* TargetingDecal;
 
@@ -66,6 +69,10 @@ public:
     virtual void SetCurrentCooldown(float in_val) override
     {
         CurrentCooldown = in_val;
+    }
+    virtual float GetCastRange() const
+    {
+        return CastRange;
     }
 	virtual float GetManaCost() const override 
     {

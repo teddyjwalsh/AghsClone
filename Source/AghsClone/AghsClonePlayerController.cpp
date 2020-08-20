@@ -47,11 +47,8 @@ int32 AAghsClonePlayerController::GetTeam()
 void AAghsClonePlayerController::SetTargetedAbility_Implementation(UObject* in_ability, int32 in_ability_num)
 {
 	auto ability = Cast<IAbilityInterface>(in_ability);
-	if (ability)
-	{
-		targeted_ability = ability;
-		targeted_ability_num = in_ability_num;
-	}
+	targeted_ability = ability;
+	targeted_ability_num = in_ability_num;
 }
 
 void AAghsClonePlayerController::SetLocalActorVisibility_Implementation(AActor* in_actor, bool is_visible)
@@ -104,6 +101,10 @@ void AAghsClonePlayerController::PlayerTick(float DeltaTime)
 		{
 			hud_clicked = false;
 		}
+	}
+	if (IsValid(AbilitiesWidget))
+	{
+		AbilitiesWidget->RefreshCooldownDisplays();
 	}
 
 	AUnitController* MyPawn = Cast<AUnitController>(GetPawn());

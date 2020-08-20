@@ -71,7 +71,6 @@ protected:
 public:
 
 	// Called every frame
-	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 	virtual void OnGroundActivation(const FVector& target) override
 	{
 		//auto new_instance = NewObject<UBallDrop>(this);

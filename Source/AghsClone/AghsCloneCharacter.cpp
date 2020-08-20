@@ -131,7 +131,7 @@ AAghsCloneCharacter::AAghsCloneCharacter() :
 	Abilities[2]->bUnitTargeted = true;
 	for (auto& ab : Abilities)
 	{
-		//ab->SetIsReplicated(true);
+		ab->SetIsReplicated(true);
 	}
 
 	//GetCapsuleComponent()->SetIsReplicated(true);

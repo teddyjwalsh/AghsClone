@@ -3,6 +3,7 @@
 
 #include "StoreWidget.h"
 #include "Blueprint/WidgetTree.h"
+#include "Components/TextBlock.h"
 #include "AghsCloneCharacter.h"
 #include "AghsClonePlayerController.h"
 #include "UnitController.h"
@@ -251,7 +252,7 @@ bool UAbilitiesWidget::DrawAbilities()
     int count = 0;
     for (auto& ab : abilities)
     {
-        auto l_button = WidgetTree->ConstructWidget<UMultiButton>(UMultiButton::StaticClass(), FName("Button%d",count));
+        auto l_button = WidgetTree->ConstructWidget<UMultiButton>(UMultiButton::StaticClass(), FName("Button",count));
         
         l_button->SetVisibility(ESlateVisibility::Visible);
         buttons.Add(l_button, ab);
@@ -267,10 +268,39 @@ bool UAbilitiesWidget::DrawAbilities()
         count += 1;
         col_count = std::min(count, max_col_count);
         row_count = std::ceil(count*1.0 / max_col_count);
+        auto cooldown = WidgetTree->ConstructWidget<UTextBlock>(UTextBlock::StaticClass(), FName("Cooldown", count));
+      
+        cooldown->SetText(FText::FromString(""));
+        cooldown->ColorAndOpacity = FSlateColor(FLinearColor(0.4, 0.4, 0.4));
+        cooldown->Font.Size = 30;
+        l_button->AddChild(cooldown);
     }
     SetDesiredSizeInViewport(FVector2D(el_width * col_count, el_height*row_count));
     SetVisibility(ESlateVisibility::Visible);
     return true;
+}
+
+void UAbilitiesWidget::RefreshCooldownDisplays()
+{
+    for (auto& b : buttons)
+    {
+        if (b.Key->GetChildrenCount())
+        {
+            auto tb = Cast<UTextBlock>(b.Key->GetChildAt(0));
+            if (tb)
+            {
+                float cd = b.Value->GetCurrentCooldown();
+                if (cd)
+                {
+                    tb->SetText(FText::FromString(FString::FromInt(int32(std::ceil(cd)))));
+                }
+                else
+                {
+                    tb->SetText(FText::FromString(""));
+                }
+            }
+        }
+    }
 }
 
 void UAbilitiesWidget::NativeConstruct()

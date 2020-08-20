@@ -178,6 +178,8 @@ public:
 
     bool DrawAbilities();
 
+	void RefreshCooldownDisplays();
+
 	virtual void NativeConstruct() override;
 
 	UFUNCTION()
