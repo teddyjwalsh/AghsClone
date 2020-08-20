@@ -145,9 +145,14 @@ public:
 	UUniformGridPanel* grid;
 	//TArray<UMultiButton*> buttons;
 	TMap<UMultiButton*, AItem*> buttons;
+	TMap<AItem*, UMultiButton*> buttons_inv;
+	TMap<AItem*, int32> item_indices;
+	TArray<UMultiButton*> button_array;
     UInventoryComponent* current_inventory = nullptr;
 	virtual bool Initialize() override;
     bool DrawInventory();
+
+	void RefreshCooldownDisplays();
 
 	virtual void NativeConstruct() override;
 

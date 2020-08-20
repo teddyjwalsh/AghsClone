@@ -44,6 +44,7 @@ public:
 				FActorSpawnParameters act_par;
 				act_par.Template = items[item].proto;
 				auto new_item = GetWorld()->SpawnActor<AItem>(items[item].item_class, act_par);
+				new_item->SetReplicates(true);
 				return new_item;
 			}
 			else
@@ -54,6 +55,7 @@ public:
 					act_par.Template = items[item].proto;
 					auto new_item = GetWorld()->SpawnActor<AItem>(items[item].item_class, act_par);
 					items[item].stock -= 1;
+					new_item->SetReplicates(true);
 					return new_item;
 				}
 			}

@@ -106,13 +106,18 @@ void AAghsClonePlayerController::PlayerTick(float DeltaTime)
 	{
 		AbilitiesWidget->RefreshCooldownDisplays();
 	}
+	if (IsValid(InventoryWidget))
+	{
+		InventoryWidget->SetItems();
+		InventoryWidget->RefreshCooldownDisplays();
+	}
 
 	AUnitController* MyPawn = Cast<AUnitController>(GetPawn());
 	if (MyPawn != nullptr)
 	{
 		if (InventoryWidget)
 		{
-			InventoryWidget->DrawInventory();
+			//InventoryWidget->SetItems();
 		}
 		auto cb = MyPawn->GetCameraBoom();
 		if (abs(mx - wx) <= 20)

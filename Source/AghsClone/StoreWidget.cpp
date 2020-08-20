@@ -132,9 +132,10 @@ bool UInventoryWidget::DrawInventory()
     int32 max_col_count = 3;
     int32 col_count = 0;
     grid->ClearChildren();
+    button_array.Empty();
     int row_count = 1;
     TArray<AItem*> shop_items;
-    if (current_inventory)
+    if (0)//current_inventory)
     {
         shop_items = current_inventory->GetItems();
     }
@@ -148,26 +149,59 @@ bool UInventoryWidget::DrawInventory()
     int count = 0;
     for (auto& si : shop_items)
     {
-        auto l_button = WidgetTree->ConstructWidget<UMultiButton>(UMultiButton::StaticClass(), FName("Button%d",count));
-        
+        auto l_button = WidgetTree->ConstructWidget<UMultiButton>(UMultiButton::StaticClass(), FName("Button%d", count));
+
         l_button->SetVisibility(ESlateVisibility::Visible);
-        buttons.Add(l_button, si);
-        TFunction<void(void)> test_func;
-        l_button->RightClick.AddDynamic(this, &UInventoryWidget::OnItemClicked);
         auto slot = grid->AddChildToUniformGrid(l_button, count / max_col_count, count % max_col_count);
+        buttons.Add(l_button, si);
+        button_array.Add(l_button);
         if (si)
         {
             l_button->SetBrushFromTexture(si->GetMaterial());
         }
         slot->SetVerticalAlignment(EVerticalAlignment::VAlign_Fill);
         slot->SetHorizontalAlignment(EHorizontalAlignment::HAlign_Fill);
-        count += 1;
+
         col_count = std::min(count, max_col_count);
         row_count = std::ceil(count * 1.0 / max_col_count);
+        auto cooldown = WidgetTree->ConstructWidget<UTextBlock>(UTextBlock::StaticClass(), FName("Cooldown", count));
+
+        cooldown->SetText(FText::FromString(""));
+        cooldown->ColorAndOpacity = FSlateColor(FLinearColor(0.4, 0.4, 0.4));
+        cooldown->Font.Size = 20;
+        l_button->AddChild(cooldown);
+        
+        count += 1;
     }
     SetDesiredSizeInViewport(FVector2D(el_width*col_count, el_height*row_count));
     SetVisibility(ESlateVisibility::Visible);
     return true;
+}
+
+void UInventoryWidget::RefreshCooldownDisplays()
+{
+    for (auto& b : buttons)
+    {
+        if (IsValid(b.Value))
+        {
+            if (b.Key->GetChildrenCount())
+            {
+                auto tb = Cast<UTextBlock>(b.Key->GetChildAt(0));
+                if (tb)
+                {
+                    float cd = b.Value->GetCurrentCooldown();
+                    if (cd)
+                    {
+                        tb->SetText(FText::FromString(FString::FromInt(int32(std::ceil(cd)))));
+                    }
+                    else
+                    {
+                        tb->SetText(FText::FromString(""));
+                    }
+                }
+            }
+        }
+    }
 }
 
 void UInventoryWidget::NativeConstruct()
@@ -201,6 +235,10 @@ void UInventoryWidget::OnItemHovered(UMultiButton* in_button)
 
 void UInventoryWidget::SetItems()
 {
+    if (!button_array.Num())
+    {
+        return;
+    }
     auto pc = Cast<AAghsClonePlayerController>(GetWorld()->GetFirstLocalPlayerFromController()->GetPlayerController(GetWorld()));
     if (pc)
     {
@@ -212,6 +250,27 @@ void UInventoryWidget::SetItems()
             if (inventory)
             {
                 current_inventory = inventory; 
+                auto new_items = current_inventory->GetItems();
+                int32 count = 0;
+                for (auto& it : new_items)
+                {
+                    bool tex_set = false;
+                    if (it)
+                    {
+                        buttons[button_array[count]] = it;
+                        auto mat = it->GetMaterial();
+                        if (mat)
+                        {
+                            button_array[count]->SetBrushFromTexture(mat);
+                            tex_set = true;
+                        }
+                    }
+                    if (!tex_set)
+                    {
+                        button_array[count]->SetBrushColor(FLinearColor(0.2,0.2,0.2));
+                    }
+                    count += 1;
+                }
             }
         }
     }

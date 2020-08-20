@@ -20,6 +20,7 @@ class AGHSCLONE_API ABlinkDagger : public AItem
 	{
 		bGroundTargeted = true;
 		bActive = true;
+		Cooldown = 12;
 	}
 
 	virtual void OnGroundActivation(const FVector& ground_target) override
