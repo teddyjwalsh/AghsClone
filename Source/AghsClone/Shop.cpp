@@ -4,6 +4,7 @@
 #include "Shop.h"
 
 TArray<AShop*> AShop::shops = TArray<AShop*>();
+AShop* AShop::default_shop = nullptr;
 
 // Sets default values
 AShop::AShop()

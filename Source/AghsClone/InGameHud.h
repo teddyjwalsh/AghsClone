@@ -120,24 +120,14 @@ public:
 					{
 						DrawManaBar(char_mana_interface, FVector2D(x_center, vy - 15));
 					}
-					auto inventory_comp = Cast<UInventoryComponent>(sc->GetComponentByClass(UInventoryComponent::StaticClass()));
-					if (inventory_comp)
+					auto wallet_comp = Cast<UWalletComponent>(sc->GetComponentByClass(UWalletComponent::StaticClass()));
+					if (wallet_comp)
 					{
-						//DrawInventory(inventory_comp, FVector2D(vx - (3 *(item_slot_width) + 2 * (between_space)), vy - (2 * (item_slot_height) + between_space)));
+						DrawWallet(wallet_comp, FVector2D(vx - 120, vy - 100));
 					}
 
 					break;
 				}
-			}
-			
-			if (1)
-			{
-				TArray<AItem*> store_items;
-				for (int i = 0; i < 22; ++i)
-				{
-					store_items.Add(nullptr);
-				}
-				//DrawStore(store_items, FVector2D(0,0));
 			}
 
 			if (pc->SelectBoxOn())
@@ -235,87 +225,15 @@ public:
 		Canvas->DrawItem(health_text);
 	}
 
-	void DrawInventory(UInventoryComponent* inventory, FVector2D screen_loc)
+	void DrawWallet(UWalletComponent* wallet_comp, FVector2D screen_loc)
 	{
-		FLinearColor tile_color(0.2, 0.2, 0.2);
-
-		TArray<FCanvasTileItem> tile_items;
-
-		FVector2D offset(0, 0);
-		tile_items.Add(FCanvasTileItem(screen_loc + offset, FVector2D(item_slot_width, item_slot_height), tile_color));
-		offset.X += item_slot_width + between_space;
-		tile_items.Add(FCanvasTileItem(screen_loc + offset, FVector2D(item_slot_width, item_slot_height), tile_color));
-		offset.X += item_slot_width + between_space;
-		tile_items.Add(FCanvasTileItem(screen_loc + offset, FVector2D(item_slot_width, item_slot_height), tile_color));
-		offset.X = 0;
-		offset.Y += item_slot_height + between_space;
-		tile_items.Add(FCanvasTileItem(screen_loc + offset, FVector2D(item_slot_width, item_slot_height), tile_color));
-		offset.X += item_slot_width + between_space;
-		tile_items.Add(FCanvasTileItem(screen_loc + offset, FVector2D(item_slot_width, item_slot_height), tile_color));
-		offset.X += item_slot_width + between_space;
-		tile_items.Add(FCanvasTileItem(screen_loc + offset, FVector2D(item_slot_width, item_slot_height), tile_color));
-
-		for (auto& ti : tile_items)
-		{
-			Canvas->DrawItem(ti);
-		}
-	}
-
-	void DrawStore(const TArray<AItem*>& store_items, FVector2D screen_loc)
-	{
-		static bool hitboxes_added = false;
-		bShowHitBoxDebugInfo = true;
-		int32 num_columns = 6;
-		int32 col_offset = 0;
-
-		int32 full_width = num_columns * item_slot_width + between_space * (num_columns - 1);
-
-		FLinearColor tile_color(0.2, 0.2, 0.2);
-		
-		TArray<FCanvasTileItem> tile_items;
-		FVector2D offset(0, 0);
-		int count = 0;
-		for (auto& si : store_items)
-		{
-			count += 1;
-			if (col_offset >= num_columns)
-			{
-				col_offset = 0;
-				offset.X = 0;
-				offset.Y += item_slot_height + between_space;
-			}
-
-			tile_items.Add(FCanvasTileItem(screen_loc + offset, FVector2D(item_slot_width, item_slot_height), tile_color));
-			if (!hitboxes_added)
-			{
-				AddHitBox(screen_loc + offset, FVector2D(item_slot_width, item_slot_height), FName("TileHitBox%d", count), true, 0);
-				hitboxes_added = true;
-			}
-			offset.X += item_slot_width + between_space;
-			col_offset += 1;
-		}
-		float full_height = offset.Y;
-
-		FCanvasTileItem background(FCanvasTileItem(screen_loc, FVector2D(full_width, full_height), FLinearColor(0.1,0.1,0.1)));
-		
-		for (auto& ti : tile_items)
-		{
-			Canvas->DrawItem(ti);
-		}
-		RenderHitBoxes(Canvas->Canvas);
-		for (auto& hbh : HitBoxHits)
-		{
-			FString temp_str = hbh->GetName().ToString();
-			UE_LOG(LogTemp, Warning, TEXT("HITBOX %s"), *temp_str);
-		}
-	}
-
-	void NotifyHitBoxBeginCursorOver
-	(const FName BoxName) override
-	{
-		FString box_name;
-		BoxName.ToString(box_name);
-		UE_LOG(LogTemp, Warning, TEXT("%s"), *box_name);
+		static auto def_font = GetFontFromSizeIndex(10);
+		static FCanvasTextItem health_text(FVector2D(0, 0), FText(), def_font, FLinearColor(1, 1, 1));
+		FString health_string;
+		health_string = FString::Printf(TEXT("%d gold"), int32(wallet_comp->Balance()));
+		health_text.Text = FText::FromString(health_string);
+		health_text.Position = FVector2D(screen_loc.X, screen_loc.Y);
+		Canvas->DrawItem(health_text);
 	}
 
 	//virtual void BeginPlay() override

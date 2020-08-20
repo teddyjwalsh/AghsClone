@@ -5,7 +5,7 @@
 #include "Components/SphereComponent.h"
 #include "Factories/MaterialFactoryNew.h"
 
-std::vector<FString> mats_to_load = { "kotlguyp" };
+std::vector<FString> mats_to_load = { "kotlguyp", "moon_shard", "brown_boots", "serpentblade" };
 
 TMap<FString, UTexture2D*> AItem::materials;
 TMap<FString, int32> AItem::materials2;

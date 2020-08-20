@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "Net/UnrealNetwork.h"
 #include "Components/ActorComponent.h"
 #include "WalletComponent.generated.h"
 
@@ -12,7 +13,8 @@ class AGHSCLONE_API UWalletComponent : public UActorComponent
 {
 	GENERATED_BODY()
 
-	float money = 600;
+	UPROPERTY(Replicated)
+	float money = 2000;
 
 public:	
 	// Sets default values for this component's properties
@@ -45,5 +47,11 @@ public:
 	virtual float Balance() const
 	{
 		return money;
+	}
+
+	void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override
+	{
+		Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+		DOREPLIFETIME(UWalletComponent, money);
 	}
 };

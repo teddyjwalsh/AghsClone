@@ -137,6 +137,8 @@ public:
 	bool bPassive = false;
     
 	UPROPERTY(Replicated)
+	float Movespeed;
+	UPROPERTY(Replicated)
 	float CastRange;
 	UPROPERTY(Replicated)
 	float ManaCost;

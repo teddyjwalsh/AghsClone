@@ -24,6 +24,7 @@ class AGHSCLONE_API AShop : public AActor
 	GENERATED_BODY()
 
 	static TArray<AShop*> shops;
+	static AShop* default_shop;
 	TMap<ItemId, ShopItemSlot> items;
 	float radius;
 
@@ -101,6 +102,11 @@ public:
 		return items;
 	}
 
+	bool CanBuy(AActor* in_actor) const
+	{
+		return (in_actor->GetActorLocation() - GetActorLocation()).Size() < radius;
+	}
+
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
@@ -112,6 +118,10 @@ public:
 	static AShop* CreateShop(UWorld* in_world, const FVector& location, float in_radius = 800)
 	{
 		AShop* new_shop = in_world->SpawnActor<AShop>(location, FRotator());
+		if (!IsValid(default_shop))
+		{
+			default_shop = new_shop;
+		}
 		new_shop->radius = in_radius;
 		shops.Add(new_shop);
 		return shops.Last();
@@ -139,7 +149,7 @@ public:
 				}
 			}
 		}
-		return nullptr;
+		return default_shop;
 	}
 
 

@@ -115,6 +115,19 @@ public:
 		return mana_sum;
 	}
 
+	float GetMovespeed() const
+	{
+		float mana_sum = 0;
+		for (auto& it : items)
+		{
+			if (it != nullptr)
+			{
+				mana_sum += it->Movespeed;
+			}
+		}
+		return mana_sum;
+	}
+
     void OnHit(DamageInstance& damage, AActor* unit)
     {
 		for (auto& it : items)

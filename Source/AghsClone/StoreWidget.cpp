@@ -11,7 +11,6 @@
 
 bool UStoreWidget::Initialize()
 {
-    
     auto buyer = Cast<AUnitController>(GetWorld()->GetFirstPlayerController()->GetPawn())->GetPrimaryUnit();
     if (!buyer)
     {
@@ -32,7 +31,6 @@ bool UStoreWidget::Initialize()
     grid->SetMinDesiredSlotHeight(el_height);
     grid->SetMinDesiredSlotWidth(el_width);
     grid->SetSlotPadding(FMargin(5, 5));
-    
     //button->SetRenderScale(FVector2D(10, 10));
     int row_count = 1;
     auto shop_items = shop->GetItems();
@@ -99,7 +97,11 @@ void UStoreWidget::OnItemHovered(UMultiButton* in_button)
 
 bool UStoreWidget::GridIsHovered() const
 {
-    return grid->IsHovered();
+    if (IsValid(grid))
+    {
+        return grid->IsHovered();
+    }
+    return false;
 }
 
 bool UInventoryWidget::Initialize()

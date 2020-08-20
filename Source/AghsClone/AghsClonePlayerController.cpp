@@ -94,7 +94,7 @@ void AAghsClonePlayerController::PlayerTick(float DeltaTime)
 		bMoveToMouseCursor = false;
 	}
 
-	if (StoreWidget)
+	if (IsValid(StoreWidget))
 	{
 		if (StoreWidget->GridIsHovered())
 		{
@@ -176,7 +176,7 @@ void AAghsClonePlayerController::SetSelected(const TArray<AAghsCloneCharacter*>&
 				InventoryWidget->SetItems();
 				InventoryWidget->DrawInventory();
 				InventoryWidget->AddToViewport(9999); // Z-order, this just makes it render on the very top.
-				InventoryWidget->SetPositionInViewport(FVector2D(wx - 120, wy - 100));
+				InventoryWidget->SetPositionInViewport(FVector2D(wx - 120, wy - 80));
 				FAnchors anchor(100, 100, 100, 100);
 				InventoryWidget->SetVisibility(ESlateVisibility::Visible);
 			}
@@ -501,11 +501,14 @@ void AAghsClonePlayerController::RequestBuy_Implementation(int32 item_id)
 		auto wallet = Cast<UWalletComponent>(MyPawn->GetPrimaryUnit()->GetComponentByClass(UWalletComponent::StaticClass()));
 		auto inventory_comp = Cast<UInventoryComponent>(MyPawn->GetPrimaryUnit()->GetComponentByClass(UInventoryComponent::StaticClass()));
 		auto Shop = AShop::GetClosestShop(MyPawn, item_id);
-		if (wallet && inventory_comp)
+		if (Shop)
 		{
-			if (wallet->Debit(Shop->GetPrice(item_id)))
+			if (wallet && inventory_comp && Shop->CanBuy(wallet->GetOwner()))
 			{
-				inventory_comp->InsertItem(Shop->BuyItem(item_id));
+				if (wallet->Debit(Shop->GetPrice(item_id)))
+				{
+					inventory_comp->InsertItem(Shop->BuyItem(item_id));
+				}
 			}
 		}
 	}

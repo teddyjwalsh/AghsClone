@@ -55,9 +55,19 @@ void AAghsCloneGameMode::StartPlay()
 	shop->AddItem(new_item, 1, 500);
 
 	new_item = GetWorld()->SpawnActor<AItem>();
-	new_item->AttackSpeed = 100;
-	new_item->AttackDamage = 50;
-	new_item->SetMaterial("kotlguyp");
+	new_item->AttackSpeed = 140;
+	new_item->AttackDamage = 0;
+	new_item->SetMaterial("moon_shard");
 	shop->AddItem(new_item, 2, 200);
 
+	new_item = GetWorld()->SpawnActor<AItem>();
+	new_item->Movespeed = 45;
+	new_item->SetMaterial("brown_boots");
+	shop->AddItem(new_item, 3, 500);
+
+	new_item = GetWorld()->SpawnActor<AItem>();
+	new_item->AttackSpeed = 1000;
+	new_item->AttackDamage = -50;
+	new_item->SetMaterial("serpentblade");
+	shop->AddItem(new_item, 4, 123);
 }

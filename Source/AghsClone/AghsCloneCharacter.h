@@ -95,6 +95,7 @@ class AAghsCloneCharacter : public ACharacter,
 	float BaseAttackTime;
 	float InitialAttackSpeed;
 	float AttackSpeed;
+	float BaseMovespeed;
 	double last_attack_time;
 
 
@@ -186,6 +187,11 @@ public:
 		return MaxHealth + Inventory->GetHealth();
 	}
 	// END HEALTH INTERFACE
+
+	virtual float GetMovespeed() const
+	{
+		return BaseMovespeed + Inventory->GetMovespeed();
+	}
 
 	// MANA INTERFACE IMPLEMENTATION
 	virtual float GetMana()
@@ -432,6 +438,7 @@ public:
 		DOREPLIFETIME(AAghsCloneCharacter, team);
 		DOREPLIFETIME(AAghsCloneCharacter, unit_owner);
 		DOREPLIFETIME(AAghsCloneCharacter, Inventory);
+		DOREPLIFETIME(AAghsCloneCharacter, Wallet);
 	}
 
 	std::vector<UAbility*> Abilities;
@@ -457,7 +464,7 @@ private:
 	UPROPERTY( Replicated, VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
 	class UInventoryComponent* Inventory;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
+	UPROPERTY( Replicated, VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
 	class UWalletComponent* Wallet;
 	
 

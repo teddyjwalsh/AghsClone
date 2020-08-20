@@ -37,6 +37,7 @@ AAghsCloneCharacter::AAghsCloneCharacter() :
 	vision_radius(1000),
 	AttackSpeed(0),
 	InitialAttackSpeed(100),
+	BaseMovespeed(300),
 	BaseAttackTime(1.7)
 {
 	//AutoPossessAI = EAutoPossessAI::PlacedInWorldOrSpawned;
@@ -64,6 +65,7 @@ AAghsCloneCharacter::AAghsCloneCharacter() :
 	GetCharacterMovement()->RotationRate = FRotator(0.f, 640.f, 0.f);
 	GetCharacterMovement()->bConstrainToPlane = true;
 	GetCharacterMovement()->bSnapToPlaneAtStart = true;
+	GetCharacterMovement()->MaxWalkSpeed = 300;
 
 	// Create a camera boom...
 	CameraBoom = CreateDefaultSubobject<USpringArmComponent>(TEXT("CameraBoom"));
@@ -157,6 +159,7 @@ void AAghsCloneCharacter::Tick(float DeltaSeconds)
     Super::Tick(DeltaSeconds);
 
 	//UStaticMesh::Array
+	GetCharacterMovement()->MaxWalkSpeed = GetMovespeed();
 
 	if (!GetWorld()->IsServer())
 	{
