@@ -155,6 +155,9 @@ protected:
 		SetSelected(temp_units);
 	}
 
+	UFUNCTION(Reliable, Server)
+	void OnStopCommand();
+
 
 };
 

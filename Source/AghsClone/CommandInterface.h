@@ -14,7 +14,8 @@ enum CommandType
 	NONE UMETA(DisplayName = "NONE"),
 	MOVE UMETA(DisplayName = "MOVE"),
 	ATTACK_MOVE UMETA(DisplayName = "ATTACK_MOVE"),
-	ABILITY UMETA(DisplayName = "ABILITY")
+	ABILITY UMETA(DisplayName = "ABILITY"),
+	STOP UMETA(DisplayName = "STOP")
 };
 
 USTRUCT(BlueprintType)
@@ -145,13 +146,20 @@ public:
 			}
 			case ATTACK_MOVE:
 			{
+				UAIBlueprintHelperLibrary::SimpleMoveToLocation(my_actor->GetController(), my_actor->GetActorLocation());
 				ProcessAttackMove(current_command, dt);
 				break;
 			}
 			case ABILITY:
 			{
+				UAIBlueprintHelperLibrary::SimpleMoveToLocation(my_actor->GetController(), my_actor->GetActorLocation());
 				ProcessAbilityCommand(current_command, dt);
 				break;
+			}
+			case STOP:
+			{
+				ClearCommandQueue();
+				UAIBlueprintHelperLibrary::SimpleMoveToLocation(my_actor->GetController(), my_actor->GetActorLocation());
 			}
 			default:
 				break;

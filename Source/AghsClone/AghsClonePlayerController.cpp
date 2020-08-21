@@ -228,6 +228,7 @@ void AAghsClonePlayerController::SetupInputComponent()
 	InputComponent->BindAction("Trigger", IE_Pressed, this, &AAghsClonePlayerController::OnLeftClick);
 	InputComponent->BindAction("Trigger", IE_Released, this, &AAghsClonePlayerController::OnTriggerRelease);
 	InputComponent->BindAction("SetDestination", IE_Released, this, &AAghsClonePlayerController::OnSetDestinationReleased);
+	InputComponent->BindAction("StopCommand", IE_Pressed, this, &AAghsClonePlayerController::OnStopCommand);
 	InputComponent->BindAction("Ability1", IE_Pressed, this, &AAghsClonePlayerController::OnAbilityPress<0>);
 	InputComponent->BindAction("Ability2", IE_Pressed, this, &AAghsClonePlayerController::OnAbilityPress<1>);
 	InputComponent->BindAction("Ability3", IE_Pressed, this, &AAghsClonePlayerController::OnAbilityPress<2>);
@@ -537,5 +538,15 @@ void AAghsClonePlayerController::RequestBuy_Implementation(int32 item_id)
 				}
 			}
 		}
+	}
+}
+
+void AAghsClonePlayerController::OnStopCommand_Implementation()
+{
+	if (AUnitController* MyPawn = Cast<AUnitController>(GetPawn()))
+	{
+		FCommand stop_command;
+		stop_command.command_type = STOP;
+		MyPawn->SetCommand(stop_command);
 	}
 }

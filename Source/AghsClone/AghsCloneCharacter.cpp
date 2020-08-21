@@ -54,8 +54,6 @@ AAghsCloneCharacter::AAghsCloneCharacter() :
 	GetCapsuleComponent()->InitCapsuleSize(42.f, 96.0f);
 	GetCapsuleComponent()->SetIsReplicated(false);
 
-
-
 	// Don't rotate character to camera direction
 	bUseControllerRotationPitch = false;
 	bUseControllerRotationYaw = false;
