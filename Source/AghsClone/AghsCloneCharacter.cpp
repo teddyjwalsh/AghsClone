@@ -202,7 +202,10 @@ void AAghsCloneCharacter::Tick(float DeltaSeconds)
 		}
 		else if (current_command.command_type != NONE)
 		{
-			CommandStateMachine(DeltaSeconds);
+			if (!(StatusManager->GetSilenced() && current_command.command_type == ABILITY))
+			{
+				CommandStateMachine(DeltaSeconds);
+			}
 			if (StatusManager->GetRooted())
 			{
 				UAIBlueprintHelperLibrary::SimpleMoveToLocation(GetController(), GetActorLocation());
