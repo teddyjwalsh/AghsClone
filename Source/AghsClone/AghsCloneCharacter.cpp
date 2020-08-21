@@ -196,9 +196,17 @@ void AAghsCloneCharacter::Tick(float DeltaSeconds)
 
 	if (GetLocalRole() == ROLE_Authority)
 	{
-		if (current_command.command_type != NONE)
+		if (StatusManager->GetStunned())
+		{
+			UAIBlueprintHelperLibrary::SimpleMoveToLocation(GetController(), GetActorLocation());
+		}
+		else if (current_command.command_type != NONE)
 		{
 			CommandStateMachine(DeltaSeconds);
+			if (StatusManager->GetRooted())
+			{
+				UAIBlueprintHelperLibrary::SimpleMoveToLocation(GetController(), GetActorLocation());
+			}
 		}
 		else if (!command_queue.IsEmpty())
 		{

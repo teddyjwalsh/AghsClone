@@ -135,6 +135,54 @@ public:
 		return true;
 	}
 
+	bool GetStunned() const
+	{
+		for (UStatusEffect* si : statuses)
+		{
+			if (si->bStunned)
+			{
+				return true;
+			}
+		}
+		return false;
+	}
+
+	bool GetRooted() const
+	{
+		for (UStatusEffect* si : statuses)
+		{
+			if (si->bRooted)
+			{
+				return true;
+			}
+		}
+		return false;
+	}
+
+	bool GetSilenced() const
+	{
+		for (UStatusEffect* si : statuses)
+		{
+			if (si->bSilenced)
+			{
+				return true;
+			}
+		}
+		return false;
+	}
+
+	bool GetMuted() const
+	{
+		for (UStatusEffect* si : statuses)
+		{
+			if (si->bMuted)
+			{
+				return true;
+			}
+		}
+		return false;
+	}
+
 protected:
 	// Called when the game starts
 	virtual void BeginPlay() override;
