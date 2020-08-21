@@ -27,12 +27,13 @@
 
 AAghsCloneCharacter::AAghsCloneCharacter() :
 	MaxHealth(100.0),
-	HealthRegeneration(0.1),
+	HealthRegen(1.0),
 	Armor(0),
 	MagicResist(0.25),
 	IsSpellImmune(false),
 	IsAttackImmune(false),
 	MaxMana(100.0),
+	ManaRegen(1.0),
 	attack_damage(20),
 	vision_radius(1000),
 	AttackSpeed(0),
@@ -160,6 +161,8 @@ AAghsCloneCharacter::AAghsCloneCharacter() :
 void AAghsCloneCharacter::Tick(float DeltaSeconds)
 {
     Super::Tick(DeltaSeconds);
+	ApplyHealthRegen(DeltaSeconds);
+	ApplyManaRegen(DeltaSeconds);
 
 	//UStaticMesh::Array
 	GetCharacterMovement()->MaxWalkSpeed = GetMovespeed();

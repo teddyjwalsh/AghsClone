@@ -75,12 +75,14 @@ class AAghsCloneCharacter : public ACharacter,
 	UPROPERTY(Replicated)
 	float Health;
 	UPROPERTY(Replicated)
-	float HealthRegeneration;
+	float HealthRegen;
 	UPROPERTY(Replicated)
 	float Armor;
 	float MagicResist;
 	UPROPERTY(Replicated)
 	float Mana;
+	UPROPERTY(Replicated)
+	float ManaRegen;
 	UPROPERTY(Replicated)
 	float MaxMana;
 	bool IsSpellImmune;
@@ -153,6 +155,11 @@ public:
 		return Health*GetMaxHealth();
 	}
 
+	virtual float GetHealthRegen() const override
+	{
+		return HealthRegen + Inventory->GetHealthRegen();;
+	}
+
 	virtual float GetDelayedHealth() const override
 	{
 		return Health*GetMaxHealth();
@@ -197,6 +204,11 @@ public:
 	virtual float GetMana()
 	{
 		return Mana*GetMaxMana();
+	}
+
+	virtual float GetManaRegen() const override
+	{
+		return ManaRegen + Inventory->GetManaRegen();
 	}
 
 	virtual void SetMana(float in_val)
@@ -437,9 +449,11 @@ public:
 	{
 		Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 		DOREPLIFETIME(AAghsCloneCharacter, Health);
+		DOREPLIFETIME(AAghsCloneCharacter, HealthRegen);
 		DOREPLIFETIME(AAghsCloneCharacter, MaxHealth);
 		DOREPLIFETIME(AAghsCloneCharacter, MaxMana);
 		DOREPLIFETIME(AAghsCloneCharacter, Mana);
+		DOREPLIFETIME(AAghsCloneCharacter, ManaRegen);
 		DOREPLIFETIME(AAghsCloneCharacter, team);
 		DOREPLIFETIME(AAghsCloneCharacter, unit_owner);
 		DOREPLIFETIME(AAghsCloneCharacter, Inventory);

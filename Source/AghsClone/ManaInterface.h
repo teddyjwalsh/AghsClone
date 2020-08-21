@@ -31,6 +31,13 @@ public:
 
     virtual float GetMana() = 0;
 
+    virtual float GetManaRegen() const = 0;
+
+    virtual void ApplyManaRegen(float dt)
+    {
+        AddToMana(GetManaRegen() * dt);
+    }
+
     virtual void SetMana(float in_val) = 0;
 
     virtual void SetMaxMana(float in_val) = 0;

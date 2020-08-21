@@ -76,6 +76,19 @@ public:
 		return health_sum;
 	}
 
+	float GetHealthRegen() const
+	{
+		float health_sum = 0;
+		for (auto& it : items)
+		{
+			if (it != nullptr)
+			{
+				health_sum += it->HealthRegen;
+			}
+		}
+		return health_sum;
+	}
+
 	float GetMana() const
 	{
 		float mana_sum = 0;
@@ -84,6 +97,19 @@ public:
 			if (it != nullptr)
 			{
 				mana_sum += it->Mana;
+			}
+		}
+		return mana_sum;
+	}
+
+	float GetManaRegen() const
+	{
+		float mana_sum = 0;
+		for (auto& it : items)
+		{
+			if (it != nullptr)
+			{
+				mana_sum += it->ManaRegen;
 			}
 		}
 		return mana_sum;

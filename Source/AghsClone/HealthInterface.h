@@ -47,6 +47,13 @@ public:
 
     virtual float GetHealth() const = 0;
 
+    virtual float GetHealthRegen() const = 0;
+
+    virtual void ApplyHealthRegen(float dt)
+    {
+        AddToHealth(GetHealthRegen() * dt);
+    }
+
     virtual float GetDelayedHealth() const = 0;
 
     virtual void SetHealth(float in_val) = 0;

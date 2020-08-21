@@ -32,9 +32,11 @@ protected:
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override
 	{
 		Super::GetLifetimeReplicatedProps(OutLifetimeProps);
-		DOREPLIFETIME(AItem, Health);
+        DOREPLIFETIME(AItem, Health);
+        DOREPLIFETIME(AItem, HealthRegen);
 		DOREPLIFETIME(AItem, AttackSpeed);
-		DOREPLIFETIME(AItem, Mana);
+        DOREPLIFETIME(AItem, Mana);
+        DOREPLIFETIME(AItem, ManaRegen);
 		DOREPLIFETIME(AItem, AttackDamage);
 		DOREPLIFETIME(AItem, Armor);
         DOREPLIFETIME(AItem, MyMat);
