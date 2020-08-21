@@ -8,12 +8,19 @@
 
 enum StatType
 {
+	START_STAT_TYPE,
+	StatMaxHealth,
 	StatHealth,
+	StatMaxMana,
 	StatMana,
 	StatAttackSpeed,
 	StatAttackDamage,
 	StatMovespeed,
-	StatArmor
+	StatArmor,
+	StatMagicResist,
+	StatHealthRegen,
+	StatManaRegen,
+	END_STAT_TYPE
 };
 
 // This class does not need to be modified.
@@ -33,23 +40,7 @@ class AGHSCLONE_API IStatInterface
 	// Add interface functions to this class. This is the class that will be inherited to implement this interface.
 public:
 
-	virtual bool HasStat(StatType stat_type) const = 0;
-	virtual float GetStat(StatType stat_type) const
-	{
-		if (!HasStat(stat_type))
-		{
-			return 0;
-		}
-		return GetStatImpl(stat_type);
-	}
-	virtual float GetStatImpl(StatType stat_type) const = 0;
-	virtual bool SetStat(StatType stat_type, float in_stat)
-	{
-		if (!HasStat(stat_type))
-		{
-			return false;
-		}
-		return SetStatImpl(stat_type, in_stat);
-	}
-	virtual float SetStatImpl(StatType stat_type, float in_stat) = 0;
+	//virtual bool HasStat(StatType stat_type) const = 0;
+	virtual float GetStat(StatType stat_type) const = 0;
+	virtual bool SetStat(StatType stat_type, float in_stat) = 0;
 };

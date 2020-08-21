@@ -23,22 +23,10 @@
 #include "WalletComponent.h"
 #include "InventoryComponent.h"
 #include "AbilityContainerInterface.h"
+#include "StatInterface.h"
+#include "StatusManager.h"
 #include "AghsCloneCharacter.generated.h"
 
-class StatusEffect
-{
-public:
-    virtual void TickStatus(float dt) = 0;
-    virtual float GetMovespeed() {return 0;}
-    virtual float GetHealth() {return 0;}
-    virtual float GetMana() {return 0;}
-    virtual float GetHealthRegen() {return 0;}
-    virtual float GetManaRegen() {return 0;}
-    virtual float GetArmor() {return 0;}
-    virtual float GetAttackSpeed() {return 0;}
-    virtual float GetMagicResist() {return 0;}
-    virtual float GetAttackDamage() {return 0;}
-};
 
 UCLASS(Blueprintable)
 class AAghsCloneCharacter : public ACharacter, 
@@ -47,7 +35,8 @@ class AAghsCloneCharacter : public ACharacter,
 	public ICommandInterface,
 	public IVisionInterface,
 	public IFieldActorInterface,
-	public IAbilityContainerInterface
+	public IAbilityContainerInterface,
+	public IStatInterface
 	
 {
 	GENERATED_BODY()
@@ -68,7 +57,6 @@ class AAghsCloneCharacter : public ACharacter,
 	UPROPERTY(Replicated)
 	float MaxMana;
 
-    TArray<StatusEffect*> status;
 	bool IsSpellImmune;
 	bool IsAttackImmune;
     bool IsStunned;
@@ -84,11 +72,12 @@ class AAghsCloneCharacter : public ACharacter,
 	float attack_range;
 	float attack_damage;
 	float BaseAttackTime;
-	float InitialAttackSpeed;
 	float AttackSpeed;
 	float BaseMovespeed;
 	double last_attack_time;
+	TArray<float*> stats;
 
+	TArray<IStatInterface*> StatInterfaces;
 
 public:
 	AAghsCloneCharacter();
@@ -105,6 +94,49 @@ public:
 	FORCEINLINE class UDecalComponent* GetCursorToWorld() { return CursorToWorld; }
 	/** Returns VisionLight subobject **/
 	FORCEINLINE class UPointLightComponent* GetVisionLight() { return VisionLight; }
+
+	virtual float GetStat(StatType stat_type) const override
+	{
+		float out_stat = 0;
+		if (stats[stat_type])
+		{
+			out_stat += *stats[stat_type];
+		}
+		if (stat_type != StatMagicResist)
+		{
+			for (auto& si : StatInterfaces)
+			{
+				out_stat += si->GetStat(stat_type);
+			}
+		}
+		else
+		{
+			for (auto& si : StatInterfaces)
+			{
+				out_stat *= 1 - si->GetStat(stat_type);
+			}
+			out_stat = 1 - out_stat;
+		}
+		return out_stat;
+	}
+
+	virtual bool SetStat(StatType stat_type, float in_stat) override
+	{
+		return false;
+	}
+
+	bool AddStat(StatType stat_type, float* in_stat = nullptr)
+	{
+		if (!in_stat)
+		{
+			stats[stat_type] = new float(0);
+		}
+		else
+		{
+			stats[stat_type] = in_stat;
+		}
+		return true;
+	}
 
 	int32 GetTeam()
 	{
@@ -146,7 +178,7 @@ public:
 
 	virtual float GetHealthRegen() const override
 	{
-		return HealthRegen + Inventory->GetHealthRegen() + StatusManager->GetHealthRegen();
+		return HealthRegen + Inventory->GetHealthRegen();// +StatusManager->GetHealthRegen();
 	}
 
 	virtual float GetDelayedHealth() const override
@@ -170,23 +202,23 @@ public:
 
 	virtual float GetArmor() const override
 	{
-		return Armor + Inventory->GetArmor() + StatusManager->GetArmor();
+		return GetStat(StatArmor);
 	}
 
 	virtual float GetMagicResist() const override
 	{
-		return MagicResist + Inventory->GetMagicResist() + StatusManager->GetMagicResist();
+		return GetStat(StatMagicResist);// + Inventory->GetMagicResist();// + StatusManager->GetMagicResist();
 	}
 
 	virtual float GetMaxHealth() const override
 	{
-		return MaxHealth + Inventory->GetHealth() + StatusManager->GetMaxHealth();
+		return GetStat(StatMaxHealth);// MaxHealth + Inventory->GetHealth();// + StatusManager->GetMaxHealth();
 	}
 	// END HEALTH INTERFACE
 
 	virtual float GetMovespeed() const
 	{
-		return BaseMovespeed + Inventory->GetMovespeed() + StatusManager->GetMovespeed();
+		return GetStat(StatMovespeed);// BaseMovespeed + Inventory->GetMovespeed();// + StatusManager->GetMovespeed();
 	}
 
 	// MANA INTERFACE IMPLEMENTATION
@@ -197,7 +229,7 @@ public:
 
 	virtual float GetManaRegen() const override
 	{
-		return ManaRegen + Inventory->GetManaRegen() + StatusManager->GetManaRegen();
+		return ManaRegen + Inventory->GetManaRegen();// + StatusManager->GetManaRegen();
 	}
 
 	virtual void SetMana(float in_val)
@@ -212,7 +244,7 @@ public:
 
 	virtual float GetMaxMana() const
 	{
-		return MaxMana + Inventory->GetMana() + StatusManager->GetMana();
+		return MaxMana + Inventory->GetMana();// + StatusManager->GetMana();
 	}
 	// END MANA INTERFACE
 
@@ -255,12 +287,12 @@ public:
 
 	float GetAttackDamage() const
 	{
-		return attack_damage + Inventory->GetAttackDamage() + StatusManager->GetAttackDamage();
+		return attack_damage + Inventory->GetAttackDamage();// + StatusManager->GetAttackDamage();
 	}
 
 	float GetAttackSpeed() const
 	{
-		return InitialAttackSpeed + AttackSpeed + Inventory->GetAttackSpeed() + StatusManager->GetAttackSpeed();
+		return AttackSpeed + Inventory->GetAttackSpeed();// + StatusManager->GetAttackSpeed();
 	}
 
 	float GetAttackTime() const
@@ -433,24 +465,6 @@ public:
 	}
     // END VISION INTERFACE
 
-    // STATUS EFFECT IMPLEMENTATION
-    void TickStatus(float dt)
-    {
-        for (auto& stat : status)
-        {
-            stat->TickStatus(dt);
-        }
-    }
-
-    void GetStatusMovespeed()
-    {
-        for (auto& stat : status)
-        {
-            stat->TickStatus(dt);
-        }
-    }
-    // END STATUS EFFECT IMPLEMENTATION
-
 	void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override
 	{
 		Super::GetLifetimeReplicatedProps(OutLifetimeProps);
@@ -494,6 +508,9 @@ private:
 	
 	UPROPERTY(Replicated, VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
 	class UBountyComponent* Bounty;
+
+	UPROPERTY(Replicated, VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
+	class UStatusManager* StatusManager;
 
 	//UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Replicated, meta = (AllowPrivateAccess = "true"))
 	int32 targeting_active;

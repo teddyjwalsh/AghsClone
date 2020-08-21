@@ -61,6 +61,12 @@ void AShockwave::Tick(float DeltaTime)
 						hit.Add(act);// (act->GetUniqueID());
 						UE_LOG(LogTemp, Warning, TEXT("SHOCK HIT CHARACTER: %f, %d"), health_comp->GetHealth(), act);
 					}
+					auto status_manager = Cast<UStatusManager>(act->GetComponentByClass(UStatusManager::StaticClass()));
+					if (status_manager)
+					{
+						auto status_effect = NewObject<UStatusEffect>(GetWorld(), UShockwaveSlow::StaticClass());
+						status_manager->AddStatus(status_effect);
+					}
 				}
 			}
 		}

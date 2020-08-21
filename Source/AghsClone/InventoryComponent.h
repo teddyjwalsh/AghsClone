@@ -6,12 +6,14 @@
 #include "Net/UnrealNetwork.h"
 #include "Components/ActorComponent.h"
 #include "Item.h"
+#include "StatInterface.h"
 #include "InventoryComponent.generated.h"
 
 
 
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
-class AGHSCLONE_API UInventoryComponent : public UActorComponent
+class AGHSCLONE_API UInventoryComponent : public UActorComponent,
+	public IStatInterface
 {
 	GENERATED_BODY()
 
@@ -61,6 +63,24 @@ public:
 		auto temp_item = items[slot_number1];
 		items[slot_number1] = items[slot_number2];
 		items[slot_number2] = temp_item;
+	}
+
+	virtual float GetStat(StatType stat_type) const override
+	{
+		float out_stat = 0;
+		for (IStatInterface* si : items)
+		{
+			if (si)
+			{
+				out_stat += si->GetStat(stat_type);
+			}
+		}
+		return out_stat;
+	}
+
+	virtual bool SetStat(StatType stat_type, float in_stat) override
+	{
+		return false;
 	}
 
 	float GetHealth() const

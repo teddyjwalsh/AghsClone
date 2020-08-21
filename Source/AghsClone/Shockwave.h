@@ -8,7 +8,24 @@
 #include "GameFramework/Actor.h"
 #include "FieldActorInterface.h"
 #include "Components/SphereComponent.h"
+#include "StatusManager.h"
 #include "Shockwave.generated.h"
+
+UCLASS(Blueprintable)
+class UShockwaveSlow : public UStatusEffect
+{
+	GENERATED_BODY()
+
+	float slow;
+
+public:
+	UShockwaveSlow()
+	{
+		max_duration = 3;
+		slow = -100;
+		AddStat(StatMovespeed, &slow);
+	}
+};
 
 UCLASS()
 class AGHSCLONE_API AShockwave : public AActor,
@@ -37,6 +54,5 @@ public:
 
 	UFUNCTION()
 	void OnTouch(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComponent, FVector NormalImpulse, const FHitResult& Hit);
-
 
 };

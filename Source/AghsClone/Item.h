@@ -52,7 +52,34 @@ public:
 
     virtual float GetStat(StatType stat_type) const override
     {
-        return stats[stat_type];
+        if (stats[int32(stat_type)])
+        {
+            return *stats[int32(stat_type)];
+        }
+        return 0;
+    }
+
+    virtual bool SetStat(StatType stat_type, float in_stat) override
+    {
+        if (stats[int32(stat_type)])
+        {
+            *stats[int32(stat_type)] = in_stat;
+            return true;
+        }
+        return false;
+    }
+
+    bool AddStat(StatType stat_type, float* in_stat = nullptr)
+    {
+        if (!in_stat)
+        {
+            stats[stat_type] = new float(0);
+        }
+        else
+        {
+            stats[stat_type] = in_stat;
+        }
+        return true;
     }
 
 	void SetMaterial(FString to_load)
@@ -175,7 +202,7 @@ public:
 	bool bToggled = false;
 	bool bPassive = false;
     
-    TMap<StatType, float> stats;
+    TArray<float*> stats;
 
 	UPROPERTY(Replicated)
 	float Movespeed;
@@ -197,6 +224,8 @@ public:
 	float AttackSpeed;
 	UPROPERTY(Replicated)
 	float Armor;
+    UPROPERTY(Replicated)
+    float MagicResist;
 	UPROPERTY(Replicated)
 	float Strength;
 	UPROPERTY(Replicated)

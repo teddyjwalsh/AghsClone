@@ -36,11 +36,25 @@ AAghsCloneCharacter::AAghsCloneCharacter() :
 	ManaRegen(1.0),
 	attack_damage(20),
 	vision_radius(1000),
-	AttackSpeed(0),
-	InitialAttackSpeed(100),
+	AttackSpeed(100),
 	BaseMovespeed(300),
 	BaseAttackTime(1.7)
 {
+	for (int i = START_STAT_TYPE; i != END_STAT_TYPE; ++i)
+	{
+		stats.Add(nullptr);
+	}
+
+	AddStat(StatMaxHealth, &MaxHealth);
+	AddStat(StatMaxMana, &MaxMana);
+	AddStat(StatArmor, &Armor);
+	AddStat(StatAttackSpeed, &AttackSpeed);
+	AddStat(StatMovespeed, &BaseMovespeed);
+	AddStat(StatAttackDamage, &attack_damage);
+	AddStat(StatMagicResist, &MagicResist);
+	AddStat(StatHealthRegen, &HealthRegen);
+	AddStat(StatManaRegen, &ManaRegen);
+
 	//AutoPossessAI = EAutoPossessAI::PlacedInWorldOrSpawned;
 	Health = 1.0;
 	Mana = 1.0;
@@ -95,10 +109,17 @@ AAghsCloneCharacter::AAghsCloneCharacter() :
 
 	Inventory = CreateDefaultSubobject<UInventoryComponent>(TEXT("Inventory"));
 	Inventory->SetIsReplicated(true);
+	StatInterfaces.Add(Cast<IStatInterface>(Inventory));
+
 	Wallet = CreateDefaultSubobject<UWalletComponent>(TEXT("Wallet"));
 	Wallet->SetIsReplicated(true);
+
 	Bounty = CreateDefaultSubobject<UBountyComponent>(TEXT("Bounty"));
 	Bounty->SetIsReplicated(true);
+
+	StatusManager = CreateDefaultSubobject<UStatusManager>(TEXT("StatusManager"));
+	StatusManager->SetIsReplicated(true);
+	StatInterfaces.Add(Cast<IStatInterface>(StatusManager));
 
 	// Create a decal in the world to show the cursor's location
 	CursorToWorld = CreateDefaultSubobject<UDecalComponent>("CursorToWorld");

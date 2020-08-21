@@ -20,6 +20,19 @@ void CreateMaterial()
 // Sets default values
 AItem::AItem()
 {
+	for (int i = START_STAT_TYPE; i != END_STAT_TYPE; ++i)
+	{
+		stats.Add(nullptr);
+	}
+	AddStat(StatMaxHealth, &Health);
+	AddStat(StatMaxMana, &Mana);
+	AddStat(StatArmor, &Armor);
+	AddStat(StatAttackSpeed, &AttackSpeed);
+	AddStat(StatMovespeed, &Movespeed);
+	AddStat(StatAttackDamage, &AttackDamage);
+	AddStat(StatMagicResist, &MagicResist);
+	AddStat(StatHealthRegen, &HealthRegen);
+	AddStat(StatManaRegen, &ManaRegen);
 	if (!materials_loaded)
 	{
 		for (auto& to_load : mats_to_load)
