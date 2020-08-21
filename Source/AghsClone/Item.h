@@ -8,12 +8,14 @@
 
 #include "HealthInterface.h"
 #include "AbilityInterface.h"
+#include "StatInterface.h"
 
 #include "Item.generated.h"
 
 UCLASS()
 class AGHSCLONE_API AItem : public AActor,
-    public IAbilityInterface
+    public IAbilityInterface,
+    public IStatInterface
 {
 	GENERATED_BODY()
 
@@ -47,6 +49,11 @@ protected:
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
+
+    virtual float GetStat(StatType stat_type) const override
+    {
+        return stats[stat_type];
+    }
 
 	void SetMaterial(FString to_load)
 	{
@@ -168,6 +175,8 @@ public:
 	bool bToggled = false;
 	bool bPassive = false;
     
+    TMap<StatType, float> stats;
+
 	UPROPERTY(Replicated)
 	float Movespeed;
 	UPROPERTY(Replicated)
