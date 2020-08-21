@@ -14,7 +14,7 @@ AAttackProjectile::AAttackProjectile()
 	SetRootComponent(model);
 	model = CreateDefaultSubobject<UStaticMeshComponent>("Sphere");
 	model->SetStaticMesh(ProjectileMesh.Object);
-	speed = 300;
+	speed = 800;
 	model->SetCollisionProfileName(TEXT("Projectile"));
 	model->SetWorldScale3D(FVector(0.2));
 	//SetActorEnableCollision(false);

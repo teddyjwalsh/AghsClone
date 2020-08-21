@@ -119,7 +119,7 @@ bool UInventoryWidget::Initialize()
     grid->SetMinDesiredSlotHeight(el_height);
     grid->SetMinDesiredSlotWidth(el_width);
     grid->SetSlotPadding(FMargin(5, 5));
-    SetItems();
+    //SetItems();
     return DrawInventory();
 }
 
@@ -297,7 +297,7 @@ bool UAbilitiesWidget::Initialize()
     grid->SetSlotPadding(FMargin(5, 5));
     
 
-    SetAbilities();
+    //SetAbilities();
     return DrawAbilities();
 }
 

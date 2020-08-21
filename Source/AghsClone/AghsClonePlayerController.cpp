@@ -175,11 +175,14 @@ void AAghsClonePlayerController::SetSelected(const TArray<AAghsCloneCharacter*>&
 			{
 				InventoryWidgetClass = UInventoryWidget::StaticClass();
 				InventoryWidget = CreateWidget<UInventoryWidget>(this, InventoryWidgetClass);
+				InventoryWidget->SetPositionInViewport(FVector2D(wx - 120, wy - 80));
+				InventoryWidget->AddToViewport(9999); // Z-order, this just makes it render on the very top.
+				InventoryWidget->SetItems();
 			}
 			else
 			{
-				InventoryWidget->SetItems();
 				InventoryWidget->DrawInventory();
+				InventoryWidget->SetItems();
 				InventoryWidget->AddToViewport(9999); // Z-order, this just makes it render on the very top.
 				InventoryWidget->SetPositionInViewport(FVector2D(wx - 120, wy - 80));
 				FAnchors anchor(100, 100, 100, 100);
@@ -189,15 +192,18 @@ void AAghsClonePlayerController::SetSelected(const TArray<AAghsCloneCharacter*>&
 			{
 				AbilitiesWidgetClass = UAbilitiesWidget::StaticClass();
 				AbilitiesWidget = CreateWidget<UAbilitiesWidget>(this, AbilitiesWidgetClass);
+				AbilitiesWidget->SetAlignmentInViewport(FVector2D(0.0, 1.0));
+				AbilitiesWidget->SetPositionInViewport(FVector2D(0, wy), true);
+				AbilitiesWidget->AddToViewport(9999); // Z-order, this just makes it render on the very top.
+				AbilitiesWidget->SetAbilities();
 			}
 			else
 			{
 				//AbilitiesWidget->SetAnchorsInViewport(FAnchors(0.5, 0.5));
 				AbilitiesWidget->SetAlignmentInViewport(FVector2D(0.0, 1.0));
 				AbilitiesWidget->SetPositionInViewport(FVector2D(0, wy), true);
-
-				AbilitiesWidget->SetAbilities();
 				AbilitiesWidget->DrawAbilities();
+				AbilitiesWidget->SetAbilities();
 				AbilitiesWidget->AddToViewport(9999); // Z-order, this just makes it render on the very top.
 				
 				FAnchors anchor(100, 100, 100, 100);

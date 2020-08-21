@@ -42,31 +42,31 @@ public:
 	{
 		if (command_type != rhs.command_type)
 		{
-			return false;
+			return true;
 		}
 		if (command_type == MOVE)
 		{
 			if (location != rhs.location)
 			{
-				return false;
+				return true;
 			}
 			if (target != rhs.target)
 			{
-				return false;
+				return true;
 			}
 		}
 		else if (command_type == ATTACK_MOVE)
 		{
 			if (location != rhs.location)
 			{
-				return false;
+				return true;
 			}
 			if (target != rhs.target)
 			{
-				return false;
+				return true;
 			}
 		}
-		return true;
+		return false;
 	}
 };
 
@@ -117,11 +117,15 @@ public:
 	virtual void CommandStateMachine(float dt)
 	{
 		static float MoveTolerance = 10.0;
-
 		FCommand current_command = GetCurrentCommand();
+		static FCommand last_command = current_command;
 		FVector dest = GetCurrentDestination();
 		auto my_actor = Cast<APawn>(this);
 
+		if (current_command.command_type != last_command.command_type)
+		{
+			UAIBlueprintHelperLibrary::SimpleMoveToLocation(my_actor->GetController(), my_actor->GetActorLocation());
+		}
 		switch (current_command.command_type)
 		{
 			case MOVE:
@@ -146,13 +150,11 @@ public:
 			}
 			case ATTACK_MOVE:
 			{
-				UAIBlueprintHelperLibrary::SimpleMoveToLocation(my_actor->GetController(), my_actor->GetActorLocation());
 				ProcessAttackMove(current_command, dt);
 				break;
 			}
 			case ABILITY:
 			{
-				UAIBlueprintHelperLibrary::SimpleMoveToLocation(my_actor->GetController(), my_actor->GetActorLocation());
 				ProcessAbilityCommand(current_command, dt);
 				break;
 			}
@@ -164,6 +166,7 @@ public:
 			default:
 				break;
 		}
+		last_command = current_command;
 	}
 
 };
