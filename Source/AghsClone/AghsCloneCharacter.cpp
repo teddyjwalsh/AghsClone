@@ -277,14 +277,25 @@ void AAghsCloneCharacter::ProcessAbilityCommand(const FCommand& in_command, floa
 	auto my_loc3 = GetActorLocation();
 	auto my_loc = FVector2D(my_loc3);
 
-	auto ability_vec = ((in_command.location) - my_loc3);
+	FVector command_loc;
+	if (in_command.unit_targeted)
+	{
+		command_loc = in_command.target->GetActorLocation();
+	}
+	else
+	{
+		command_loc = in_command.location;
+	}
+
+	auto ability_vec = ((command_loc) - my_loc3);
 	ability_vec.Z = 0;
 	ability_vec.Normalize();
 	float angle_diff = acos(FVector::DotProduct(forward_vec, ability_vec)) * 180 / PI;
 	float turn_rate = 1146.0;
-	if ((my_loc - FVector2D(in_command.location)).Size() > GetAbility(in_command.ability_num)->GetCastRange())
+
+	if ((my_loc - FVector2D(command_loc)).Size() > GetAbility(in_command.ability_num)->GetCastRange())
 	{
-		current_destination = in_command.location;
+		current_destination = command_loc;
 
 		UAIBlueprintHelperLibrary::SimpleMoveToLocation(GetController(), current_destination);
 
@@ -312,11 +323,23 @@ void AAghsCloneCharacter::ProcessAbilityCommand(const FCommand& in_command, floa
 	}
 	else
 	{
-		if (TriggerTargetedAbility(current_command.ability_num, current_command.location))
+		if (in_command.unit_targeted)
 		{
-			my_loc3 = GetActorLocation();
-			UAIBlueprintHelperLibrary::SimpleMoveToLocation(GetController(), my_loc3);
-			NextCommand();
+			if (TriggerTargetedAbility(in_command.ability_num, in_command.target))
+			{
+				my_loc3 = GetActorLocation();
+				UAIBlueprintHelperLibrary::SimpleMoveToLocation(GetController(), my_loc3);
+				NextCommand();
+			}
+		}
+		else
+		{
+			if (TriggerTargetedAbility(in_command.ability_num, in_command.location))
+			{
+				my_loc3 = GetActorLocation();
+				UAIBlueprintHelperLibrary::SimpleMoveToLocation(GetController(), my_loc3);
+				NextCommand();
+			}
 		}
 	}
 }

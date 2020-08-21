@@ -401,6 +401,29 @@ public:
 		return retval;
 	}
 
+	bool TriggerTargetedAbility(int32 ability_num, AActor* unit)
+	{
+		
+		bool retval = false;
+		
+		auto ability = GetAbility(ability_num);
+		if (ability)
+		{
+			if ((GetActorLocation() - unit->GetActorLocation()).Size() < ability->GetCastRange())
+			{
+				ability->OnUnitActivationMeta(unit);
+				retval = true;
+			}
+			//ability->TargetingDecal->SetVisibility(false);
+		}
+		else
+		{
+			retval = false;
+		}
+		
+		return retval;
+	}
+
 	// COMMAND INTERFACE IMPLEMENTATION
 
 	//UFUNCTION(reliable, server)

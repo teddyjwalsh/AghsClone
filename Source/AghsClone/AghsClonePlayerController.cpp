@@ -509,13 +509,21 @@ void AAghsClonePlayerController::OnTrigger_Implementation(FHitResult Hit, int32 
 			AAghsCloneCharacter* main_character = MyPawn->GetPrimaryUnit();
 			if (Hit.bBlockingHit && main_character)
 			{
+				FCommand ability_command;
 				//MyPawn->TriggerTargetedAbility(Hit.ImpactPoint);
-				FCommand move_command;
-				move_command.command_type = ABILITY;
-				move_command.ability_num = ability_num;// main_character->GetTargetingActive();
-				move_command.location = Hit.ImpactPoint;
-				main_character->SetCommand(move_command);
-				
+				ability_command.command_type = ABILITY;
+				ability_command.ability_num = ability_num;// main_character->GetTargetingActive();
+				auto unit = Cast<AAghsCloneCharacter>(Hit.Actor);
+				if (unit && targeted_ability->IsUnitTargeted())
+				{
+					ability_command.target = Hit.Actor.Get();
+					ability_command.unit_targeted = true;
+				}
+				else
+				{
+					ability_command.location = Hit.ImpactPoint;
+				}
+				main_character->SetCommand(ability_command);
 			}
 			SetTargetedAbility(nullptr, -1);
 			targeted_ability = nullptr;

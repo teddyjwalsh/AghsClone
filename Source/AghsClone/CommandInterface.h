@@ -37,6 +37,7 @@ public:
 	AActor* target;
 	UPROPERTY(BlueprintReadWrite)
 	int32 item_id;
+	bool unit_targeted = false;
 
 	inline bool operator!=(const FCommand& rhs) const
 	{
