@@ -196,6 +196,7 @@ void AAghsClonePlayerController::SetSelected(const TArray<AAghsCloneCharacter*>&
 				AbilitiesWidget->SetPositionInViewport(FVector2D(0, wy), true);
 				AbilitiesWidget->AddToViewport(9999); // Z-order, this just makes it render on the very top.
 				AbilitiesWidget->SetAbilities();
+				AbilitiesWidget->DrawAbilities();
 			}
 			else
 			{

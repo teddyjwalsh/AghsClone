@@ -401,7 +401,7 @@ void UAbilitiesWidget::SetAbilities()
         {
             auto prime_unit = uc->GetPrimaryUnit();
             auto new_abilities = prime_unit->GetAbilityArray();
-            abilities = new_abilities; 
+            abilities = new_abilities;
         }
     }
 }
