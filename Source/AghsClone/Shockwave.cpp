@@ -57,7 +57,7 @@ void AShockwave::Tick(float DeltaTime)
                         shock_damage.value = 20;
                         shock_damage.damage_type = MagicDamage;
                         shock_damage.is_attack = false;
-						health_comp->ApplyDamage(shock_damage);
+						health_comp->ApplyDamage(shock_damage, GetOwner());
 						hit.Add(act);// (act->GetUniqueID());
 						UE_LOG(LogTemp, Warning, TEXT("SHOCK HIT CHARACTER: %f, %d"), health_comp->GetHealth(), act);
 					}

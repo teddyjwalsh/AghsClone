@@ -98,6 +98,8 @@ AAghsCloneCharacter::AAghsCloneCharacter() :
 	Inventory->SetIsReplicated(true);
 	Wallet = CreateDefaultSubobject<UWalletComponent>(TEXT("Wallet"));
 	Wallet->SetIsReplicated(true);
+	Bounty = CreateDefaultSubobject<UBountyComponent>(TEXT("Bounty"));
+	Bounty->SetIsReplicated(true);
 
 	// Create a decal in the world to show the cursor's location
 	CursorToWorld = CreateDefaultSubobject<UDecalComponent>("CursorToWorld");

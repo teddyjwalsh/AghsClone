@@ -161,7 +161,7 @@ public:
 	virtual void SetHealth(float in_val) override
 	{
 		Health = std::min(GetMaxHealth(), std::max(0.0f, in_val))*1.0/GetMaxHealth();
-		if (Health == 0)
+		if (Health <= 0.01)
 		{
 			Destroy();
 		}
@@ -241,7 +241,7 @@ public:
 		attack_damage_instance.value = GetAttackDamage();
 		attack_damage_instance.damage_type = PhysicalDamage;
 		attack_damage_instance.is_attack = true;
-		other_char->ApplyDamage(attack_damage_instance);
+		other_char->ApplyDamage(attack_damage_instance, this);
 		for (auto& ab : Abilities)
         {
             if (ab->bOnHit)
@@ -472,6 +472,8 @@ private:
 	UPROPERTY( Replicated, VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
 	class UWalletComponent* Wallet;
 	
+	UPROPERTY(Replicated, VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
+	class UBountyComponent* Bounty;
 
 	//UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Replicated, meta = (AllowPrivateAccess = "true"))
 	int32 targeting_active;

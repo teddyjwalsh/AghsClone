@@ -4,6 +4,8 @@
 
 #include "CoreMinimal.h"
 #include "UObject/Interface.h"
+#include "BountyComponent.h"
+#include "WalletComponent.h"
 #include "HealthInterface.generated.h"
 
 enum DamageType
@@ -58,9 +60,9 @@ public:
     virtual float GetMaxHealth() const = 0;
 
     //virtual void ApplyDamage(float raw_value, DamageType damage_type)
-    virtual void ApplyDamage(DamageInstance& damage, float& bounty)
+    virtual float ApplyDamage(DamageInstance& damage, AActor* damager)
     {
-        bounty = 0;
+        float bounty = 0;
         float new_health;
         switch (damage.damage_type)
         {
@@ -84,17 +86,23 @@ public:
         default:
             break;
         }
-        if (new_health == 0.0)
+        if (new_health <= 0.1)
         {
             AActor* bounty_actor = Cast<AActor>(this);
             if (bounty_actor)
             {
                 auto bounty_component = Cast<UBountyComponent>(bounty_actor->GetComponentByClass(UBountyComponent::StaticClass()));
-                if (bounty_comopnent)
+                if (bounty_component)
                 {
                     bounty = bounty_component->GetValue();
+                    auto wallet_component = Cast<UWalletComponent>(damager->GetComponentByClass(UWalletComponent::StaticClass()));
+                    if (wallet_component)
+                    {
+                        wallet_component->Deposit(bounty);
+                    }
                 }
             }
         }
+        return bounty;  
     }
 };

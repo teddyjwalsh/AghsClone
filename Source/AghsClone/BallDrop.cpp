@@ -49,7 +49,7 @@ void ABallDrop::OnTouch(UPrimitiveComponent* HitComponent, AActor* OtherActor, U
         shock_damage.value = 20;
         shock_damage.damage_type = MagicDamage;
         shock_damage.is_attack = false;
-        health_comp->ApplyDamage(shock_damage);
+        health_comp->ApplyDamage(shock_damage, GetOwner());
 		UE_LOG(LogTemp, Warning, TEXT("HIT CHARACTER: %f"), health_comp->GetHealth());
 	}
 }

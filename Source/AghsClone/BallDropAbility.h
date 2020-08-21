@@ -76,6 +76,7 @@ public:
 		//auto new_instance = NewObject<UBallDrop>(this);
 		auto new_instance = GetWorld()->SpawnActor<ABallDrop>();
 		new_instance->SetActorLocation(target + FVector(0, 0, 500));
+		new_instance->SetOwner(GetOwner());
 		//new_instance->SetPos(target + FVector(0, 0, 200));
 		instances.push_back(new_instance);
 	}
