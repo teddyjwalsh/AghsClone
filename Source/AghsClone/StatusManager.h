@@ -115,6 +115,7 @@ public:
 		}
 		else
 		{
+			out_stat = 1.0;
 			for (IStatInterface* si : statuses)
 			{
 				out_stat *= 1 - si->GetStat(stat_type);

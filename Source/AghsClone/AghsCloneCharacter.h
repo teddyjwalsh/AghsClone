@@ -98,12 +98,13 @@ public:
 	virtual float GetStat(StatType stat_type) const override
 	{
 		float out_stat = 0;
-		if (stats[stat_type])
-		{
-			out_stat += *stats[stat_type];
-		}
+
 		if (stat_type != StatMagicResist)
 		{
+			if (stats[stat_type])
+			{
+				out_stat += *stats[stat_type];
+			}
 			for (auto& si : StatInterfaces)
 			{
 				out_stat += si->GetStat(stat_type);
@@ -111,6 +112,11 @@ public:
 		}
 		else
 		{
+			out_stat = 1 - out_stat;
+			if (stats[stat_type])
+			{
+				out_stat *= 1 - *stats[stat_type];
+			}
 			for (auto& si : StatInterfaces)
 			{
 				out_stat *= 1 - si->GetStat(stat_type);
@@ -403,7 +409,6 @@ public:
 
 	bool TriggerTargetedAbility(int32 ability_num, AActor* unit)
 	{
-		
 		bool retval = false;
 		
 		auto ability = GetAbility(ability_num);

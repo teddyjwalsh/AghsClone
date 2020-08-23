@@ -68,12 +68,27 @@ public:
 	virtual float GetStat(StatType stat_type) const override
 	{
 		float out_stat = 0;
-		for (IStatInterface* si : items)
+		if (stat_type != StatMagicResist)
 		{
-			if (si)
+			for (IStatInterface* si : items)
 			{
-				out_stat += si->GetStat(stat_type);
+				if (si)
+				{
+					out_stat += si->GetStat(stat_type);
+				}
 			}
+		}
+		else
+		{
+			out_stat = 1.0;
+			for (IStatInterface* si : items)
+			{
+				if (si)
+				{
+					out_stat *= 1 - si->GetStat(stat_type);
+				}
+			}
+			out_stat = 1 - out_stat;
 		}
 		return out_stat;
 	}
