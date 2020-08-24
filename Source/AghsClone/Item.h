@@ -40,7 +40,10 @@ protected:
         DOREPLIFETIME(AItem, Mana);
         DOREPLIFETIME(AItem, ManaRegen);
 		DOREPLIFETIME(AItem, AttackDamage);
-		DOREPLIFETIME(AItem, Armor);
+        DOREPLIFETIME(AItem, Armor);
+        DOREPLIFETIME(AItem, Agility);
+        DOREPLIFETIME(AItem, Strength);
+        DOREPLIFETIME(AItem, Intelligence);
         DOREPLIFETIME(AItem, MyMat);
         DOREPLIFETIME(AItem, Cooldown);
         DOREPLIFETIME(AItem, CurrentCooldown);
@@ -52,7 +55,31 @@ public:
 
     virtual float GetStat(StatType stat_type) const override
     {
-        if (stats[int32(stat_type)])
+        if (stat_type == StatMaxHealth)
+        {
+            return *stats[int32(stat_type)] + 20 * Strength;
+        }
+        else if (stat_type == StatHealthRegen)
+        {
+            return *stats[int32(stat_type)] + 0.1 * Strength;
+        }
+        else if (stat_type == StatArmor)
+        {
+            return *stats[int32(stat_type)] + 0.17*Agility;
+        }
+        else if (stat_type == StatAttackSpeed)
+        {
+            return *stats[int32(stat_type)] + 1 * Agility;
+        }
+        else if (stat_type == StatMaxMana)
+        {
+            return *stats[int32(stat_type)] + 12 * Intelligence;
+        }
+        else if (stat_type == StatManaRegen)
+        {
+            return *stats[int32(stat_type)] + 0.05 * Intelligence;
+        }
+        else if (stats[int32(stat_type)])
         {
             return *stats[int32(stat_type)];
         }

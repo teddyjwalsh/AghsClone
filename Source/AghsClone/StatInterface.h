@@ -20,6 +20,9 @@ enum StatType
 	StatMagicResist,
 	StatHealthRegen,
 	StatManaRegen,
+    StatStrength,
+    StatAgility,
+    StatIntelligence,
 	END_STAT_TYPE
 };
 
