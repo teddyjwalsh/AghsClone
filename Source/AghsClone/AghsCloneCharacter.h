@@ -82,8 +82,6 @@ class AAghsCloneCharacter : public ACharacter,
 	double last_attack_time;
 	TArray<float*> stats;
 
-	TArray<IStatInterface*> StatInterfaces;
-
 public:
 	AAghsCloneCharacter();
 
@@ -574,6 +572,7 @@ public:
 	}
 
 	TArray<UAbility*> Abilities;
+	TArray<IStatInterface*> StatInterfaces;
 
 private:
 	/** Top down camera */

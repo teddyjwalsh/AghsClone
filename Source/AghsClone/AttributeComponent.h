@@ -4,6 +4,8 @@
 
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
+#include "Net/UnrealNetwork.h"
+
 #include "StatInterface.h"
 #include "ExperienceInterface.h"
 #include "AttributeComponent.generated.h"
@@ -15,16 +17,22 @@ class AGHSCLONE_API UAttributeComponent : public UActorComponent,
 {
 	GENERATED_BODY()
 
-	float BaseStrength;
-	float BaseAgility;
-	float BaseIntelligence;
-	float StrengthGain;
-	float AgilityGain;
-	float IntelligenceGain;
-
 public:	
 	// Sets default values for this component's properties
 	UAttributeComponent();
+
+	UPROPERTY(Replicated)
+	float BaseStrength;
+	UPROPERTY(Replicated)
+		float BaseAgility;
+	UPROPERTY(Replicated)
+		float BaseIntelligence;
+	UPROPERTY(Replicated)
+		float StrengthGain;
+	UPROPERTY(Replicated)
+		float AgilityGain;
+	UPROPERTY(Replicated)
+		float IntelligenceGain;
 
 protected:
 	// Called when the game starts
@@ -98,5 +106,16 @@ public:
 			return true;
 		}
 		return false;
+	}
+
+	void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override
+	{
+		Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+		DOREPLIFETIME(UAttributeComponent, BaseStrength);
+		DOREPLIFETIME(UAttributeComponent, StrengthGain);
+		DOREPLIFETIME(UAttributeComponent, BaseAgility);
+		DOREPLIFETIME(UAttributeComponent, AgilityGain);
+		DOREPLIFETIME(UAttributeComponent, BaseIntelligence);
+		DOREPLIFETIME(UAttributeComponent, IntelligenceGain);
 	}
 };

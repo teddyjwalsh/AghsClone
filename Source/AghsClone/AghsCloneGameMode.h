@@ -7,6 +7,7 @@
 #include "Blueprint/AIBlueprintHelperLibrary.h"
 #include "NavigationSystem.h"
 #include "AghsClonePlayerController.h"
+#include "Hero.h"
 #include "AghsCloneGameMode.generated.h"
 
 UCLASS(minimalapi)
@@ -29,7 +30,7 @@ public:
 			FNavLocation NavPoint;
 			NavSys->ProjectPointToNavigation(FVector(0, 0, 0), NavPoint);
 			//auto new_character = GetWorld()->SpawnActor<AAghsCloneCharacter>(NavPoint.Location, FRotator());
-			AAghsCloneCharacter* new_character = Cast< AAghsCloneCharacter>(UAIBlueprintHelperLibrary::SpawnAIFromClass(GetWorld(), AAghsCloneCharacter::StaticClass(), nullptr, NavPoint.Location));
+			AAghsCloneCharacter* new_character = Cast<AHero>(UAIBlueprintHelperLibrary::SpawnAIFromClass(GetWorld(), AHero::StaticClass(), nullptr, NavPoint.Location));
 			new_character->SetTeam(GetNumPlayers());
 			new_character->SetUnitOwner(aghs_cont->GetPawn());
 			TArray<AAghsCloneCharacter*> init_select;
