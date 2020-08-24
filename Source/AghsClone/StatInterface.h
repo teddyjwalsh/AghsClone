@@ -45,5 +45,9 @@ public:
 
 	//virtual bool HasStat(StatType stat_type) const = 0;
 	virtual float GetStat(StatType stat_type) const = 0;
+	virtual float GetStatMult(StatType stat_type) const
+	{
+		return 1;
+	}
 	virtual bool SetStat(StatType stat_type, float in_stat) = 0;
 };

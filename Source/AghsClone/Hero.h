@@ -15,6 +15,7 @@ class AGHSCLONE_API AHero : public AAghsCloneCharacter
 {
 	GENERATED_BODY()
 
+protected:
 	UAttributeComponent* attributes;
 
 public:

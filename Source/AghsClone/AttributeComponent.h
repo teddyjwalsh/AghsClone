@@ -48,7 +48,7 @@ public:
 		int32 current_level = 0;
 		if (xp)
 		{
-			current_level = xp->GetLevel();
+			current_level = xp->GetLevel() - 1;
 		}
 		if (stat_type == StatStrength)
 		{

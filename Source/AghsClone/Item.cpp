@@ -24,6 +24,10 @@ AItem::AItem()
 	{
 		stats.Add(nullptr);
 	}
+	for (int i = START_STAT_TYPE; i != END_STAT_TYPE; ++i)
+	{
+		mult_stats.Add(nullptr);
+	}
 	AddStat(StatMaxHealth, &Health);
 	AddStat(StatMaxMana, &Mana);
 	AddStat(StatArmor, &Armor);

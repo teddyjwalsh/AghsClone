@@ -60,7 +60,7 @@ class AAghsCloneCharacter : public ACharacter,
 	UPROPERTY(Replicated)
 	float Experience;
 	UPROPERTY(Replicated)
-	int32 Level;
+	int32 Level = 1;
 
 	bool IsSpellImmune;
 	bool IsAttackImmune;
@@ -101,7 +101,7 @@ public:
 	virtual float GetStat(StatType stat_type) const override
 	{
 		float out_stat = 0;
-
+		float out_mult = 1.0;
 		if (stat_type != StatMagicResist)
 		{
 			if (stats[stat_type])
@@ -111,6 +111,7 @@ public:
 			for (auto& si : StatInterfaces)
 			{
 				out_stat += si->GetStat(stat_type);
+				out_mult *= si->GetStatMult(stat_type);
 			}
 		}
 		else
@@ -126,7 +127,7 @@ public:
 			}
 			out_stat = 1 - out_stat;
 		}
-		return out_stat;
+		return out_mult*out_stat;
 	}
 
 	virtual bool SetStat(StatType stat_type, float in_stat) override
@@ -204,9 +205,14 @@ public:
 			TSet<AActor*> experience_range;
 			TArray<AAghsCloneCharacter*> experience_range_valid;
 			temp_sphere->SetSphereRadius(1200, true);
+			temp_sphere->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
+
 			temp_sphere->GetOverlappingActors(experience_range, AAghsCloneCharacter::StaticClass());
+			temp_sphere->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+
 			temp_sphere->SetSphereRadius(0.1, true);
 			
+
 			for (auto& act : experience_range)
 			{
 				auto aghs = Cast<AAghsCloneCharacter>(act);
@@ -250,6 +256,11 @@ public:
 	virtual float GetMovespeed() const
 	{
 		return GetStat(StatMovespeed);// BaseMovespeed + Inventory->GetMovespeed();// + StatusManager->GetMovespeed();
+	}
+
+	virtual void SetBaseMovespeed(float in_movespeed)
+	{
+		BaseMovespeed = in_movespeed;
 	}
 
 	// MANA INTERFACE IMPLEMENTATION

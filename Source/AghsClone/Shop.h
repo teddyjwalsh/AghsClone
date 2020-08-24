@@ -6,6 +6,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
+#include "Components/SphereComponent.h"
 #include "Item.h"
 #include "Shop.generated.h"
 
@@ -28,6 +29,9 @@ class AGHSCLONE_API AShop : public AActor
 	static AShop* default_shop;
 	TMap<ItemId, ShopItemSlot> items;
 	float radius;
+
+	UPROPERTY()
+	USphereComponent* radius_component;
 
 	AShop();
 

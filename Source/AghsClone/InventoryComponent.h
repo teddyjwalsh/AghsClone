@@ -68,6 +68,7 @@ public:
 	virtual float GetStat(StatType stat_type) const override
 	{
 		float out_stat = 0;
+		float out_mult = 1.0;
 		if (stat_type != StatMagicResist)
 		{
 			for (IStatInterface* si : items)
@@ -91,6 +92,22 @@ public:
 			out_stat = 1 - out_stat;
 		}
 		return out_stat;
+	}
+
+	virtual float GetStatMult(StatType stat_type) const override
+	{
+		float out_mult = 1.0;
+		{
+			for (IStatInterface* si : items)
+			{
+				if (si)
+				{
+					out_mult *= si->GetStatMult(stat_type);
+				}
+			}
+		}
+
+		return out_mult;
 	}
 
 	virtual bool SetStat(StatType stat_type, float in_stat) override

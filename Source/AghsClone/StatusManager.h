@@ -17,6 +17,7 @@ protected:
 	float max_duration;
 	float current_duration;
 	TArray<float*> stats;
+	TArray<float*> mult_stats;
 
 public:
 
@@ -31,6 +32,10 @@ public:
 		{
 			stats.Add(nullptr);
 		}
+		for (int i = START_STAT_TYPE; i != END_STAT_TYPE; ++i)
+		{
+			mult_stats.Add(nullptr);
+		}
 		current_duration = 0;
 	}
 
@@ -41,6 +46,15 @@ public:
 			return *stats[int32(stat_type)];
 		}
 		return 0;
+	}
+
+	virtual float GetStatMult(StatType stat_type) const override
+	{
+		if (stats[int32(stat_type)])
+		{
+			return *mult_stats[int32(stat_type)];
+		}
+		return 1.0;
 	}
 
 	virtual bool SetStat(StatType stat_type, float in_stat) override
@@ -62,6 +76,19 @@ public:
 		else
 		{
 			stats[stat_type] = in_stat;
+		}
+		return true;
+	}
+
+	bool AddStatMult(StatType stat_type, float* in_stat = nullptr)
+	{
+		if (!in_stat)
+		{
+			mult_stats[stat_type] = new float(1);
+		}
+		else
+		{
+			mult_stats[stat_type] = in_stat;
 		}
 		return true;
 	}
@@ -122,6 +149,20 @@ public:
 			}
 			out_stat = 1 - out_stat;
 		}
+		return out_stat;
+	}
+
+	virtual float GetStatMult(StatType stat_type) const override
+	{
+		float out_stat = 1.0;
+		
+		{
+			for (IStatInterface* si : statuses)
+			{
+				out_stat *= si->GetStatMult(stat_type);
+			}
+		}
+
 		return out_stat;
 	}
 

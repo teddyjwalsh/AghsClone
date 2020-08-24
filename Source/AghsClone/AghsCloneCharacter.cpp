@@ -118,9 +118,10 @@ AAghsCloneCharacter::AAghsCloneCharacter() :
 	Bounty->SetIsReplicated(true);
 
 	temp_sphere = CreateDefaultSubobject<USphereComponent>(TEXT("TempSphere"));
-	temp_sphere->SetAbsolute(true, true, true);
+	//temp_sphere->SetAbsolute(true, true, true);
 	temp_sphere->SetupAttachment(GetRootComponent());
-	temp_sphere->SetSphereRadius(0.1);
+	temp_sphere->SetSphereRadius(0.1, true);
+	temp_sphere->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 
 	StatusManager = CreateDefaultSubobject<UStatusManager>(TEXT("StatusManager"));
 	StatusManager->SetIsReplicated(true);

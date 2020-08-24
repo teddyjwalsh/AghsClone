@@ -86,6 +86,15 @@ public:
         return 0;
     }
 
+    virtual float GetStatMult(StatType stat_type) const override
+    {
+        if (mult_stats[int32(stat_type)])
+        {
+            return *mult_stats[int32(stat_type)];
+        }
+        return 1.0;
+    }
+
     virtual bool SetStat(StatType stat_type, float in_stat) override
     {
         if (stats[int32(stat_type)])
@@ -105,6 +114,19 @@ public:
         else
         {
             stats[stat_type] = in_stat;
+        }
+        return true;
+    }
+
+    bool AddMultStat(StatType stat_type, float* in_stat = nullptr)
+    {
+        if (!in_stat)
+        {
+            mult_stats[stat_type] = new float(1);
+        }
+        else
+        {
+            mult_stats[stat_type] = in_stat;
         }
         return true;
     }
@@ -230,6 +252,7 @@ public:
 	bool bPassive = false;
     
     TArray<float*> stats;
+    TArray<float*> mult_stats;
 
 	UPROPERTY(Replicated)
 	float Movespeed;

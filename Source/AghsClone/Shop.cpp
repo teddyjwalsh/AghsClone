@@ -11,7 +11,8 @@ AShop::AShop()
 {
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
-
+	radius_component = CreateDefaultSubobject<USphereComponent>(TEXT("radius"));
+	SetRootComponent(radius_component);
 }
 
 // Called when the game starts or when spawned

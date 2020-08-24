@@ -4,11 +4,114 @@
 
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
+#include "Components/ShapeComponent.h"
 #include "Net/UnrealNetwork.h"
 #include "ManaInterface.h"
 #include "HealthInterface.h"
+#include "FieldActorInterface.h"
+#include "StatusManager.h"
 #include "AbilityInterface.h"
 #include "Ability.generated.h"
+
+UCLASS()
+class AGHSCLONE_API AAbilityInstance : public AActor,
+    public IFieldActorInterface
+{
+    GENERATED_BODY()
+
+    float scale = 0.1;
+    float hit_damage = 100;
+    bool enabled = true;
+    bool tick_hit_enabled = false;
+    DamageType damage_type = MagicDamage;
+    //std::set<int32> hit;
+    TSet<AActor*> hit;
+    UShapeComponent* overlapper;
+    UPROPERTY()
+    UClass* status_effect_class;
+
+
+public:
+    // Sets default values for this actor's properties
+    //AAbilityInstance();
+    void SetStatusEffect(UClass* in_status_effect)
+    {
+        status_effect_class = in_status_effect;
+    }
+
+    void SetEnabled(bool in_enable)
+    {
+        enabled = in_enable;
+    }
+
+    void SetTickHitEnabled(bool in_enable)
+    {
+        tick_hit_enabled = in_enable;
+    }
+
+    void SetHitDamage(float in_damage)
+    {
+        hit_damage = in_damage;
+    }
+
+    void SetDamageType(DamageType in_type)
+    {
+        damage_type = in_type;
+    }
+
+    void SetOverlapper(UShapeComponent* in_shape)
+    {
+        overlapper = in_shape;
+    }
+
+protected:
+    // Called when the game starts or when spawned
+    //virtual void BeginPlay() override;
+
+public:
+    // Called every frame
+    virtual void Tick(float DeltaTime) override
+    {
+        Super::Tick(DeltaTime);
+        TSet<AActor*> set;
+        overlapper->GetOverlappingActors(set);
+        if (enabled && tick_hit_enabled)
+        {
+            if (set.Num() > 0 && HasAuthority())
+            {
+                for (auto& act : set)
+                {
+                    int32 act_id = act->GetUniqueID();
+                    if (!hit.Find(act) && act != GetOwner())
+                    {
+                        {
+                            auto health_comp = Cast<IHealthInterface>(act);
+                            if (health_comp)
+                            {
+                                DamageInstance shock_damage;
+                                shock_damage.value = hit_damage;
+                                shock_damage.damage_type = damage_type;
+                                shock_damage.is_attack = false;
+                                health_comp->ApplyDamage(shock_damage, GetOwner());
+                                hit.Add(act);// (act->GetUniqueID());
+                                UE_LOG(LogTemp, Warning, TEXT("SHOCK HIT CHARACTER: %f, %d"), health_comp->GetHealth(), act);
+                            }
+                            auto status_manager = Cast<UStatusManager>(act->GetComponentByClass(UStatusManager::StaticClass()));
+                            if (status_manager)
+                            {
+                                auto status_effect = NewObject<UStatusEffect>(GetWorld(), status_effect_class);
+                                status_manager->AddStatus(status_effect);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        
+
+    }
+
+};
 
 
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
@@ -21,10 +124,16 @@ class AGHSCLONE_API UAbility : public UActorComponent,
 
     UPROPERTY(Replicated)
     UTexture2D* MyMat;
+    UPROPERTY()
+    UClass* status_effect_class;
 
 public:	
 	// Sets default values for this component's properties
 	UAbility();
+    void SetStatusEffect(UClass* in_status_effect)
+    {
+        status_effect_class = in_status_effect;
+    }
 
 protected:
 	// Called when the game starts
