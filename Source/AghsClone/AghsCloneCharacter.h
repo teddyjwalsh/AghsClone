@@ -188,7 +188,7 @@ public:
 
 	virtual float GetHealthRegen() const override
 	{
-		return HealthRegen + Inventory->GetHealthRegen();// +StatusManager->GetHealthRegen();
+		return GetStat(StatHealthRegen);// +StatusManager->GetHealthRegen();
 	}
 
 	virtual float GetDelayedHealth() const override
@@ -271,7 +271,7 @@ public:
 
 	virtual float GetManaRegen() const override
 	{
-		return ManaRegen + Inventory->GetManaRegen();// + StatusManager->GetManaRegen();
+		return GetStat(StatManaRegen);// + StatusManager->GetManaRegen();
 	}
 
 	virtual void SetMana(float in_val)
@@ -286,7 +286,7 @@ public:
 
 	virtual float GetMaxMana() const
 	{
-		return MaxMana + Inventory->GetMana();// + StatusManager->GetMana();
+		return GetStat(StatMaxMana);// + StatusManager->GetMana();
 	}
 	// END MANA INTERFACE
 

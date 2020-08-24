@@ -44,7 +44,7 @@ public:
 	// Sets default values for this actor's properties
 	ACrystalNova()
 	{
-		SetLifeSpan(3.0);
+		
 		PrimaryActorTick.bCanEverTick = true;
 		bounds = CreateDefaultSubobject<UCapsuleComponent>("Bounds");
 		SetRootComponent(bounds);
@@ -58,6 +58,7 @@ public:
 		SetHitDamage(130);
 		SetDamageType(MagicDamage);
 		ticked_once = false;
+		
 	}
 
 	void SetRadius(float in_radius)
@@ -71,6 +72,7 @@ protected:
 	virtual void BeginPlay() override
 	{
 		Super::BeginPlay();
+		SetLifeSpan(3.0);
 	}
 
 public:
@@ -149,6 +151,7 @@ public:
 	{
 		SetBaseMovespeed(280);
 		SetMaxHealth(200);
+		SetMaxMana(75);
 		attributes->BaseStrength = 18;
 		attributes->StrengthGain = 2.2;
 		attributes->BaseAgility = 16;
