@@ -25,6 +25,8 @@ class AGHSCLONE_API UShockwaveAbility : public UAbility
 		//PrimaryComponentTick.bCanEverTick = false;
 		ManaCost = 40;
 		Cooldown = 5;
+		max_level = 4;
+		current_level = 0;
 	}
 
 	virtual void OnActivation() override

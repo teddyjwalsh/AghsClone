@@ -193,7 +193,7 @@ void AAghsClonePlayerController::SetSelected(const TArray<AAghsCloneCharacter*>&
 				AbilitiesWidgetClass = UAbilitiesWidget::StaticClass();
 				AbilitiesWidget = CreateWidget<UAbilitiesWidget>(this, AbilitiesWidgetClass);
 				AbilitiesWidget->SetAlignmentInViewport(FVector2D(0.0, 1.0));
-				AbilitiesWidget->SetPositionInViewport(FVector2D(0, wy), true);
+				AbilitiesWidget->SetPositionInViewport(FVector2D(0, wy / 2.0), true);
 				AbilitiesWidget->AddToViewport(9999); // Z-order, this just makes it render on the very top.
 				AbilitiesWidget->SetAbilities();
 				AbilitiesWidget->DrawAbilities();
@@ -202,10 +202,11 @@ void AAghsClonePlayerController::SetSelected(const TArray<AAghsCloneCharacter*>&
 			{
 				//AbilitiesWidget->SetAnchorsInViewport(FAnchors(0.5, 0.5));
 				AbilitiesWidget->SetAlignmentInViewport(FVector2D(0.0, 1.0));
-				AbilitiesWidget->SetPositionInViewport(FVector2D(0, wy), true);
+				AbilitiesWidget->SetPositionInViewport(FVector2D(0, wy/2.0), true);
 				AbilitiesWidget->DrawAbilities();
 				AbilitiesWidget->SetAbilities();
 				AbilitiesWidget->AddToViewport(9999); // Z-order, this just makes it render on the very top.
+				AbilitiesWidget->SetDesiredSizeInViewport(FVector2D(200, 100));
 				
 				FAnchors anchor(100, 100, 100, 100);
 				AbilitiesWidget->SetVisibility(ESlateVisibility::Visible);

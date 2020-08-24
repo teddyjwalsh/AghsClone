@@ -8,6 +8,8 @@
 #include "Components/Border.h"
 #include "Components/Image.h"
 #include "Components/UniformGridPanel.h"
+#include "Components/GridPanel.h"
+#include "Components/GridSlot.h"
 #include "Components/UniformGridSlot.h"
 #include <functional>
 #include "Components/ButtonSlot.h"
@@ -147,6 +149,7 @@ public:
 	TMap<UMultiButton*, AItem*> buttons;
 	TMap<AItem*, UMultiButton*> buttons_inv;
 	TMap<AItem*, int32> item_indices;
+
 	TArray<UMultiButton*> button_array;
     UInventoryComponent* current_inventory = nullptr;
 	virtual bool Initialize() override;
@@ -175,8 +178,10 @@ public:
 	int32 el_height;
 	int32 el_width;
 	UMultiButton* button;
-	UUniformGridPanel* grid;
+	//UGridPanel* main_back;
+	UGridPanel* grid;
 	//TArray<UMultiButton*> buttons;
+	TArray<UMultiButton*> level_panels;
 	TMap<UMultiButton*, UAbility*> buttons;
     TArray<UAbility*> abilities;
 	virtual bool Initialize() override;

@@ -37,6 +37,7 @@ public:
 	bool bToggled = false;
 	bool bPassive = false;
     bool bOnHit = false;
+    bool bIsUltimate = false;
 	float DefaultCooldown;
     UPROPERTY( Replicated )
 	float ManaCost;
@@ -46,6 +47,10 @@ public:
     UPROPERTY(Replicated)
     float CurrentCooldown;
 	class UDecalComponent* TargetingDecal;
+    UPROPERTY()
+    int32 max_level;
+    UPROPERTY(Replicated)
+    int32 current_level;
 
     virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override
     {
@@ -54,10 +59,28 @@ public:
         DOREPLIFETIME(UAbility, Cooldown);
         DOREPLIFETIME(UAbility, MyMat);
         DOREPLIFETIME(UAbility, CurrentCooldown);
+        DOREPLIFETIME(UAbility, current_level);
     }
 
 	// Called every frame
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
+    virtual float GetMaxLevel() const
+    {
+        return max_level;
+    }
+    virtual float GetLevel() const
+    {
+        return current_level;
+    }
+    virtual bool LevelUp()
+    {
+        if (current_level < max_level)
+        {
+            current_level += 1;
+            return true;
+        }
+        return false;
+    }
     virtual float GetCooldown() const override
     {
         return Cooldown;
@@ -108,6 +131,48 @@ public:
     virtual void Toggle() override
     {
         bToggled = !bToggled;
+    }
+    virtual bool IsUltimate() const
+    {
+        return bIsUltimate;
+    }
+    virtual bool CanBeLeveled(int32 in_level)
+    {
+        if (bIsUltimate)
+        {
+            if (in_level >= 18)
+            {
+                return true;
+            }
+            else if (in_level >= 12 && GetLevel() <= 1)
+            {
+                return true;
+            }
+            else if (in_level >= 6 && GetLevel() <= 0)
+            {
+                return true;
+            }
+        }
+        else
+        {
+            if (in_level >= 7)
+            {
+                return true;
+            }
+            else if (in_level >= 5 && GetLevel() < 3)
+            {
+                return true;
+            }
+            else if (in_level >= 3 && GetLevel() < 2)
+            {
+                return true;
+            }
+            else if (in_level >= 1 && GetLevel() < 1)
+            {
+                return true;
+            }
+        }
+        return false;
     }
     void SetMaterial(FString to_load)
     {

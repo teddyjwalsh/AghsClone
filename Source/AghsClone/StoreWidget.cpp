@@ -284,17 +284,18 @@ bool UInventoryWidget::GridIsHovered() const
 bool UAbilitiesWidget::Initialize()
 {
     Super::Initialize();
-
-    grid = WidgetTree->ConstructWidget<UUniformGridPanel>(UUniformGridPanel::StaticClass(), "Grid");
+    //main_back = WidgetTree->ConstructWidget<UPane>(UMultiButton::StaticClass(), "base");
+    grid = WidgetTree->ConstructWidget<UGridPanel>(UGridPanel::StaticClass(), "Grid");
     grid->SetVisibility(ESlateVisibility::Visible);
     SetVisibility(ESlateVisibility::Visible);
     WidgetTree->RootWidget = grid;
+   // main_back->AddChild(grid);
     grid->SetIsEnabled(true);
     el_height = 160;
     el_width = 160;
-    grid->SetMinDesiredSlotHeight(el_height);
-    grid->SetMinDesiredSlotWidth(el_width);
-    grid->SetSlotPadding(FMargin(5, 5));
+    //grid->SetMinDesiredSlotHeight(el_height);
+    //grid->SetMinDesiredSlotWidth(el_width);
+    //grid->SetSlotPadding(FMargin(5, 5));
     
 
     //SetAbilities();
@@ -317,22 +318,26 @@ bool UAbilitiesWidget::DrawAbilities()
         buttons.Add(l_button, ab);
         TFunction<void(void)> test_func;
         l_button->RightClick.AddDynamic(this, &UAbilitiesWidget::OnItemClicked);
-        auto slot = grid->AddChildToUniformGrid(l_button, count / max_col_count, count % max_col_count);
+        auto slot = grid->AddChildToGrid(l_button, count / max_col_count, count % max_col_count);
         if (ab)
         {
             l_button->SetBrushFromTexture(ab->GetMaterial());
         }
         slot->SetVerticalAlignment(EVerticalAlignment::VAlign_Fill);
         slot->SetHorizontalAlignment(EHorizontalAlignment::HAlign_Fill);
+        
         count += 1;
         col_count = std::min(count, max_col_count);
         row_count = std::ceil(count*1.0 / max_col_count);
         auto cooldown = WidgetTree->ConstructWidget<UTextBlock>(UTextBlock::StaticClass(), FName("Cooldown", count));
-      
+        //cooldown->SetMinDesiredWidth(200);
         cooldown->SetText(FText::FromString(""));
         cooldown->ColorAndOpacity = FSlateColor(FLinearColor(0.4, 0.4, 0.4));
         cooldown->Font.Size = 30;
         l_button->AddChild(cooldown);
+        //l_button->Background.SetImageSize(FVector2D(500, 500));
+        l_button->SetBrush(l_button->Background);
+        
     }
     SetDesiredSizeInViewport(FVector2D(el_width * col_count, el_height*row_count));
     SetVisibility(ESlateVisibility::Visible);
@@ -394,6 +399,7 @@ void UAbilitiesWidget::OnItemHovered(UMultiButton* in_button)
 void UAbilitiesWidget::SetAbilities()
 {
     auto pc = Cast<AAghsClonePlayerController>(GetWorld()->GetFirstLocalPlayerFromController()->GetPlayerController(GetWorld()));
+    level_panels.Empty();
     if (pc)
     {
         auto uc = Cast<AUnitController>(pc->GetPawn());
@@ -402,6 +408,21 @@ void UAbilitiesWidget::SetAbilities()
             auto prime_unit = uc->GetPrimaryUnit();
             auto new_abilities = prime_unit->GetAbilityArray();
             abilities = new_abilities;
+            int count = 0;
+            for (auto& ab : abilities)
+            {
+                int32 level_count = ab->GetMaxLevel();
+                for (int i = 0; i < level_count; ++i)
+                {
+                    //auto level_panel = WidgetTree->ConstructWidget<UMultiButton>(UMultiButton::StaticClass(), FName("level_panel", count));
+                    //level_panel->SetBrushColor(FLinearColor(1, 0, 0 ));
+                    
+                   // grid->AddChild(level_panel);
+                    //level_panel->SetRenderTranslation(FVector2D(500, 500));
+                    //level_panel->SetDesiredSizeScale(FVector2D(100, 100));
+                    count += 1;
+                }
+            }
         }
     }
 }

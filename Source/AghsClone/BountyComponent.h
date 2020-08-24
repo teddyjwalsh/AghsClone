@@ -21,6 +21,11 @@ public:
 		return 100;
 	}
 
+	float GetXpBounty() const
+	{
+		return 150;
+	}
+
 protected:
 	// Called when the game starts
 	virtual void BeginPlay() override;

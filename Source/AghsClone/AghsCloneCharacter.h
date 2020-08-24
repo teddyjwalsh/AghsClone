@@ -24,6 +24,7 @@
 #include "InventoryComponent.h"
 #include "AbilityContainerInterface.h"
 #include "StatInterface.h"
+#include "ExperienceInterface.h"
 #include "StatusManager.h"
 #include "AghsCloneCharacter.generated.h"
 
@@ -36,8 +37,8 @@ class AAghsCloneCharacter : public ACharacter,
 	public IVisionInterface,
 	public IFieldActorInterface,
 	public IAbilityContainerInterface,
-	public IStatInterface
-	
+	public IStatInterface,
+	public IExperienceInterface
 {
 	GENERATED_BODY()
 
@@ -56,6 +57,10 @@ class AAghsCloneCharacter : public ACharacter,
 	float ManaRegen;
 	UPROPERTY(Replicated)
 	float MaxMana;
+	UPROPERTY(Replicated)
+	float Experience;
+	UPROPERTY(Replicated)
+	int32 Level;
 
 	bool IsSpellImmune;
 	bool IsAttackImmune;
@@ -197,8 +202,27 @@ public:
 		Health = std::min(GetMaxHealth(), std::max(0.0f, in_val))*1.0/GetMaxHealth();
 		if (Health <= 0.01)
 		{
+			USphereComponent* temp_sphere = NewObject<USphereComponent>(GetWorld());
+			temp_sphere->SetWorldLocation(GetActorLocation());
+			TSet<AActor*> experience_range;
+			TArray<AAghsCloneCharacter*> experience_range_valid;
+			temp_sphere->GetOverlappingActors(experience_range, UExperienceInterface::StaticClass());
+			for (auto& act : experience_range)
+			{
+				auto aghs = Cast<AAghsCloneCharacter>(act);
+				if (aghs->GetTeam() != GetTeam())
+				{
+					experience_range_valid.Add(aghs);
+				}
+			}
+			float xp_distribution = Bounty->GetXpBounty() / experience_range_valid.Num();
+			for (auto& character : experience_range_valid)
+			{
+
+			}
 			Destroy();
 		}
+		
 	}
 
 	virtual void SetMaxHealth(float in_val)
@@ -314,6 +338,42 @@ public:
 
 	// END AUTO ATTACK IMPLEMENTATION
 
+	// EXPERIENCE INTERFACE IMPLEMENTATION
+
+	virtual void GiveExperience(float in_exp) override
+	{
+		Experience += in_exp;
+		int32 temp_level = 0;
+		for (int i = 0; i < level_thresholds.size(); ++i)
+		{
+			if (Experience > level_thresholds[i])
+			{
+				temp_level = i;
+				if (i != level_thresholds.size() - 1)
+				{
+					if (Experience < level_thresholds[i + 1])
+					{
+						break;
+					}
+				}
+			}
+		}
+		
+		Level = temp_level;
+	}
+
+	virtual float GetExperience() const override
+	{
+		return Experience;
+	}
+
+	virtual int32 GetLevel() const override
+	{
+		return Level;
+	}
+
+	// END EXPERIENCE INTERFACE
+
 	void SetTargetingActive(int32 ability_num)
 	{
 		int count = 1;
@@ -354,7 +414,7 @@ public:
         return Abilities;
     }
 
-    virtual IAbilityInterface* GetAbility(int32 ability_num)
+    virtual IAbilityInterface* GetAbility(int32 ability_num) const
     {
         if (ability_num < 4)
         {

@@ -12,6 +12,8 @@ UBallDropAbility::UBallDropAbility()
 	CastRange = 500;
 	ManaCost = 20;
 	Cooldown = 10;
+	max_level = 4;
+	current_level = 0;
 }
 
 
