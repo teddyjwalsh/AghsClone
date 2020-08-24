@@ -169,36 +169,3 @@ public:
 
 	bool GridIsHovered() const;
 };
-
-UCLASS()
-class AGHSCLONE_API UAbilitiesWidget: public UUserWidget
-{
-	GENERATED_BODY()
-public:
-	int32 el_height;
-	int32 el_width;
-	UMultiButton* button;
-	//UGridPanel* main_back;
-	UGridPanel* grid;
-	//TArray<UMultiButton*> buttons;
-	TArray<UMultiButton*> level_panels;
-	TMap<UMultiButton*, UAbility*> buttons;
-    TArray<UAbility*> abilities;
-	virtual bool Initialize() override;
-
-    bool DrawAbilities();
-
-	void RefreshCooldownDisplays();
-
-	virtual void NativeConstruct() override;
-
-	UFUNCTION()
-	void OnItemClicked(UMultiButton* in_button);
-
-	UFUNCTION()
-	void OnItemHovered(UMultiButton* in_button);
-
-	void SetAbilities();
-
-	bool GridIsHovered() const;
-};

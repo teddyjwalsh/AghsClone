@@ -14,7 +14,7 @@
 #include "Engine/World.h"
 #include "GameFramework/HUD.h"
 #include "GameFramework/SpringArmComponent.h"
-#include "StoreWidget.h"
+#include "AbilityWidget.h"
 #include "FieldActorInterface.h"
 #include "WalletComponent.h"
 #include "InventoryComponent.h"
@@ -104,7 +104,7 @@ void AAghsClonePlayerController::PlayerTick(float DeltaTime)
 	}
 	if (IsValid(AbilitiesWidget))
 	{
-		AbilitiesWidget->RefreshCooldownDisplays();
+		AbilitiesWidget->Refresh();
 	}
 	if (IsValid(InventoryWidget))
 	{
@@ -196,17 +196,17 @@ void AAghsClonePlayerController::SetSelected(const TArray<AAghsCloneCharacter*>&
 				AbilitiesWidget->SetPositionInViewport(FVector2D(0, wy / 2.0), true);
 				AbilitiesWidget->AddToViewport(9999); // Z-order, this just makes it render on the very top.
 				AbilitiesWidget->SetAbilities();
-				AbilitiesWidget->DrawAbilities();
+				AbilitiesWidget->Refresh();
 			}
 			else
 			{
 				//AbilitiesWidget->SetAnchorsInViewport(FAnchors(0.5, 0.5));
 				AbilitiesWidget->SetAlignmentInViewport(FVector2D(0.0, 1.0));
 				AbilitiesWidget->SetPositionInViewport(FVector2D(0, wy/2.0), true);
-				AbilitiesWidget->DrawAbilities();
 				AbilitiesWidget->SetAbilities();
+				AbilitiesWidget->Refresh();
 				AbilitiesWidget->AddToViewport(9999); // Z-order, this just makes it render on the very top.
-				AbilitiesWidget->SetDesiredSizeInViewport(FVector2D(200, 100));
+				//AbilitiesWidget->SetDesiredSizeInViewport(FVector2D(200, 100));
 				
 				FAnchors anchor(100, 100, 100, 100);
 				AbilitiesWidget->SetVisibility(ESlateVisibility::Visible);
