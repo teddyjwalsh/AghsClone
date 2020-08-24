@@ -118,11 +118,17 @@ protected:
 
 	void OnAbilityNumPress(int32 ability_num);
 
+	UFUNCTION(Reliable, server)
+	void OnLevelAbilityNumPress(int32 ability_num);
+
 	template<int32 ability_num>
 	void OnAbilityPress();
 
 	template<int32 ability_num>
 	void OnAbilityRelease();
+
+	template<int32 ability_num>
+	void OnLevelAbilityPress();
 
 	void OnShopPress();
 

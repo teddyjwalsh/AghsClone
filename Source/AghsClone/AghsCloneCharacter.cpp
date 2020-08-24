@@ -117,6 +117,11 @@ AAghsCloneCharacter::AAghsCloneCharacter() :
 	Bounty = CreateDefaultSubobject<UBountyComponent>(TEXT("Bounty"));
 	Bounty->SetIsReplicated(true);
 
+	temp_sphere = CreateDefaultSubobject<USphereComponent>(TEXT("TempSphere"));
+	temp_sphere->SetAbsolute(true, true, true);
+	temp_sphere->SetupAttachment(GetRootComponent());
+	temp_sphere->SetSphereRadius(0.1);
+
 	StatusManager = CreateDefaultSubobject<UStatusManager>(TEXT("StatusManager"));
 	StatusManager->SetIsReplicated(true);
 	StatInterfaces.Add(Cast<IStatInterface>(StatusManager));

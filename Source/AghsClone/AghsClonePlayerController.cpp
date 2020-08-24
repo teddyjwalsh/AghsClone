@@ -245,6 +245,10 @@ void AAghsClonePlayerController::SetupInputComponent()
 	InputComponent->BindAction("Ability2", IE_Released, this, &AAghsClonePlayerController::OnAbilityRelease<1>);
 	InputComponent->BindAction("Ability3", IE_Released, this, &AAghsClonePlayerController::OnAbilityRelease<2>);
 	InputComponent->BindAction("Ability4", IE_Released, this, &AAghsClonePlayerController::OnAbilityRelease<3>);
+	InputComponent->BindAction("LevelAbility1", IE_Pressed, this, &AAghsClonePlayerController::OnLevelAbilityPress<0>);
+	InputComponent->BindAction("LevelAbility2", IE_Pressed, this, &AAghsClonePlayerController::OnLevelAbilityPress<1>);
+	InputComponent->BindAction("LevelAbility3", IE_Pressed, this, &AAghsClonePlayerController::OnLevelAbilityPress<2>);
+	InputComponent->BindAction("LevelAbility4", IE_Pressed, this, &AAghsClonePlayerController::OnLevelAbilityPress<3>);
 	InputComponent->BindAction("Item1",IE_Pressed, this, &AAghsClonePlayerController::OnAbilityPress<4>);
 	InputComponent->BindAction("Item2",IE_Pressed, this, &AAghsClonePlayerController::OnAbilityPress<5>);
 	InputComponent->BindAction("Item3",IE_Pressed, this, &AAghsClonePlayerController::OnAbilityPress<6>);
@@ -381,6 +385,12 @@ void AAghsClonePlayerController::OnAbilityPress()
 	OnAbilityNumPress(ability_num);
 }
 
+template<int32 ability_num>
+void AAghsClonePlayerController::OnLevelAbilityPress()
+{
+	OnLevelAbilityNumPress(ability_num);
+}
+
 void AAghsClonePlayerController::ActivateAbility_Implementation(int32 ability_num)
 {
 	if (AUnitController* MyPawn = Cast<AUnitController>(GetPawn()))
@@ -414,18 +424,42 @@ void AAghsClonePlayerController::OnAbilityNumPress(int32 ability_num)
 			if (main_character->AbilityCount() > ability_num)
 			{
                 IAbilityInterface* ability = main_character->GetAbility(ability_num);
+
 				if (ability)
 				{
-					if (ability->IsUnitTargeted() || ability->IsGroundTargeted())
+					if (main_character->GetAbilityLevel(ability_num))
 					{
-						// main_character->SetTargetingActive(ability_num);
-						targeted_ability = ability;
-						targeted_ability_num = ability_num;
+						if (ability->IsUnitTargeted() || ability->IsGroundTargeted())
+						{
+							// main_character->SetTargetingActive(ability_num);
+							targeted_ability = ability;
+							targeted_ability_num = ability_num;
+						}
+						else
+						{
+							ActivateAbility(ability_num);
+						}
 					}
-					else
-					{
-						ActivateAbility(ability_num);
-					}
+				}
+			}
+		}
+	}
+}
+
+void AAghsClonePlayerController::OnLevelAbilityNumPress_Implementation(int32 ability_num)
+{
+	if (AUnitController* MyPawn = Cast<AUnitController>(GetPawn()))
+	{
+		IAbilityContainerInterface* main_character = Cast<IAbilityContainerInterface>(MyPawn->GetPrimaryUnit());
+		IExperienceInterface* xp_int = Cast<IExperienceInterface>(MyPawn->GetPrimaryUnit());
+		if (main_character && xp_int)
+		{
+			if (main_character->AbilityCount() > ability_num && main_character->CanLevelAbility(ability_num, xp_int->GetLevel()))
+			{
+				auto ab = Cast<UAbility>(main_character->GetAbility(ability_num));
+				if (ab)
+				{
+					ab->LevelUp();
 				}
 			}
 		}

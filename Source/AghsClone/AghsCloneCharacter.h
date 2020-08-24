@@ -202,11 +202,13 @@ public:
 		Health = std::min(GetMaxHealth(), std::max(0.0f, in_val))*1.0/GetMaxHealth();
 		if (Health <= 0.01)
 		{
-			USphereComponent* temp_sphere = NewObject<USphereComponent>(GetWorld());
-			temp_sphere->SetWorldLocation(GetActorLocation());
+			
 			TSet<AActor*> experience_range;
 			TArray<AAghsCloneCharacter*> experience_range_valid;
-			temp_sphere->GetOverlappingActors(experience_range, UExperienceInterface::StaticClass());
+			temp_sphere->SetSphereRadius(1200, true);
+			temp_sphere->GetOverlappingActors(experience_range, AAghsCloneCharacter::StaticClass());
+			temp_sphere->SetSphereRadius(0.1, true);
+			
 			for (auto& act : experience_range)
 			{
 				auto aghs = Cast<AAghsCloneCharacter>(act);
@@ -218,7 +220,8 @@ public:
 			float xp_distribution = Bounty->GetXpBounty() / experience_range_valid.Num();
 			for (auto& character : experience_range_valid)
 			{
-
+				auto xp_int = Cast<IExperienceInterface>(character);
+				xp_int->GiveExperience(xp_distribution);
 			}
 			Destroy();
 		}
@@ -359,7 +362,7 @@ public:
 			}
 		}
 		
-		Level = temp_level;
+		Level = temp_level + 1;
 	}
 
 	virtual float GetExperience() const override
@@ -566,6 +569,8 @@ public:
 		DOREPLIFETIME(AAghsCloneCharacter, unit_owner);
 		DOREPLIFETIME(AAghsCloneCharacter, Inventory);
 		DOREPLIFETIME(AAghsCloneCharacter, Wallet);
+		DOREPLIFETIME(AAghsCloneCharacter, Level);
+		DOREPLIFETIME(AAghsCloneCharacter, Experience);
 	}
 
 	TArray<UAbility*> Abilities;
@@ -599,6 +604,8 @@ private:
 
 	UPROPERTY(Replicated, VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
 	class UStatusManager* StatusManager;
+
+	class USphereComponent* temp_sphere;
 
 	//UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Replicated, meta = (AllowPrivateAccess = "true"))
 	int32 targeting_active;

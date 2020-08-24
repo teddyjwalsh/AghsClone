@@ -125,6 +125,11 @@ public:
 					{
 						DrawWallet(wallet_comp, FVector2D(vx - 120, vy - 100));
 					}
+					auto xp_interface = Cast<IExperienceInterface>(sc);
+					if (xp_interface)
+					{
+						DrawLevel(xp_interface, FVector2D(vx - 120, vy - 150));
+					}
 
 					break;
 				}
@@ -234,6 +239,17 @@ public:
 		health_text.Text = FText::FromString(health_string);
 		health_text.Position = FVector2D(screen_loc.X, screen_loc.Y);
 		Canvas->DrawItem(health_text);
+	}
+
+	void DrawLevel(IExperienceInterface* xp_int, FVector2D screen_loc)
+	{
+		static auto def_font = GetFontFromSizeIndex(10);
+		static FCanvasTextItem level_text(FVector2D(0, 0), FText(), def_font, FLinearColor(1, 1, 1));
+		FString level_string;
+		level_string = FString::Printf(TEXT("Level: %d"), int32(xp_int->GetLevel()));
+		level_text.Text = FText::FromString(level_string);
+		level_text.Position = FVector2D(screen_loc.X, screen_loc.Y);
+		Canvas->DrawItem(level_text);
 	}
 
 	//virtual void BeginPlay() override

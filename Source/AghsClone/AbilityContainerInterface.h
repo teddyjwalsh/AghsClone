@@ -58,6 +58,24 @@ public:
         return false;
     }
 
+    virtual int32 GetAbilityLevel(int32 ability_num)
+    {
+        auto ab = GetAbility(ability_num);
+        if (ab)
+        {
+            UAbility* ability = Cast<UAbility>(ab);
+            if (ability)
+            {
+                return ability->GetLevel();
+            }
+            else
+            {
+                return 1;
+            }
+        }
+        return 0;
+    }
+
     virtual IAbilityInterface* GetAbility(int32 ability_num) const = 0;
     virtual int32 AbilityCount() const
     {
