@@ -18,6 +18,7 @@ protected:
 	float current_duration;
 	TArray<float*> stats;
 	TArray<float*> mult_stats;
+	AActor* owner;
 
 public:
 
@@ -37,6 +38,16 @@ public:
 			mult_stats.Add(nullptr);
 		}
 		current_duration = 0;
+	}
+
+	void SetOwner(AActor* in_owner)
+	{
+		owner = in_owner;
+	}
+
+	AActor* GetOwner() const
+	{
+		return owner;
 	}
 
 	virtual float GetStat(StatType stat_type) const override
@@ -107,6 +118,11 @@ public:
 		return bFinished;
 	}
 
+	void Refresh()
+	{
+		current_duration = 0;
+	}
+
 	virtual float GetMovespeed() { return 0; }
 	virtual float GetHealth() { return 0; }
 	virtual float GetMana() { return 0; }
@@ -173,8 +189,27 @@ public:
 
 	bool AddStatus(UStatusEffect* in_status)
 	{
+		in_status->SetOwner(GetOwner());
 		statuses.Add(in_status);
 		return true;
+	}
+
+	bool RefreshStatus(UStatusEffect* in_status)
+	{
+		bool found = false;
+		for (auto& status : statuses)
+		{
+			if (status->GetClass() == in_status->GetClass())
+			{
+				status->Refresh();
+				found = true;
+			}
+		}
+		if (found == false)
+		{
+			AddStatus(in_status);
+		}
+		return found;
 	}
 
 	bool GetStunned() const

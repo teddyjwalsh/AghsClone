@@ -61,6 +61,8 @@ class AAghsCloneCharacter : public ACharacter,
 	float Experience;
 	UPROPERTY(Replicated)
 	int32 Level = 1;
+	UPROPERTY(Replicated)
+	float AttackProjectileSpeed;
 
 	bool IsSpellImmune;
 	bool IsAttackImmune;
@@ -177,7 +179,7 @@ public:
 
 	void SetSelected(bool is_selected)
 	{
-		CursorToWorld->SetVisibility(is_selected);
+		//CursorToWorld->SetVisibility(is_selected);
 	}
 
 	// HEALTH INTERFACE IMPLEMENTATION
@@ -253,6 +255,16 @@ public:
 	}
 	// END HEALTH INTERFACE
 
+	virtual void SetArmor(float in_armor)
+	{
+		Armor = in_armor;
+	}
+
+	virtual void SetAttackDamage(float in_damage)
+	{
+		attack_damage = in_damage;
+	}
+
 	virtual float GetMovespeed() const
 	{
 		return GetStat(StatMovespeed);// BaseMovespeed + Inventory->GetMovespeed();// + StatusManager->GetMovespeed();
@@ -292,6 +304,11 @@ public:
 
 	// AUTO ATTACK IMPLEMENTATION
 
+	void SetAttackProjectileSpeed(float in_speed)
+	{
+		AttackProjectileSpeed = in_speed;
+	}
+
 	bool AttackActor(AActor* in_target)
 	{
 		FDateTime t = FDateTime::UtcNow();
@@ -304,6 +321,7 @@ public:
 			proj->SetActorLocation(GetActorLocation());
 			proj->SetTarget(in_target);
 			proj->SetShooter(this);
+			proj->SetSpeed(AttackProjectileSpeed);
 			ResetAttackTimer(ts);
 			return true;
 		}
@@ -329,7 +347,7 @@ public:
 
 	float GetAttackDamage() const
 	{
-		return attack_damage + Inventory->GetAttackDamage();// + StatusManager->GetAttackDamage();
+		return GetStat(StatAttackDamage);// + StatusManager->GetAttackDamage();
 	}
 
 	float GetAttackSpeed() const
@@ -553,6 +571,16 @@ public:
 		return current_command;
 	}
 
+	virtual FCommand GetLastCommand() const override
+	{
+		return LastCommand;
+	}
+
+	virtual void SetLastCommand(const FCommand& in_command) override
+	{
+		LastCommand = in_command;
+	}
+
 	void ProcessAttackMove(const FCommand& in_command, float dt);
 
 	void ProcessAbilityCommand(const FCommand& in_command, float dt);
@@ -580,6 +608,7 @@ public:
 		DOREPLIFETIME(AAghsCloneCharacter, Wallet);
 		DOREPLIFETIME(AAghsCloneCharacter, Level);
 		DOREPLIFETIME(AAghsCloneCharacter, Experience);
+		DOREPLIFETIME(AAghsCloneCharacter, AttackProjectileSpeed);
 	}
 
 	TArray<UAbility*> Abilities;
@@ -624,6 +653,7 @@ private:
 
 	//UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
 	FCommand current_command;
+	FCommand LastCommand;
 
 	//UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Replicated, meta = (AllowPrivateAccess = "true"))
 	FVector current_destination;

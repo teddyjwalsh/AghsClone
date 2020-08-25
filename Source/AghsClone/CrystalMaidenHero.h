@@ -2,11 +2,15 @@
 
 #pragma once
 
-#include <String>
+#include <string>
+#include <array>
 
 #include "CoreMinimal.h"
+#include "EngineUtils.h"
+
 #include "Hero.h"
 #include "Components/CapsuleComponent.h"
+#include "StatusManager.h"
 #include "CrystalMaidenHero.generated.h"
 
 UCLASS(Blueprintable)
@@ -21,7 +25,7 @@ public:
 	UCrystalNovaSlow()
 	{
 		
-		max_duration = 3;
+		max_duration = 4.5;
 		slow = -100;
 		movespeed_multiplier = 0.8;
 		AddStat(StatMovespeed, &slow);
@@ -137,6 +141,160 @@ public:
 	}
 };
 
+UCLASS(Blueprintable)
+class UFrostbiteRoot : public UStatusEffect
+{
+	GENERATED_BODY()
+
+public:
+
+	float time = 0;
+	float last_time = -123456;
+	float damage_tick = 0.7;
+	float total_damage = 150;
+	float max_duration = 1.5;
+	int32 damage_instances = 0;
+	int32 max_instances;
+
+	UFrostbiteRoot()
+	{
+		bRooted = true;
+		max_instances = int32(max_duration / damage_tick);
+	}
+
+	virtual void TickStatus(float dt) override
+	{
+		time += dt;
+		if (time - last_time > damage_tick)
+		{
+			auto hi = Cast<IHealthInterface>(GetOwner());
+			if (hi && (damage_instances < max_instances))
+			{
+				DamageInstance di;
+				di.damage_type = MagicDamage;
+				di.value = total_damage * (damage_tick / max_duration);
+				di.is_attack = false;
+				hi->ApplyDamage(di, GetOwner());
+			}
+			last_time = time;
+			damage_instances += 1;
+			if (damage_instances >= max_instances)
+			{
+				bFinished = true;
+			}
+		}
+	}
+};
+
+UCLASS()
+class AGHSCLONE_API UFrostbiteAbility : public UAbility
+{
+	GENERATED_BODY()
+
+	std::array<float, 4> total_damages = { { 150,200,250,300 } };
+	std::array<float, 4> durations = { { 1.5,2.0,2.5,3.0 } };
+	float damage_tick = 0.7;
+
+	UFrostbiteAbility()
+	{
+		bUnitTargeted = true;
+		CastRange = 550;
+		ManaCost = 130;
+		Cooldowns = { { 9,8,7,6 } };
+		ManaCosts = { { 140,145,150,155 } };
+		max_level = 4;
+		damage_tick = 0.7;
+		current_level = 0;
+		radius = 425;
+		SetStatusEffect(UFrostbiteRoot::StaticClass());
+	}
+
+	std::vector<UFrostbiteAbility*> instances;
+	float radius;
+
+protected:
+	// Called when the game starts
+	virtual void BeginPlay() override
+	{
+		Super::BeginPlay();
+	}
+
+public:
+
+	// Called every frame
+	virtual void OnUnitActivation(AActor* in_unit) override
+	{
+		auto status_manager = Cast<UStatusManager>(in_unit->GetComponentByClass(UStatusManager::StaticClass()));
+		if (status_manager)
+		{
+			auto status_effect = NewObject<UFrostbiteRoot>(GetWorld(), UFrostbiteRoot::StaticClass());
+			float damage_inc = total_damages[current_level] * (damage_tick / durations[current_level]);
+			int32 max_instances = int32(durations[current_level] / damage_tick);
+			status_effect->total_damage = total_damages[current_level];
+			status_effect->max_instances = max_instances;
+			status_manager->AddStatus(status_effect);
+		}
+	}
+};
+
+UCLASS(Blueprintable)
+class UArcaneAura : public UStatusEffect
+{
+	GENERATED_BODY()
+
+	float ManaRegen;
+	float self_multiplier;
+
+public:
+	UArcaneAura()
+	{
+		max_duration = 1.0;
+		ManaRegen = 0.5;
+		AddStat(StatManaRegen, &ManaRegen);
+	}
+
+};
+
+UCLASS()
+class AGHSCLONE_API UArcaneAuraAbility : public UAbility
+{
+	GENERATED_BODY()
+
+		UArcaneAura* aura;
+
+	UArcaneAuraAbility()
+	{
+		aura = NewObject<UArcaneAura>();
+	}
+
+protected:
+	// Called when the game starts
+	virtual void BeginPlay() override
+	{
+		Super::BeginPlay();
+		PrimaryComponentTick.TickInterval = 1.0f;
+	}
+
+public:
+	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override
+	{
+		for (TActorIterator<AHero> act_it(GetWorld()); act_it; ++act_it)
+		{
+			auto owner = Cast<AAghsCloneCharacter>(GetOwner());
+			if (owner)
+			{
+				if (act_it->GetTeam() == owner->GetTeam())
+				{
+					UStatusManager* status_manager = Cast<UStatusManager>(act_it->GetComponentByClass(UStatusManager::StaticClass()));
+					if (status_manager)
+					{
+						status_manager->RefreshStatus(aura);
+					}
+				}
+			}
+		}
+	}
+};
 
 /**
  * 
@@ -152,6 +310,10 @@ public:
 		SetBaseMovespeed(280);
 		SetMaxHealth(200);
 		SetMaxMana(75);
+		SetArmor(-1);
+		SetAttackDamage(31);
+		SetAttackProjectileSpeed(900);
+		attributes->SetPrimaryAttribute(AttrIntelligence);
 		attributes->BaseStrength = 18;
 		attributes->StrengthGain = 2.2;
 		attributes->BaseAgility = 16;
@@ -162,7 +324,7 @@ public:
 		auto new_ab = CreateDefaultSubobject<UCrystalNovaAbility>((std::string("Ability") + std::to_string(20)).c_str());
 		Abilities.Add(new_ab);
 
-		auto new_ab3 = CreateDefaultSubobject<UCrystalNovaAbility>((std::string("Ability") + std::to_string(21)).c_str());
+		auto new_ab3 = CreateDefaultSubobject<UFrostbiteAbility>((std::string("Ability") + std::to_string(21)).c_str());
 		new_ab3->SetMaterial("shockwave");
 		Abilities.Add(new_ab3);
 		for (int i = 2; i < 4; ++i)

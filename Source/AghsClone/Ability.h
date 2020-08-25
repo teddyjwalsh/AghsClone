@@ -152,7 +152,10 @@ public:
 	float ManaCost;
 	float CastRange;
     UPROPERTY(Replicated)
-    float Cooldown;
+    float Cooldown;    
+
+    std::vector<float> Cooldowns;
+    std::vector<float> ManaCosts;
     UPROPERTY(Replicated)
     float CurrentCooldown;
 	class UDecalComponent* TargetingDecal;
@@ -192,7 +195,11 @@ public:
     }
     virtual float GetCooldown() const override
     {
-        return Cooldown;
+        if (current_level < Cooldowns.size())
+        {
+            return Cooldowns[current_level];
+        }
+        return Cooldowns[Cooldowns.size() - 1];
     }
     virtual float GetCurrentCooldown() const override 
     {
@@ -208,7 +215,11 @@ public:
     }
 	virtual float GetManaCost() const override 
     {
-        return ManaCost;
+        if (current_level < ManaCosts.size())
+        {
+            return ManaCosts[current_level];
+        }
+        return ManaCosts[ManaCosts.size() - 1];
     }
 	virtual void OnActivation() { UE_LOG(LogTemp, Warning, TEXT("Non-targeted activation")); }
 	virtual void OnUnitActivation(AActor* target) { UE_LOG(LogTemp, Warning, TEXT("Unit-targeted activation")); }

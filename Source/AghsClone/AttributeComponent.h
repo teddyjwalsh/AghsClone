@@ -10,6 +10,12 @@
 #include "ExperienceInterface.h"
 #include "AttributeComponent.generated.h"
 
+enum Attribute
+{
+	AttrStrength,
+	AttrAgility,
+	AttrIntelligence
+};
 
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class AGHSCLONE_API UAttributeComponent : public UActorComponent,
@@ -33,6 +39,7 @@ public:
 		float AgilityGain;
 	UPROPERTY(Replicated)
 		float IntelligenceGain;
+	Attribute PrimaryAttribute;
 
 protected:
 	// Called when the game starts
@@ -86,6 +93,21 @@ public:
 		{
 			return 0.05 * (BaseIntelligence + IntelligenceGain * current_level);
 		}
+		if (stat_type == StatAttackDamage)
+		{
+			if (PrimaryAttribute == AttrStrength)
+			{
+				return GetStat(StatStrength);
+			}
+			else if (PrimaryAttribute == AttrAgility)
+			{
+				return GetStat(StatAgility);
+			}
+			else if (PrimaryAttribute == AttrIntelligence)
+			{
+				return GetStat(StatIntelligence);
+			}
+		}
 		return 0;
 	}
 	virtual bool SetStat(StatType stat_type, float in_stat)
@@ -106,6 +128,11 @@ public:
 			return true;
 		}
 		return false;
+	}
+
+	void SetPrimaryAttribute(Attribute in_attr)
+	{
+		PrimaryAttribute = in_attr;
 	}
 
 	void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override

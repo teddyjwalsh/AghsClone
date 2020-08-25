@@ -111,6 +111,15 @@ public:
 		UE_LOG(LogTemp, Fatal, TEXT("Called SetCurrentDestination without implementing it"));
 	}
 
+	virtual FCommand GetLastCommand() const
+	{
+		return FCommand();
+	}
+	virtual void SetLastCommand(const FCommand& in_command)
+	{
+
+	}
+
 	virtual void ProcessAbilityCommand(const FCommand& in_command, float dt) {}
 
 	virtual void ProcessAttackMove(const FCommand& in_command, float dt) {}
@@ -119,7 +128,7 @@ public:
 	{
 		static float MoveTolerance = 10.0;
 		FCommand current_command = GetCurrentCommand();
-		static FCommand last_command = current_command;
+		FCommand last_command = GetLastCommand();
 		FVector dest = GetCurrentDestination();
 		auto my_actor = Cast<APawn>(this);
 
@@ -167,7 +176,7 @@ public:
 			default:
 				break;
 		}
-		last_command = current_command;
+		SetLastCommand(current_command);
 	}
 
 };

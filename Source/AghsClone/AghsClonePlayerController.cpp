@@ -530,7 +530,7 @@ void AAghsClonePlayerController::OnAbilityTrigger()
 {
 	// Trace to see what is under the mouse cursor
 	FHitResult Hit;
-	GetHitResultUnderCursor(ECC_Visibility, false, Hit);
+	GetHitResultUnderCursor(ECC_WorldDynamic, false, Hit);
 	OnTrigger(Hit, targeted_ability_num);
 }
 
@@ -546,10 +546,11 @@ void AAghsClonePlayerController::OnTrigger_Implementation(FHitResult Hit, int32 
 			{
 				FCommand ability_command;
 				//MyPawn->TriggerTargetedAbility(Hit.ImpactPoint);
+				auto ability = main_character->GetAbility(ability_num);
 				ability_command.command_type = ABILITY;
 				ability_command.ability_num = ability_num;// main_character->GetTargetingActive();
-				auto unit = Cast<AAghsCloneCharacter>(Hit.Actor);
-				if (unit && targeted_ability->IsUnitTargeted())
+				auto unit = Cast<AAghsCloneCharacter>(Hit.Actor.Get());
+				if (unit && ability->IsUnitTargeted())
 				{
 					ability_command.target = Hit.Actor.Get();
 					ability_command.unit_targeted = true;

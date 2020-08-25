@@ -33,6 +33,11 @@ public:
 		owner = in_owner;
 	}
 
+	void SetSpeed(float in_speed)
+	{
+		speed = in_speed;
+	}
+
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
