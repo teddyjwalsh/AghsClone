@@ -202,9 +202,30 @@ void AAghsCloneCharacter::Tick(float DeltaSeconds)
 
 	if (GetLocalRole() == ROLE_Authority)
 	{
+		if (ChanneledAbility)
+		{
+			if (ChanneledAbility->IsDoneChanneling())
+			{
+				ChanneledAbility->EndChannel();
+				ChanneledAbility = nullptr;
+				NextCommand();
+			}
+		}
+        if (ChanneledAbility && GetLastCommand() != GetCurrentCommand())
+        {
+            ChanneledAbility->EndChannel();
+            ChanneledAbility = nullptr;
+            NextCommand();
+        }
 		if (StatusManager->GetStunned())
 		{
 			UAIBlueprintHelperLibrary::SimpleMoveToLocation(GetController(), GetActorLocation());
+            if (ChanneledAbility)
+            {
+                ChanneledAbility->EndChannel();
+                ChanneledAbility = nullptr;
+                NextCommand();
+            }
 		}
 		else if (current_command.command_type != NONE)
 		{
@@ -282,6 +303,25 @@ void AAghsCloneCharacter::ProcessAbilityCommand(const FCommand& in_command, floa
 	auto forward_vec = (GetActorForwardVector());
 	auto my_loc3 = GetActorLocation();
 	auto my_loc = FVector2D(my_loc3);
+    auto ability_interface = GetAbility(in_command.ability_num);
+
+    if (ability_interface)
+    {
+        if (ability_interface->IsChanneling())
+        {
+            if (!StatusManager->GetStunned() && !StatusManager->GetSilenced())
+            {
+                ability_interface->TickChannel(dt);
+                return;
+            }
+            else
+            {
+                ability_interface->EndChannel();
+                NextCommand();
+                return;
+            }
+        }
+    }
 
 	FVector command_loc;
 	if (in_command.unit_targeted)
@@ -299,14 +339,14 @@ void AAghsCloneCharacter::ProcessAbilityCommand(const FCommand& in_command, floa
 	float angle_diff = acos(FVector::DotProduct(forward_vec, ability_vec)) * 180 / PI;
 	float turn_rate = 1146.0;
 
-	if ((my_loc - FVector2D(command_loc)).Size() > GetAbility(in_command.ability_num)->GetCastRange())
+	if ((ability_interface->IsGroundTargeted() || ability_interface->IsUnitTargeted() ) && (my_loc - FVector2D(command_loc)).Size() > GetAbility(in_command.ability_num)->GetCastRange())
 	{
 		current_destination = command_loc;
 
 		UAIBlueprintHelperLibrary::SimpleMoveToLocation(GetController(), current_destination);
 
 	}
-	else if (angle_diff > 15.0)
+	else if ((ability_interface->IsGroundTargeted() || ability_interface->IsUnitTargeted()) && angle_diff > 15.0)
 	{
 		auto char_rot = UKismetMathLibrary::FindLookAtRotation(forward_vec, ability_vec);
 		ability_vec.Z = 0;
@@ -331,7 +371,16 @@ void AAghsCloneCharacter::ProcessAbilityCommand(const FCommand& in_command, floa
 	{
 		if (in_command.unit_targeted)
 		{
-			if (TriggerTargetedAbility(in_command.ability_num, in_command.target))
+			if (TriggerTargetedAbility(in_command.ability_num, in_command.target) && !ability_interface->IsChanneling())
+			{
+				my_loc3 = GetActorLocation();
+				UAIBlueprintHelperLibrary::SimpleMoveToLocation(GetController(), my_loc3);
+				NextCommand();
+			}
+		}
+		else if (ability_interface->IsGroundTargeted())
+		{
+			if (TriggerTargetedAbility(in_command.ability_num, in_command.location) && !ability_interface->IsChanneling())
 			{
 				my_loc3 = GetActorLocation();
 				UAIBlueprintHelperLibrary::SimpleMoveToLocation(GetController(), my_loc3);
@@ -340,12 +389,16 @@ void AAghsCloneCharacter::ProcessAbilityCommand(const FCommand& in_command, floa
 		}
 		else
 		{
-			if (TriggerTargetedAbility(in_command.ability_num, in_command.location))
+			if (TriggerAbility(in_command.ability_num) && !ability_interface->IsChanneling())
 			{
 				my_loc3 = GetActorLocation();
 				UAIBlueprintHelperLibrary::SimpleMoveToLocation(GetController(), my_loc3);
 				NextCommand();
 			}
+		}
+		if (ability_interface->IsChanneling())
+		{
+			ChanneledAbility = ability_interface;
 		}
 	}
 }

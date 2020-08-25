@@ -130,6 +130,13 @@ public:
 					{
 						DrawLevel(xp_interface, FVector2D(vx - 120, vy - 150));
 					}
+                    IAbilityInterface* channeled = sc->GetChanneled();
+                    if (channeled)
+                    {
+                        float current = channeled->GetChannelTime();
+                        float max = channeled->GetMaxChannelTime();
+                        DrawChannelBar(current, max, FVector2D(vx/2, vy/2));
+                    }
 
 					break;
 				}
@@ -251,6 +258,29 @@ public:
 		level_text.Position = FVector2D(screen_loc.X, screen_loc.Y);
 		Canvas->DrawItem(level_text);
 	}
+
+    void DrawChannelBar(float CurrentTime, float MaxTime, FVector2D screen_loc)
+    {
+		static auto def_font = GetFontFromSizeIndex(10);
+		static FCanvasTextItem health_text(FVector2D(0, 0), FText(), def_font, FLinearColor(1, 1, 1));
+
+		FVector2D main_health_box_size(200, 10);
+		FVector2D main_health_box_loc = FVector2D(screen_loc.X - main_health_box_size.X / 2, screen_loc.Y);
+		FCanvasBoxItem box_item(main_health_box_loc - FVector2D(0, 0), main_health_box_size + FVector2D(1, 1));
+		float health_fraction = CurrentTime * 1.0 / MaxTime;
+		FString health_string;
+		health_string = FString::Printf(TEXT("%d / %d"),
+			int32(CurrentTime),
+			int32(MaxTime));
+		health_text.Text = FText::FromString(health_string);
+		health_text.Position = FVector2D(screen_loc.X - health_text.DrawnSize.X / 2, main_health_box_loc.Y);
+
+		FCanvasTileItem tile_item(main_health_box_loc, main_health_box_size * FVector2D(health_fraction, 1), FLinearColor(0.3, 0.3, 0.3));
+		box_item.SetColor(FLinearColor(1, 1, 1));
+		Canvas->DrawItem(tile_item);
+		Canvas->DrawItem(box_item);
+		Canvas->DrawItem(health_text);
+    }
 
 	//virtual void BeginPlay() override
 	//{

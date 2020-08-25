@@ -1,4 +1,4 @@
-
+#pragma once
 
 #include "StoreWidget.h"
 #include "Components/TextBlock.h"

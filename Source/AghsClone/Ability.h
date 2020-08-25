@@ -147,7 +147,14 @@ public:
 	bool bPassive = false;
     bool bOnHit = false;
     bool bIsUltimate = false;
+    bool bIsChanneled = false;
 	float DefaultCooldown;
+    UPROPERTY( Replicated )
+    float MaxChannelTime;
+    UPROPERTY( Replicated )
+    float ChannelTime;
+    UPROPERTY(Replicated)
+       bool bDoneChanneling;
     UPROPERTY( Replicated )
 	float ManaCost;
 	float CastRange;
@@ -169,6 +176,7 @@ public:
         Super::GetLifetimeReplicatedProps(OutLifetimeProps);
         DOREPLIFETIME(UAbility, ManaCost);
         DOREPLIFETIME(UAbility, Cooldown);
+        DOREPLIFETIME(UAbility, ChannelTime);
         DOREPLIFETIME(UAbility, MyMat);
         DOREPLIFETIME(UAbility, CurrentCooldown);
         DOREPLIFETIME(UAbility, current_level);
@@ -195,9 +203,9 @@ public:
     }
     virtual float GetCooldown() const override
     {
-        if (current_level < Cooldowns.size())
+        if ((current_level - 1) < Cooldowns.size())
         {
-            return Cooldowns[current_level];
+            return Cooldowns[current_level - 1];
         }
         return Cooldowns[Cooldowns.size() - 1];
     }
@@ -215,16 +223,21 @@ public:
     }
 	virtual float GetManaCost() const override 
     {
-        if (current_level < ManaCosts.size())
+        if ((current_level - 1) < ManaCosts.size())
         {
-            return ManaCosts[current_level];
+            return ManaCosts[current_level - 1];
         }
         return ManaCosts[ManaCosts.size() - 1];
     }
 	virtual void OnActivation() { UE_LOG(LogTemp, Warning, TEXT("Non-targeted activation")); }
 	virtual void OnUnitActivation(AActor* target) { UE_LOG(LogTemp, Warning, TEXT("Unit-targeted activation")); }
 	virtual void OnHit(DamageInstance& damage, AActor* unit) { UE_LOG(LogTemp, Warning, TEXT("OnHit activation")); }
-	virtual void OnGroundActivation(const FVector& target) 
+    virtual void TickChannel(float DeltaTime) {}
+    virtual float GetChannelTime() const override { return ChannelTime; }
+    virtual float GetMaxChannelTime() const override { return MaxChannelTime; }
+    virtual bool IsDoneChanneling() const override { return bDoneChanneling; }
+    virtual bool IsChanneling() const override { return ChannelTime > 0; }
+	virtual void OnGroundActivation(const FVector& target)
 	{ 
 		UE_LOG(LogTemp, Warning, TEXT("Ground-targeted activation, %f, %f"), target.X, target.Y); 
 	}
@@ -255,6 +268,10 @@ public:
     virtual bool IsUltimate() const
     {
         return bIsUltimate;
+    }
+    virtual bool IsChanneled() const
+    {
+        return bIsChanneled;
     }
     virtual bool CanBeLeveled(int32 in_level)
     {

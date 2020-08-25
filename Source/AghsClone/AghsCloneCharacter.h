@@ -457,6 +457,8 @@ public:
 		return nullptr;
     }
 
+	
+
 	bool TriggerTargetedAbility(FVector target_loc)
 	{
 		bool retval = false;
@@ -516,6 +518,25 @@ public:
 			retval = false;
 		}
 		
+		return retval;
+	}
+
+	bool TriggerAbility(int32 ability_num)
+	{
+		bool retval = false;
+
+		auto ability = GetAbility(ability_num);
+		if (ability)
+		{
+			ability->OnActivationMeta();
+			retval = true;
+			//ability->TargetingDecal->SetVisibility(false);
+		}
+		else
+		{
+			retval = false;
+		}
+
 		return retval;
 	}
 
@@ -593,6 +614,11 @@ public:
 	}
     // END VISION INTERFACE
 
+    virtual IAbilityInterface* GetChanneled()
+    {
+        return ChanneledAbility;
+    }
+
 	void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override
 	{
 		Super::GetLifetimeReplicatedProps(OutLifetimeProps);
@@ -654,6 +680,7 @@ private:
 	//UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
 	FCommand current_command;
 	FCommand LastCommand;
+    IAbilityInterface* ChanneledAbility;
 
 	//UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Replicated, meta = (AllowPrivateAccess = "true"))
 	FVector current_destination;

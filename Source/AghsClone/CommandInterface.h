@@ -67,6 +67,25 @@ public:
 				return true;
 			}
 		}
+        else if (command_type == ABILITY)
+        {
+            if (ability_num != rhs.ability_num)
+            {
+                return true;
+            }
+            else if (unit_targeted != rhs.unit_targeted)
+            {
+                return true;
+            }
+            else if (unit_targeted && (target != rhs.target))
+            {
+                return true;
+            }
+            else if (!unit_targeted && (location != rhs.location))
+            {
+                return true;
+            }
+        }
 		return false;
 	}
 };

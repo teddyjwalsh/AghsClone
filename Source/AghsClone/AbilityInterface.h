@@ -57,38 +57,47 @@ public:
 		}
 		return retval;
 	}
-	void OnActivationMeta() 
-	{ 
+	bool OnActivationMeta()
+	{
+		bool retval = false;
 		if (GetCurrentCooldown() == 0)
 		{
 			if (CostMana())
 			{
 				OnActivation();
 				SetCurrentCooldown(GetCooldown());
+				retval = true;
 			}
 		}
+		return retval;
 	}
-	void OnUnitActivationMeta(AActor* target)
+	bool OnUnitActivationMeta(AActor* target)
 	{
+		bool retval = false;
 		if (GetCurrentCooldown() == 0)
 		{
 			if (CostMana() && GetCurrentCooldown() == 0)
 			{
 				OnUnitActivation(target);
 				SetCurrentCooldown(GetCooldown());
+				retval = true;
 			}
 		}
+		return retval;
 	}
-	void OnGroundActivationMeta(const FVector& target)
+	bool OnGroundActivationMeta(const FVector& target)
 	{
+		bool retval = false;
 		if (GetCurrentCooldown() == 0)
 		{
 			if (CostMana())
 			{
 				OnGroundActivation(target);
 				SetCurrentCooldown(GetCooldown());
+				retval = true;
 			}
 		}
+		return retval;
 	}
     virtual float GetManaCost() const = 0;
 	virtual float GetCurrentCooldown() const
@@ -109,7 +118,13 @@ public:
 	virtual void OnActivation() { UE_LOG(LogTemp, Warning, TEXT("Non-targeted activation")); }
 	virtual void OnUnitActivation(AActor* target) { UE_LOG(LogTemp, Warning, TEXT("Unit-targeted activation")); }
 	virtual void OnHit(DamageInstance& damage, AActor* unit) { UE_LOG(LogTemp, Warning, TEXT("OnHit activation")); }
-	virtual void OnGroundActivation(const FVector& target) 
+    virtual void TickChannel(float DeltaTime) {}
+    virtual bool IsChanneling() const { return false; }
+    virtual void EndChannel() {}
+    virtual float GetChannelTime() const { return 0; }
+    virtual float GetMaxChannelTime() const { return 0; }
+	virtual bool IsDoneChanneling() const { return true; }
+	virtual void OnGroundActivation(const FVector& target)
 	{ 
 		UE_LOG(LogTemp, Warning, TEXT("Ground-targeted activation, %f, %f"), target.X, target.Y); 
 	}

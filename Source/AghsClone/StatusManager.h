@@ -61,7 +61,7 @@ public:
 
 	virtual float GetStatMult(StatType stat_type) const override
 	{
-		if (stats[int32(stat_type)])
+		if (mult_stats[int32(stat_type)])
 		{
 			return *mult_stats[int32(stat_type)];
 		}
@@ -121,6 +121,7 @@ public:
 	void Refresh()
 	{
 		current_duration = 0;
+		bFinished = false;
 	}
 
 	virtual float GetMovespeed() { return 0; }

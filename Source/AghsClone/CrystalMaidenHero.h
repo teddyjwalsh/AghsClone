@@ -246,15 +246,17 @@ class UArcaneAura : public UStatusEffect
 
 	float ManaRegen;
 	float self_multiplier;
+	
 
 public:
+	AActor* Applier;
+
 	UArcaneAura()
 	{
 		max_duration = 1.0;
 		ManaRegen = 0.5;
 		AddStat(StatManaRegen, &ManaRegen);
 	}
-
 };
 
 UCLASS()
@@ -262,7 +264,7 @@ class AGHSCLONE_API UArcaneAuraAbility : public UAbility
 {
 	GENERATED_BODY()
 
-		UArcaneAura* aura;
+	UArcaneAura* aura;
 
 	UArcaneAuraAbility()
 	{
@@ -274,12 +276,16 @@ protected:
 	virtual void BeginPlay() override
 	{
 		Super::BeginPlay();
-		PrimaryComponentTick.TickInterval = 1.0f;
+		PrimaryComponentTick.TickInterval = 0.9f;
 	}
 
 public:
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override
 	{
+		if (GetWorld()->GetTimeSeconds() < 2)
+		{
+			return;
+		}
 		for (TActorIterator<AHero> act_it(GetWorld()); act_it; ++act_it)
 		{
 			auto owner = Cast<AAghsCloneCharacter>(GetOwner());
@@ -288,6 +294,7 @@ public:
 				if (act_it->GetTeam() == owner->GetTeam())
 				{
 					UStatusManager* status_manager = Cast<UStatusManager>(act_it->GetComponentByClass(UStatusManager::StaticClass()));
+					aura = NewObject<UArcaneAura>();
 					if (status_manager)
 					{
 						status_manager->RefreshStatus(aura);
@@ -297,6 +304,59 @@ public:
 		}
 	}
 };
+
+UCLASS()
+class AGHSCLONE_API UFreezingFieldAbility : public UAbility
+{
+	GENERATED_BODY()
+
+	std::array<float, 4> damage = { { 105,170,250 } };
+
+	UFreezingFieldAbility()
+	{
+		bIsChanneled = true;
+		MaxChannelTime = 10;
+		Cooldowns = { { 110,100,90 } };
+		ManaCosts = { { 200,400,600 } };
+		max_level = 3;
+		current_level = 0;
+		SetStatusEffect(UFrostbiteRoot::StaticClass());
+	}
+
+	std::vector<UFreezingFieldAbility*> instances;
+	float radius;
+
+protected:
+	// Called when the game starts
+	virtual void BeginPlay() override
+	{
+		Super::BeginPlay();
+	}
+
+public:
+
+	// Called every frame
+	virtual void OnActivation() override
+	{
+		ChannelTime = MaxChannelTime;
+		bDoneChanneling = false;
+	}
+
+	virtual void TickChannel(float DeltaTime) override
+	{
+		ChannelTime -= DeltaTime;
+		if (ChannelTime <= 0)
+		{
+			bDoneChanneling = true;
+		}
+	}
+
+	virtual void EndChannel() override
+	{
+
+	}
+};
+
 
 /**
  * 
@@ -329,11 +389,15 @@ public:
 		auto new_ab3 = CreateDefaultSubobject<UFrostbiteAbility>((std::string("Ability") + std::to_string(21)).c_str());
 		new_ab3->SetMaterial("shockwave");
 		Abilities.Add(new_ab3);
-		for (int i = 2; i < 4; ++i)
-		{
-			auto new_ab2 = CreateDefaultSubobject<UAbility>((std::string("Ability") + std::to_string(20 + i)).c_str());
-			Abilities.Add(new_ab2);
-		}
+
+		auto new_ab4 = CreateDefaultSubobject<UArcaneAuraAbility>((std::string("Ability") + std::to_string(22)).c_str());
+		new_ab4->SetMaterial("shockwave");
+		Abilities.Add(new_ab4);
+
+		auto new_ab5 = CreateDefaultSubobject<UFreezingFieldAbility>((std::string("Ability") + std::to_string(23)).c_str());
+		new_ab5->SetMaterial("shockwave");
+		Abilities.Add(new_ab5);
+
 		for (auto& ab : Abilities)
 		{
 			ab->SetIsReplicated(true);
