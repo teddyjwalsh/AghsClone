@@ -23,7 +23,7 @@ public:
 
 	float GetXpBounty() const
 	{
-		return 150;
+		return 250;
 	}
 
 protected:

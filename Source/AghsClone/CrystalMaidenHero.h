@@ -110,6 +110,8 @@ class AGHSCLONE_API UCrystalNovaAbility : public UAbility
 		CastRange = 700;
 		ManaCost = 130;
 		Cooldown = 11;
+		ManaCosts = { {130, 145, 160, 175} };
+		Cooldowns = { {11, 10, 9, 8 } };
 		max_level = 4;
 		current_level = 0;
 		radius = 425;
