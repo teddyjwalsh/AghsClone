@@ -253,9 +253,10 @@ public:
 
 	UArcaneAura()
 	{
-		max_duration = 1.0;
+		max_duration = 20.0;
 		ManaRegen = 0.5;
 		AddStat(StatManaRegen, &ManaRegen);
+		bIsAura = true;
 	}
 };
 
@@ -265,10 +266,13 @@ class AGHSCLONE_API UArcaneAuraAbility : public UAbility
 	GENERATED_BODY()
 
 	UArcaneAura* aura;
+	float range;
 
 	UArcaneAuraAbility()
 	{
 		aura = NewObject<UArcaneAura>();
+		max_level = 4;
+		range = 12345678;
 	}
 
 protected:
@@ -277,11 +281,14 @@ protected:
 	{
 		Super::BeginPlay();
 		PrimaryComponentTick.TickInterval = 0.9f;
+		aura = NewObject<UArcaneAura>(GetWorld(), UArcaneAura::StaticClass());
+		aura->Applier = GetOwner();
 	}
 
 public:
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override
 	{
+		
 		if (GetWorld()->GetTimeSeconds() < 2)
 		{
 			return;
@@ -294,7 +301,7 @@ public:
 				if (act_it->GetTeam() == owner->GetTeam())
 				{
 					UStatusManager* status_manager = Cast<UStatusManager>(act_it->GetComponentByClass(UStatusManager::StaticClass()));
-					aura = NewObject<UArcaneAura>();
+					
 					if (status_manager)
 					{
 						status_manager->RefreshStatus(aura);
@@ -302,6 +309,7 @@ public:
 				}
 			}
 		}
+		
 	}
 };
 
@@ -355,6 +363,24 @@ public:
 	{
 
 	}
+
+	void SpawnBlast(float start_angle)
+	{
+		/*
+		float angle = GetRandomWithin90(start_angle);
+		float range = GetRandomRange();
+		float x_offset = range*cos(angle);
+		float y_offset = range*sin(angle);
+		auto new_instance = GetWorld()->SpawnActor<AFreezingFieldBlast>(;
+		*/
+	}
+
+	float GetRandomWithin90(float start_angle)
+	{
+		return start_angle + PI / 8.0;
+	}
+
+
 };
 
 

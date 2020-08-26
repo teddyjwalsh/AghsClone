@@ -14,6 +14,7 @@ class AGHSCLONE_API UStatusEffect : public UObject,
 	GENERATED_BODY()
 protected:
 	bool bFinished = false;
+	bool bIsAura = false;
 	float max_duration;
 	float current_duration;
 	TArray<float*> stats;
@@ -106,10 +107,13 @@ public:
 
 	virtual void TickStatus(float dt) 
 	{
-		current_duration += dt;
-		if (current_duration >= max_duration)
+		if (!bIsAura)
 		{
-			bFinished = true;
+			current_duration += dt;
+			if (current_duration >= max_duration)
+			{
+				bFinished = true;
+			}
 		}
 	};
 
@@ -120,8 +124,13 @@ public:
 
 	void Refresh()
 	{
-		current_duration = 0;
-		bFinished = false;
+		//current_duration = 0;
+		//bFinished = false;
+	}
+
+	bool IsAura()
+	{
+		return bIsAura;
 	}
 
 	virtual float GetMovespeed() { return 0; }
@@ -142,6 +151,7 @@ class AGHSCLONE_API UStatusManager : public UActorComponent,
 	GENERATED_BODY()
 
 	TArray<UStatusEffect*> statuses;
+	TMap<UStatusEffect*, float> linger_times;
 
 public:	
 	// Sets default values for this component's properties
@@ -190,7 +200,14 @@ public:
 
 	bool AddStatus(UStatusEffect* in_status)
 	{
-		in_status->SetOwner(GetOwner());
+		if (!in_status->IsAura())
+		{
+			in_status->SetOwner(GetOwner());
+		}
+		else
+		{
+			linger_times.Add(in_status, 0.5);
+		}
 		statuses.Add(in_status);
 		return true;
 	}
@@ -200,10 +217,9 @@ public:
 		bool found = false;
 		for (auto& status : statuses)
 		{
-			if (status->GetClass() == in_status->GetClass())
+			if (status == in_status)
 			{
-				status->Refresh();
-				found = true;
+				linger_times[status] = 0.5;
 			}
 		}
 		if (found == false)

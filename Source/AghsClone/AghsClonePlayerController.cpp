@@ -558,7 +558,7 @@ void AAghsClonePlayerController::OnTrigger_Implementation(FHitResult Hit, int32 
 					ability_command.target = Hit.Actor.Get();
 					ability_command.unit_targeted = true;
 				}
-				else if (unit && ability->IsGroundTargeted() && Hit.bBlockingHit)
+				else if (ability->IsGroundTargeted() && Hit.bBlockingHit)
 				{
 					ability_command.location = Hit.ImpactPoint;
 				}

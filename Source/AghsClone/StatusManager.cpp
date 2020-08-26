@@ -32,9 +32,21 @@ void UStatusManager::TickComponent(float DeltaTime, ELevelTick TickType, FActorC
 	for (auto& status_it : statuses)
 	{
 		status_it->TickStatus(DeltaTime);
-		if (status_it->IsFinished())
+		if (!status_it->IsAura())
 		{
-			to_remove.Add(status_it);
+			if (status_it->IsFinished())
+			{
+				to_remove.Add(status_it);
+			}
+		}
+		else
+		{
+			linger_times[status_it] -= DeltaTime;
+			if (linger_times[status_it] < 0)
+			{
+				to_remove.Add(status_it);
+				linger_times.Remove(status_it);
+			}
 		}
 	}
 	for (auto& rem : to_remove)
