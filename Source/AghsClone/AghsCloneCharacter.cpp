@@ -38,7 +38,8 @@ AAghsCloneCharacter::AAghsCloneCharacter() :
 	vision_radius(1000),
 	AttackSpeed(100),
 	BaseMovespeed(300),
-	BaseAttackTime(1.7)
+	BaseAttackTime(6),
+	char_state_time(0.0)
 {
 	for (int i = START_STAT_TYPE; i != END_STAT_TYPE; ++i)
 	{
@@ -170,7 +171,8 @@ AAghsCloneCharacter::AAghsCloneCharacter() :
 	GetMesh()->SetRelativeLocation(FVector(0, 0, -95));
 	GetMesh()->SetRelativeRotation(FRotator(0, -90, 0));
 
-	static ConstructorHelpers::FObjectFinder<UClass> Skellie_anim(TEXT("/Game/Mannequin/Animations/ThirdPerson_AnimBP.ThirdPerson_AnimBP_C"));
+	//static ConstructorHelpers::FObjectFinder<UClass> Skellie_anim(TEXT("/Game/Mannequin/Animations/ThirdPerson_AnimBP.ThirdPerson_AnimBP_C"));
+	static ConstructorHelpers::FObjectFinder<UClass> Skellie_anim(TEXT("/Game/Animations/AghsCharAnimBP.AghsCharAnimBP_C"));
 	//GetMesh()->SetAnimation(Cast<UAnimationAsset>(Skellie_anim.Object));
 	GetMesh()->SetAnimInstanceClass(Skellie_anim.Object);
 	//static ConstructorHelpers::FObjectFinder<UMaterialInterface> ScreenMat(TEXT("SkeletalMesh'/Game/StarterContent/Materials/M_Glass.M_Glass'"));
@@ -217,8 +219,13 @@ void AAghsCloneCharacter::Tick(float DeltaSeconds)
             ChanneledAbility = nullptr;
             NextCommand();
         }
+		if (current_command.command_type != ATTACK_MOVE)
+		{
+			char_state_time = 0.0;
+		}
 		if (StatusManager->GetStunned())
 		{
+			char_state = Stunned;
 			UAIBlueprintHelperLibrary::SimpleMoveToLocation(GetController(), GetActorLocation());
             if (ChanneledAbility)
             {
@@ -229,6 +236,10 @@ void AAghsCloneCharacter::Tick(float DeltaSeconds)
 		}
 		else if (current_command.command_type != NONE)
 		{
+			if (current_command.command_type == ABILITY || current_command.command_type == MOVE)
+			{
+				char_state = Idle;
+			}
 			if (!(StatusManager->GetSilenced() && current_command.command_type == ABILITY))
 			{
 				CommandStateMachine(DeltaSeconds);
@@ -409,6 +420,7 @@ template <typename T> int sgn(T val) {
 
 void AAghsCloneCharacter::ProcessAttackMove(const FCommand& in_command, float dt)
 {
+	char_state = Idle;
 	auto forward_vec = (GetActorForwardVector());
 	auto my_loc3 = GetActorLocation();
 	auto my_loc = FVector2D(my_loc3);
@@ -457,10 +469,28 @@ void AAghsCloneCharacter::ProcessAttackMove(const FCommand& in_command, float dt
 	}
 	else
 	{
-		if (AttackActor(in_command.target))
+		char_state_time += dt;
+		if (char_state_time > GetAttackPoint() + GetAttackBackswing())
 		{
-			UAIBlueprintHelperLibrary::SimpleMoveToLocation(GetController(), my_loc3);
+			//char_state = AttackPoint;
+			UE_LOG(LogTemp, Warning, TEXT("ATTACK DONE"));
+			char_state_time = 0.0;
 			//NextCommand();
 		}
+		else if (char_state_time < GetAttackPoint())
+		{
+			UE_LOG(LogTemp, Warning, TEXT("ENTER ATTACK POINT"));
+			char_state = AttackPoint;
+		}
+		else
+		{
+			char_state = AttackBackswing;
+			if (AttackActor(in_command.target))
+			{
+				UE_LOG(LogTemp, Warning, TEXT("ENTER BACKSWING"));
+			}
+		}
+			
+		UAIBlueprintHelperLibrary::SimpleMoveToLocation(GetController(), my_loc3);
 	}
 }

@@ -28,6 +28,18 @@
 #include "StatusManager.h"
 #include "AghsCloneCharacter.generated.h"
 
+UENUM()
+enum CharacterState
+{
+    Idle UMETA(DisplayName = "Idle"),
+    Walking UMETA(DisplayName = "Walking"),
+    Casting UMETA(DisplayName = "Casting"),
+    AttackPoint UMETA(DisplayName = "AttackPoint"),
+    AttackBackswing UMETA(DisplayName = "AttackBackswing"),
+    Stunned UMETA(DisplayName = "Stunned"),
+    Channeling UMETA(DisplayName = "Channeling"),
+};
+
 
 UCLASS(Blueprintable)
 class AAghsCloneCharacter : public ACharacter, 
@@ -71,6 +83,7 @@ class AAghsCloneCharacter : public ACharacter,
     bool IsSilenced;
     bool IsMuted;
 
+
 	UPROPERTY(Replicated, EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
 	int32 team;
 	UPROPERTY(Replicated, EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
@@ -84,7 +97,18 @@ class AAghsCloneCharacter : public ACharacter,
 	double last_attack_time;
 	TArray<float*> stats;
 
+protected:
+
+
 public:
+	UPROPERTY(Replicated, EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
+	float BaseAttackPoint;
+	UPROPERTY(Replicated, EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
+	float BaseAttackBackswing;
+	UPROPERTY(Replicated, VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
+	TEnumAsByte<CharacterState> char_state;
+	float char_state_time;
+
 	AAghsCloneCharacter();
 
 	// Called every frame.
@@ -360,6 +384,18 @@ public:
 		float attack_time = BaseAttackTime / (GetAttackSpeed() * 0.01);
 		return attack_time;
 	}
+
+	UFUNCTION( BlueprintCallable )
+    float GetAttackPoint() const
+    {
+        return BaseAttackPoint/(1+(GetAttackSpeed() - 100));
+    }
+
+	UFUNCTION( BlueprintCallable )
+    float GetAttackBackswing() const
+    {
+        return BaseAttackBackswing/(1+(GetAttackSpeed() - 100));
+    }
 
 	void ResetAttackTimer(double in_time)
 	{
