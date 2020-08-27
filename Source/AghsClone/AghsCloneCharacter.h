@@ -11,6 +11,9 @@
 #include "GameFramework/Character.h"
 #include "Net/UnrealNetwork.h"
 #include "Components/SphereComponent.h"
+#include "NavigationSystem.h"
+#include "NavigationPath.h"
+#include "Navigation/PathFollowingComponent.h"
 
 #include "Ability.h"
 #include "Components/DecalComponent.h"
@@ -32,6 +35,7 @@ UENUM()
 enum CharacterState
 {
     Idle UMETA(DisplayName = "Idle"),
+    MovementTowards UMETA(DisplayName = "MovementTowards"),
     Walking UMETA(DisplayName = "Walking"),
     Casting UMETA(DisplayName = "Casting"),
     AttackPoint UMETA(DisplayName = "AttackPoint"),
@@ -39,6 +43,7 @@ enum CharacterState
     Stunned UMETA(DisplayName = "Stunned"),
     Channeling UMETA(DisplayName = "Channeling"),
 };
+
 
 
 UCLASS(Blueprintable)
@@ -95,6 +100,7 @@ class AAghsCloneCharacter : public ACharacter,
 	float AttackSpeed;
 	float BaseMovespeed;
 	double last_attack_time;
+    float AttackTimer;
 	TArray<float*> stats;
 
 protected:
@@ -475,6 +481,22 @@ public:
 		current_destination = in_destination;
 	}
 
+    FVector GetNextPathPoint(FVector in_point)
+    {
+		auto path_follower = Cast<UPathFollowingComponent>(GetController()->GetPathFollowingAgent());
+		int32 path_index = path_follower->GetCurrentPathElement();
+		auto path = path_follower->GetPath();
+		auto points = path->GetPathPoints();
+		FVector out_point = path_follower->GetPath()->GetPathPoints()[path_index];
+		return out_point;
+    }
+
+	void PauseMove()
+	{
+		auto path_follower = Cast<UPathFollowingComponent>(GetController()->GetPathFollowingAgent());
+		path_follower->PauseMove(FAIRequestID::CurrentRequest, true);
+	}
+
     TArray<UAbility*>& GetAbilityArray()
     {
         return Abilities;
@@ -638,9 +660,9 @@ public:
 		LastCommand = in_command;
 	}
 
-	void ProcessAttackMove(const FCommand& in_command, float dt);
+	void ProcessAttackMove(const FCommand& in_command, float dt, bool is_new);
 
-	void ProcessAbilityCommand(const FCommand& in_command, float dt);
+	void ProcessAbilityCommand(const FCommand& in_command, float dt, bool is_new);
 	// END COMMAND INTERFACE
 
 	// VISION INTERFACE IMPLEMENTATION
