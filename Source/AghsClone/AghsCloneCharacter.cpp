@@ -38,7 +38,7 @@ AAghsCloneCharacter::AAghsCloneCharacter() :
 	vision_radius(1000),
 	AttackSpeed(100),
 	BaseMovespeed(300),
-	BaseAttackTime(6),
+	BaseAttackTime(1.7),
 	char_state_time(0.0)
 {
 	for (int i = START_STAT_TYPE; i != END_STAT_TYPE; ++i)
@@ -191,6 +191,12 @@ void AAghsCloneCharacter::Tick(float DeltaSeconds)
 	ApplyHealthRegen(DeltaSeconds);
 	ApplyManaRegen(DeltaSeconds);
 
+	float attack_point = GetAttackPoint();
+	float backswing = GetAttackBackswing();
+
+	UE_LOG(LogTemp, Warning, TEXT("Backswing: %f"), backswing);
+	UE_LOG(LogTemp, Warning, TEXT("Attack Point: %f"), attack_point);
+
 	//UStaticMesh::Array
 	GetCharacterMovement()->MaxWalkSpeed = GetMovespeed();
 
@@ -202,7 +208,7 @@ void AAghsCloneCharacter::Tick(float DeltaSeconds)
 	FDateTime t = FDateTime::UtcNow();
 	double ts = t.ToUnixTimestamp() + t.GetMillisecond() * 1.0 / 1000;
 
-	if (GetLocalRole() == ROLE_Authority)
+	if (HasAuthority())
 	{
 		if (ChanneledAbility)
 		{
@@ -252,6 +258,10 @@ void AAghsCloneCharacter::Tick(float DeltaSeconds)
 		else if (!command_queue.IsEmpty())
 		{
 			NextCommand();
+		}
+		else
+		{
+			char_state = Idle;
 		}
 	}
 	else
@@ -444,8 +454,10 @@ void AAghsCloneCharacter::ProcessAttackMove(const FCommand& in_command, float dt
 			UAIBlueprintHelperLibrary::SimpleMoveToLocation(GetController(), command_loc);
 			next_point = GetNextPathPoint(command_loc);
 			FVector toward_vec = next_point - GetActorLocation();
+			toward_vec.Z = 0;
 			toward_vec.Normalize();
-			float angle_diff = acos(FVector::DotProduct(GetActorForwardVector(), toward_vec)) * 180 / PI;
+			auto FV1 = GetActorForwardVector();
+			float angle_diff = acos(FVector::DotProduct(FV1, toward_vec)) * 180 / PI;
 			if (angle_diff > 11.5)
 			{
 				PauseMove();
@@ -455,11 +467,12 @@ void AAghsCloneCharacter::ProcessAttackMove(const FCommand& in_command, float dt
 				{
 					inc = angle_diff;
 				}
-				AddActorLocalRotation(FRotator(0, inc, 0));
-				float angle_diff2 = acos(FVector::DotProduct(GetActorForwardVector(), toward_vec)) * 180 / PI;
+				AddActorLocalRotation(FRotator(0, -inc, 0));
+				auto FV2 = GetActorForwardVector();
+				float angle_diff2 = acos(FVector::DotProduct(FV2, toward_vec)) * 180 / PI;
 				if (angle_diff2 > angle_diff)
 				{
-					AddActorLocalRotation(FRotator(0, -2 * inc, 0));
+					AddActorLocalRotation(FRotator(0, 2*inc, 0));
 				}
 			}
 

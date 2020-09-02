@@ -34,7 +34,7 @@ void AAttackProjectile::BeginPlay()
 void AAttackProjectile::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-	if (IsValid(target))
+	if (IsValid(target) && !target->IsPendingKill())
 	{
 		FVector move_vector = target->GetActorLocation() - GetActorLocation();
 		move_vector.Normalize();

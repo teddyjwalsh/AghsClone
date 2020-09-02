@@ -394,13 +394,13 @@ public:
 	UFUNCTION( BlueprintCallable )
     float GetAttackPoint() const
     {
-        return BaseAttackPoint/(1+(GetAttackSpeed() - 100));
+        return BaseAttackPoint/(1+(GetAttackSpeed()) * 5.0 / 700);
     }
 
 	UFUNCTION( BlueprintCallable )
     float GetAttackBackswing() const
     {
-        return BaseAttackBackswing/(1+(GetAttackSpeed() - 100));
+        return BaseAttackBackswing/(1+(GetAttackSpeed()) * 5.0 / 700);
     }
 
 	void ResetAttackTimer(double in_time)
@@ -612,6 +612,7 @@ public:
 	{
 		UE_LOG(LogTemp, Warning, TEXT("Command Queue Cleared"));
 		command_queue.Empty();
+		current_command.command_type = NONE;
 	}
 
 	//UFUNCTION(reliable, server)

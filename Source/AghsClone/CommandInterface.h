@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "UObject/Interface.h"
+#include "Engine/World.h"
 #include "Blueprint/AIBlueprintHelperLibrary.h"
 #include "GameFramework/Actor.h"
 #include "CommandInterface.generated.h"

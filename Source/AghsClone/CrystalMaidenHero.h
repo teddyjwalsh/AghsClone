@@ -402,8 +402,8 @@ public:
 		SetArmor(-1);
 		SetAttackDamage(31);
 		SetAttackProjectileSpeed(900);
-        BaseAttackPoint = 2;
-        BaseAttackBackswing = 3;
+        BaseAttackPoint = 0.45;
+        BaseAttackBackswing = 0.35;
 		attributes->SetPrimaryAttribute(AttrIntelligence);
 		attributes->BaseStrength = 18;
 		attributes->StrengthGain = 2.2;
