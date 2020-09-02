@@ -151,4 +151,15 @@ public:
     virtual void Toggle() 
     {
     }
+
+	virtual float GetCastPoint() const
+	{
+		return 0;
+	}
+
+
+	virtual float GetCastBackswing() const
+	{
+		return 0;
+	}
 };

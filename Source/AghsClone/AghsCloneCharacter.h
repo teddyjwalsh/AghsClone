@@ -37,7 +37,8 @@ enum CharacterState
     Idle UMETA(DisplayName = "Idle"),
     MovementTowards UMETA(DisplayName = "MovementTowards"),
     Walking UMETA(DisplayName = "Walking"),
-    Casting UMETA(DisplayName = "Casting"),
+	CastPoint UMETA(DisplayName = "CastPoint"),
+	CastBackswing UMETA(DisplayName = "CastBackswing"),
     AttackPoint UMETA(DisplayName = "AttackPoint"),
     AttackBackswing UMETA(DisplayName = "AttackBackswing"),
     Stunned UMETA(DisplayName = "Stunned"),
@@ -100,7 +101,8 @@ class AAghsCloneCharacter : public ACharacter,
 	float AttackSpeed;
 	float BaseMovespeed;
 	double last_attack_time;
-    float AttackTimer;
+	float AttackTimer;
+	float CastTimer;
 	TArray<float*> stats;
 
 protected:

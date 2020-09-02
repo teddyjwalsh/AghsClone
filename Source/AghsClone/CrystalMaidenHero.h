@@ -115,6 +115,7 @@ class AGHSCLONE_API UCrystalNovaAbility : public UAbility
 		max_level = 4;
 		current_level = 0;
 		radius = 425;
+		CastPoint = 1.0;
 		SetStatusEffect(UCrystalNovaSlow::StaticClass());
 	}
 
