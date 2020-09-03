@@ -488,8 +488,16 @@ public:
 		auto path_follower = Cast<UPathFollowingComponent>(GetController()->GetPathFollowingAgent());
 		int32 path_index = path_follower->GetCurrentPathElement();
 		auto path = path_follower->GetPath();
-		auto points = path->GetPathPoints();
-		FVector out_point = path_follower->GetPath()->GetPathPoints()[path_index];
+		FVector out_point;
+		if (path)
+		{
+			auto points = path->GetPathPoints();
+			out_point = path_follower->GetPath()->GetPathPoints()[path_index];
+		}
+		else
+		{
+			out_point = GetActorLocation() + GetActorForwardVector();
+		}
 		return out_point;
     }
 

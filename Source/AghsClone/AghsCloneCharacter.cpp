@@ -317,28 +317,24 @@ void AAghsCloneCharacter::Tick(float DeltaSeconds)
 
 void AAghsCloneCharacter::ProcessAbilityCommand(const FCommand& in_command, float dt, bool is_new)
 {
+	auto ability_interface = GetAbility(in_command.ability_num);
 	// Establish location of command
 	FVector command_loc = in_command.location;
 	if (in_command.unit_targeted)
 	{
 		command_loc = in_command.target->GetActorLocation();
 	}
-	FVector diff_vector = command_loc - GetActorLocation();
-
+	
 	if (is_new)
 	{
 		char_state = MovementTowards;
-	}
-
-	auto ability_interface = GetAbility(in_command.ability_num);
-
-	if (ability_interface)
-	{
-		if (ability_interface->IsChanneling())
+		if (!ability_interface->IsGroundTargeted() && !ability_interface->IsUnitTargeted())
 		{
-
+			char_state = CastPoint;
 		}
 	}
+
+	FVector diff_vector = command_loc - GetActorLocation();
 
 	FDateTime t = FDateTime::UtcNow();
 	double ts = t.ToUnixTimestamp() + t.GetMillisecond() * 1.0 / 1000;
