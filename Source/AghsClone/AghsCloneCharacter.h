@@ -704,6 +704,7 @@ public:
 		DOREPLIFETIME(AAghsCloneCharacter, Level);
 		DOREPLIFETIME(AAghsCloneCharacter, Experience);
 		DOREPLIFETIME(AAghsCloneCharacter, AttackProjectileSpeed);
+		DOREPLIFETIME(AAghsCloneCharacter, char_state);
 	}
 
 	TArray<UAbility*> Abilities;

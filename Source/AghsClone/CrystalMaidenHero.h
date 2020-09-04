@@ -77,6 +77,8 @@ public:
 		IceCircle->DecalSize = FVector(100.0f, 500.0f, 500.0f);
 		IceCircle->SetRelativeRotation(FRotator(90.0f, 0.0f, 0.0f).Quaternion());
 		IceCircle->SetRelativeLocation(FVector(0, 0, 0));
+		IceCircle->SetFadeIn(0, 0.5);
+		IceCircle->SetFadeOut(0, 1.0);
 
 	}
 
@@ -91,7 +93,7 @@ protected:
 	virtual void BeginPlay() override
 	{
 		Super::BeginPlay();
-		SetLifeSpan(3.0);
+		SetLifeSpan(2.0);
 	}
 
 public:
@@ -290,7 +292,7 @@ class AGHSCLONE_API UArcaneAuraAbility : public UAbility
 
 	UArcaneAuraAbility()
 	{
-		aura = NewObject<UArcaneAura>();
+		//aura = NewObject<UArcaneAura>();
 		max_level = 4;
 		range = 12345678;
 	}
@@ -300,7 +302,7 @@ protected:
 	virtual void BeginPlay() override
 	{
 		Super::BeginPlay();
-		PrimaryComponentTick.TickInterval = 0.9f;
+		PrimaryComponentTick.TickInterval = 0.4f;
 		aura = NewObject<UArcaneAura>(GetWorld(), UArcaneAura::StaticClass());
 		aura->Applier = GetOwner();
 	}

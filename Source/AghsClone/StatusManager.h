@@ -225,6 +225,7 @@ public:
 			if (status == in_status)
 			{
 				linger_times[status] = 0.5;
+				found = true;
 			}
 		}
 		if (found == false)
