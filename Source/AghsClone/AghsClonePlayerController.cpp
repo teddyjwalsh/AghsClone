@@ -303,6 +303,7 @@ void AAghsClonePlayerController::MoveToMouseCursor()
 			FCommand move_command;
 			move_command.command_type = ATTACK_MOVE;
 			move_command.target = Hit.Actor.Get();
+			move_command.unit_targeted = true;
 			CommandAttack(move_command);
 		}
 		else if (Hit.bBlockingHit)

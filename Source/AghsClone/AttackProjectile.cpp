@@ -36,9 +36,12 @@ void AAttackProjectile::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 	if (IsValid(target))
 	{
-		FVector move_vector = target->GetActorLocation() - GetActorLocation();
-		move_vector.Normalize();
-		SetActorLocation(GetActorLocation() + move_vector * speed * DeltaTime);
+		if (!target->IsPendingKill())
+		{
+			FVector move_vector = target->GetActorLocation() - GetActorLocation();
+			move_vector.Normalize();
+			SetActorLocation(GetActorLocation() + move_vector * speed * DeltaTime);
+		}
 	}
 	else
 	{

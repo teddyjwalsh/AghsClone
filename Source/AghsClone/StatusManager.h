@@ -41,6 +41,11 @@ public:
 		current_duration = 0;
 	}
 
+	~UStatusEffect()
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Deleted Status Effect!"));
+	}
+
 	void SetOwner(AActor* in_owner)
 	{
 		owner = in_owner;
@@ -220,6 +225,7 @@ public:
 			if (status == in_status)
 			{
 				linger_times[status] = 0.5;
+				found = true;
 			}
 		}
 		if (found == false)

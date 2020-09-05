@@ -38,7 +38,8 @@ AAghsCloneCharacter::AAghsCloneCharacter() :
 	vision_radius(1000),
 	AttackSpeed(100),
 	BaseMovespeed(300),
-	BaseAttackTime(1.7)
+	BaseAttackTime(1.7),
+	char_state_time(0.0)
 {
 	for (int i = START_STAT_TYPE; i != END_STAT_TYPE; ++i)
 	{
@@ -170,7 +171,8 @@ AAghsCloneCharacter::AAghsCloneCharacter() :
 	GetMesh()->SetRelativeLocation(FVector(0, 0, -95));
 	GetMesh()->SetRelativeRotation(FRotator(0, -90, 0));
 
-	static ConstructorHelpers::FObjectFinder<UClass> Skellie_anim(TEXT("/Game/Mannequin/Animations/ThirdPerson_AnimBP.ThirdPerson_AnimBP_C"));
+	//static ConstructorHelpers::FObjectFinder<UClass> Skellie_anim(TEXT("/Game/Mannequin/Animations/ThirdPerson_AnimBP.ThirdPerson_AnimBP_C"));
+	static ConstructorHelpers::FObjectFinder<UClass> Skellie_anim(TEXT("/Game/Animations/AghsCharAnimBP.AghsCharAnimBP_C"));
 	//GetMesh()->SetAnimation(Cast<UAnimationAsset>(Skellie_anim.Object));
 	GetMesh()->SetAnimInstanceClass(Skellie_anim.Object);
 	//static ConstructorHelpers::FObjectFinder<UMaterialInterface> ScreenMat(TEXT("SkeletalMesh'/Game/StarterContent/Materials/M_Glass.M_Glass'"));
@@ -189,6 +191,12 @@ void AAghsCloneCharacter::Tick(float DeltaSeconds)
 	ApplyHealthRegen(DeltaSeconds);
 	ApplyManaRegen(DeltaSeconds);
 
+	float attack_point = GetAttackPoint();
+	float backswing = GetAttackBackswing();
+
+	UE_LOG(LogTemp, Warning, TEXT("Backswing: %f"), backswing);
+	UE_LOG(LogTemp, Warning, TEXT("Attack Point: %f"), attack_point);
+
 	//UStaticMesh::Array
 	GetCharacterMovement()->MaxWalkSpeed = GetMovespeed();
 
@@ -200,7 +208,7 @@ void AAghsCloneCharacter::Tick(float DeltaSeconds)
 	FDateTime t = FDateTime::UtcNow();
 	double ts = t.ToUnixTimestamp() + t.GetMillisecond() * 1.0 / 1000;
 
-	if (GetLocalRole() == ROLE_Authority)
+	if (HasAuthority())
 	{
 		if (ChanneledAbility)
 		{
@@ -217,8 +225,13 @@ void AAghsCloneCharacter::Tick(float DeltaSeconds)
             ChanneledAbility = nullptr;
             NextCommand();
         }
+		if (current_command.command_type != ATTACK_MOVE)
+		{
+			char_state_time = 0.0;
+		}
 		if (StatusManager->GetStunned())
 		{
+			char_state = Stunned;
 			UAIBlueprintHelperLibrary::SimpleMoveToLocation(GetController(), GetActorLocation());
             if (ChanneledAbility)
             {
@@ -241,6 +254,10 @@ void AAghsCloneCharacter::Tick(float DeltaSeconds)
 		else if (!command_queue.IsEmpty())
 		{
 			NextCommand();
+		}
+		else
+		{
+			char_state = Idle;
 		}
 	}
 	else
@@ -298,108 +315,133 @@ void AAghsCloneCharacter::Tick(float DeltaSeconds)
 	}
 }
 
-void AAghsCloneCharacter::ProcessAbilityCommand(const FCommand& in_command, float dt)
+void AAghsCloneCharacter::ProcessAbilityCommand(const FCommand& in_command, float dt, bool is_new)
 {
-	auto forward_vec = (GetActorForwardVector());
-	auto my_loc3 = GetActorLocation();
-	auto my_loc = FVector2D(my_loc3);
-    auto ability_interface = GetAbility(in_command.ability_num);
-
-    if (ability_interface)
-    {
-        if (ability_interface->IsChanneling())
-        {
-            if (!StatusManager->GetStunned() && !StatusManager->GetSilenced())
-            {
-                ability_interface->TickChannel(dt);
-                return;
-            }
-            else
-            {
-                ability_interface->EndChannel();
-                NextCommand();
-                return;
-            }
-        }
-    }
-
-	FVector command_loc;
+	auto ability_interface = GetAbility(in_command.ability_num);
+	// Establish location of command
+	FVector command_loc = in_command.location;
 	if (in_command.unit_targeted)
 	{
 		command_loc = in_command.target->GetActorLocation();
 	}
-	else
+	
+	if (is_new)
 	{
-		command_loc = in_command.location;
-	}
-
-	auto ability_vec = ((command_loc) - my_loc3);
-	ability_vec.Z = 0;
-	ability_vec.Normalize();
-	float angle_diff = acos(FVector::DotProduct(forward_vec, ability_vec)) * 180 / PI;
-	float turn_rate = 1146.0;
-
-	if ((ability_interface->IsGroundTargeted() || ability_interface->IsUnitTargeted() ) && (my_loc - FVector2D(command_loc)).Size() > GetAbility(in_command.ability_num)->GetCastRange())
-	{
-		current_destination = command_loc;
-
-		UAIBlueprintHelperLibrary::SimpleMoveToLocation(GetController(), current_destination);
-
-	}
-	else if ((ability_interface->IsGroundTargeted() || ability_interface->IsUnitTargeted()) && angle_diff > 15.0)
-	{
-		auto char_rot = UKismetMathLibrary::FindLookAtRotation(forward_vec, ability_vec);
-		ability_vec.Z = 0;
-		char_rot = FRotationMatrix::MakeFromX(ability_vec).Rotator();
-		auto char_rotator = char_rot.GetEquivalentRotator();
-		char_rotator.Pitch = 0;
-		char_rotator.Roll = 0;
-		auto diff_rot = char_rot - GetActorRotation();
-		auto deg_between = char_rot.GetManhattanDistance(GetActorRotation());
-
-		float inc = dt * turn_rate;
-		if (deg_between < inc)
+		char_state = MovementTowards;
+		if (!ability_interface->IsGroundTargeted() && !ability_interface->IsUnitTargeted())
 		{
-			inc = deg_between;
+			char_state = CastPoint;
 		}
-		//char_rot = UKismetMathLibrary::RLerp(GetActorRotation(), char_rot, inc, true);
-		//char_rot.Normalize();
-		AddActorLocalRotation(FRotator(0, inc, 0));
-		//SetActorRelativeRotation(char_rot);
 	}
-	else
+
+	FVector diff_vector = command_loc - GetActorLocation();
+
+	FDateTime t = FDateTime::UtcNow();
+	double ts = t.ToUnixTimestamp() + t.GetMillisecond() * 1.0 / 1000;
+	float last_attack_diff = ts - last_attack_time;
+	FVector next_point;
+	switch (char_state)
 	{
-		if (in_command.unit_targeted)
+	case MovementTowards:
+	{
+		UAIBlueprintHelperLibrary::SimpleMoveToLocation(GetController(), command_loc);
+		next_point = GetNextPathPoint(command_loc);
+		FVector toward_vec = next_point - GetActorLocation();
+		toward_vec.Z = 0;
+		toward_vec.Normalize();
+		auto FV1 = GetActorForwardVector();
+		float angle_diff = acos(FVector::DotProduct(FV1, toward_vec)) * 180 / PI;
+		if (angle_diff > 11.5)
 		{
-			if (TriggerTargetedAbility(in_command.ability_num, in_command.target) && !ability_interface->IsChanneling())
+			PauseMove();
+			float turn_rate = 500;
+			float inc = dt * turn_rate;
+			if (angle_diff < inc)
 			{
-				my_loc3 = GetActorLocation();
-				UAIBlueprintHelperLibrary::SimpleMoveToLocation(GetController(), my_loc3);
-				NextCommand();
+				inc = angle_diff;
+			}
+			AddActorLocalRotation(FRotator(0, -inc, 0));
+			auto FV2 = GetActorForwardVector();
+			float angle_diff2 = acos(FVector::DotProduct(FV2, toward_vec)) * 180 / PI;
+			if (angle_diff2 > angle_diff)
+			{
+				AddActorLocalRotation(FRotator(0, 2 * inc, 0));
 			}
 		}
-		else if (ability_interface->IsGroundTargeted())
+
+		//SetDestination(command_loc);
+		//Exit Conditions
+		if (diff_vector.Size() <= ability_interface->GetCastRange() && angle_diff < 11.5)
 		{
-			if (TriggerTargetedAbility(in_command.ability_num, in_command.location) && !ability_interface->IsChanneling())
+			UAIBlueprintHelperLibrary::SimpleMoveToLocation(GetController(), GetActorLocation());
+			CastTimer = 0.0;
+			char_state = CastPoint;
+		}
+		break;
+	}
+	case CastPoint:
+		CastTimer += dt;
+		//Exit Conditions
+		if (CastTimer > ability_interface->GetCastPoint())
+		{
+			if (in_command.unit_targeted)
 			{
-				my_loc3 = GetActorLocation();
-				UAIBlueprintHelperLibrary::SimpleMoveToLocation(GetController(), my_loc3);
-				NextCommand();
+				if (TriggerTargetedAbility(in_command.ability_num, in_command.target) && !ability_interface->IsChanneling())
+				{
+					FVector my_loc3 = GetActorLocation();
+					UAIBlueprintHelperLibrary::SimpleMoveToLocation(GetController(), my_loc3);
+					char_state = CastBackswing;
+				}
 			}
+			else if (ability_interface->IsGroundTargeted())
+			{
+				if (TriggerTargetedAbility(in_command.ability_num, in_command.location) && !ability_interface->IsChanneling())
+				{
+					FVector my_loc3 = GetActorLocation();
+					UAIBlueprintHelperLibrary::SimpleMoveToLocation(GetController(), my_loc3);
+					char_state = CastBackswing;
+				}
+			}
+			else
+			{
+				if (TriggerAbility(in_command.ability_num) && !ability_interface->IsChanneling())
+				{
+					FVector my_loc3 = GetActorLocation();
+					UAIBlueprintHelperLibrary::SimpleMoveToLocation(GetController(), my_loc3);
+					char_state = CastBackswing;
+				}
+			}
+			if (ability_interface->IsChanneling())
+			{
+				ChanneledAbility = ability_interface;
+				char_state = Channeling;
+			}
+		}
+		break;
+	case CastBackswing:
+		CastTimer += dt;
+		//Exit Conditions
+		if (CastTimer > ability_interface->GetCastPoint() + ability_interface->GetCastBackswing())
+		{
+			char_state = Idle;
+			NextCommand();
+		}
+		break;
+	case Channeling:
+		if (!StatusManager->GetStunned() && !StatusManager->GetSilenced())
+		{
+			ability_interface->TickChannel(dt);
+			return;
 		}
 		else
 		{
-			if (TriggerAbility(in_command.ability_num) && !ability_interface->IsChanneling())
-			{
-				my_loc3 = GetActorLocation();
-				UAIBlueprintHelperLibrary::SimpleMoveToLocation(GetController(), my_loc3);
-				NextCommand();
-			}
+			ability_interface->EndChannel();
+			NextCommand();
+			return;
 		}
-		if (ability_interface->IsChanneling())
-		{
-			ChanneledAbility = ability_interface;
-		}
+		break;
+	default:
+		break;
 	}
 }
 
@@ -407,60 +449,95 @@ template <typename T> int sgn(T val) {
 	return (T(0) < val) - (val < T(0));
 }
 
-void AAghsCloneCharacter::ProcessAttackMove(const FCommand& in_command, float dt)
+void AAghsCloneCharacter::ProcessAttackMove(const FCommand& in_command, float dt, bool is_new)
 {
-	auto forward_vec = (GetActorForwardVector());
-	auto my_loc3 = GetActorLocation();
-	auto my_loc = FVector2D(my_loc3);
+	// Establish location of command
+	FVector command_loc = in_command.location;
+	if (in_command.unit_targeted)
+	{
+		command_loc = in_command.target->GetActorLocation();
+	}
+	FVector diff_vector = command_loc - GetActorLocation();
 
-	auto target_2d = FVector2D(in_command.target->GetActorLocation());
+    if (is_new)
+    {
+        char_state = MovementTowards;
+    }
 
-	auto ability_vec = ((in_command.target->GetActorLocation()) - my_loc3);
-	ability_vec.Z = 0;
-	ability_vec.Normalize();
-	float angle_diff = acos(FVector::DotProduct(forward_vec, ability_vec)) * 180 / PI;
-	float turn_rate = 1146.0;
-	if (FVector::DotProduct(FVector::CrossProduct(forward_vec, ability_vec), FVector(0, 0, 1)) < 0)
-	{
-		turn_rate = -turn_rate;
-	}
-	if (in_command.target == this || !IsValid(in_command.target))
-	{
-		UAIBlueprintHelperLibrary::SimpleMoveToLocation(GetController(), my_loc3);
-		NextCommand();
-	}
-	if ((my_loc - target_2d).Size() > attack_range)
-	{
-		current_destination = in_command.location;
-		UAIBlueprintHelperLibrary::SimpleMoveToActor(GetController(), in_command.target);
-	}
-	else if (angle_diff > 15.0)
-	{
-		auto char_rot = UKismetMathLibrary::FindLookAtRotation(forward_vec, ability_vec);
-		ability_vec.Z = 0;
-		char_rot = FRotationMatrix::MakeFromX(ability_vec).Rotator();
-		auto char_rotator = char_rot.GetEquivalentRotator();
-		char_rotator.Pitch = 0;
-		char_rotator.Roll = 0;
-		auto diff_rot = char_rot - GetActorRotation();
-		auto deg_between = char_rot.GetManhattanDistance(GetActorRotation());
-		
-		float inc = dt * turn_rate;
-		if (deg_between < inc)
+    FDateTime t = FDateTime::UtcNow();
+    double ts = t.ToUnixTimestamp() + t.GetMillisecond() * 1.0 / 1000;
+    float last_attack_diff = ts - last_attack_time;
+	FVector next_point;
+	switch(char_state)
+    {
+        case MovementTowards:
 		{
-			inc = deg_between;
+			UAIBlueprintHelperLibrary::SimpleMoveToLocation(GetController(), command_loc);
+			next_point = GetNextPathPoint(command_loc);
+			FVector toward_vec = next_point - GetActorLocation();
+			toward_vec.Z = 0;
+			toward_vec.Normalize();
+			auto FV1 = GetActorForwardVector();
+			float angle_diff = acos(FVector::DotProduct(FV1, toward_vec)) * 180 / PI;
+			if (angle_diff > 11.5)
+			{
+				PauseMove();
+				float turn_rate = 500;
+				float inc = dt * turn_rate;
+				if (angle_diff < inc)
+				{
+					inc = angle_diff;
+				}
+				AddActorLocalRotation(FRotator(0, -inc, 0));
+				auto FV2 = GetActorForwardVector();
+				float angle_diff2 = acos(FVector::DotProduct(FV2, toward_vec)) * 180 / PI;
+				if (angle_diff2 > angle_diff)
+				{
+					AddActorLocalRotation(FRotator(0, 2*inc, 0));
+				}
+			}
+
+			//SetDestination(command_loc);
+			//Exit Conditions
+			if (diff_vector.Size() <= attack_range && angle_diff < 11.5)
+			{
+				UAIBlueprintHelperLibrary::SimpleMoveToLocation(GetController(), GetActorLocation());
+				AttackTimer = 0.0;
+				char_state = Idle;
+			}
+			break;
 		}
-		//char_rot = UKismetMathLibrary::RLerp(GetActorRotation(), char_rot, inc, true);
-		//char_rot.Normalize();
-		AddActorLocalRotation(FRotator(0, inc, 0));
-		//SetActorRelativeRotation(char_rot);
-	}
-	else
-	{
-		if (AttackActor(in_command.target))
-		{
-			UAIBlueprintHelperLibrary::SimpleMoveToLocation(GetController(), my_loc3);
-			//NextCommand();
-		}
-	}
+        case Idle:
+            SetDestination(GetActorLocation());
+            //Exit Conditions
+            if (diff_vector.Size() > attack_range)
+            {
+                char_state = MovementTowards;
+            }
+            if (last_attack_diff > GetAttackTime() - GetAttackPoint())
+            {
+                AttackTimer = 0.0;
+                char_state = AttackPoint;
+            }
+            break;
+        case AttackPoint:
+            AttackTimer += dt;
+            //Exit Conditions
+            if (AttackTimer > GetAttackPoint())
+            {
+                AttackActor(in_command.target);
+                char_state = AttackBackswing; 
+            }
+            break;
+        case AttackBackswing:
+            AttackTimer += dt;
+            //Exit Conditions
+            if (AttackTimer > GetAttackPoint() + GetAttackBackswing())
+            {
+                char_state = Idle; 
+            }
+            break;
+        default:
+            break; 
+    }
 }

@@ -126,7 +126,7 @@ public:
 	static AShop* CreateShop(UWorld* in_world, const FVector& location, float in_radius = 800)
 	{
 		AShop* new_shop = in_world->SpawnActor<AShop>(location, FRotator());
-		if (!IsValid(default_shop))
+		//if (!IsValid(default_shop))
 		{
 			default_shop = new_shop;
 		}

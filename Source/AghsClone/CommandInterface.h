@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "UObject/Interface.h"
+#include "Engine/World.h"
 #include "Blueprint/AIBlueprintHelperLibrary.h"
 #include "GameFramework/Actor.h"
 #include "CommandInterface.generated.h"
@@ -139,9 +140,9 @@ public:
 
 	}
 
-	virtual void ProcessAbilityCommand(const FCommand& in_command, float dt) {}
+	virtual void ProcessAbilityCommand(const FCommand& in_command, float dt, bool is_new) {}
 
-	virtual void ProcessAttackMove(const FCommand& in_command, float dt) {}
+	virtual void ProcessAttackMove(const FCommand& in_command, float dt, bool is_new) {}
 
 	virtual void CommandStateMachine(float dt)
 	{
@@ -150,10 +151,12 @@ public:
 		FCommand last_command = GetLastCommand();
 		FVector dest = GetCurrentDestination();
 		auto my_actor = Cast<APawn>(this);
+        bool is_new = false;
 
 		if (current_command.command_type != last_command.command_type)
 		{
 			UAIBlueprintHelperLibrary::SimpleMoveToLocation(my_actor->GetController(), my_actor->GetActorLocation());
+            is_new = true; 
 		}
 		switch (current_command.command_type)
 		{
@@ -179,12 +182,12 @@ public:
 			}
 			case ATTACK_MOVE:
 			{
-				ProcessAttackMove(current_command, dt);
+				ProcessAttackMove(current_command, dt, is_new);
 				break;
 			}
 			case ABILITY:
 			{
-				ProcessAbilityCommand(current_command, dt);
+				ProcessAbilityCommand(current_command, dt, is_new);
 				break;
 			}
 			case STOP:

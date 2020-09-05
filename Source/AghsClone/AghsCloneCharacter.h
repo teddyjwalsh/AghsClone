@@ -11,6 +11,9 @@
 #include "GameFramework/Character.h"
 #include "Net/UnrealNetwork.h"
 #include "Components/SphereComponent.h"
+#include "NavigationSystem.h"
+#include "NavigationPath.h"
+#include "Navigation/PathFollowingComponent.h"
 
 #include "Ability.h"
 #include "Components/DecalComponent.h"
@@ -27,6 +30,21 @@
 #include "ExperienceInterface.h"
 #include "StatusManager.h"
 #include "AghsCloneCharacter.generated.h"
+
+UENUM()
+enum CharacterState
+{
+    Idle UMETA(DisplayName = "Idle"),
+    MovementTowards UMETA(DisplayName = "MovementTowards"),
+    Walking UMETA(DisplayName = "Walking"),
+	CastPoint UMETA(DisplayName = "CastPoint"),
+	CastBackswing UMETA(DisplayName = "CastBackswing"),
+    AttackPoint UMETA(DisplayName = "AttackPoint"),
+    AttackBackswing UMETA(DisplayName = "AttackBackswing"),
+    Stunned UMETA(DisplayName = "Stunned"),
+    Channeling UMETA(DisplayName = "Channeling"),
+};
+
 
 
 UCLASS(Blueprintable)
@@ -71,6 +89,7 @@ class AAghsCloneCharacter : public ACharacter,
     bool IsSilenced;
     bool IsMuted;
 
+
 	UPROPERTY(Replicated, EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
 	int32 team;
 	UPROPERTY(Replicated, EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
@@ -82,9 +101,22 @@ class AAghsCloneCharacter : public ACharacter,
 	float AttackSpeed;
 	float BaseMovespeed;
 	double last_attack_time;
+	float AttackTimer;
+	float CastTimer;
 	TArray<float*> stats;
 
+protected:
+
+
 public:
+	UPROPERTY(Replicated, EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
+	float BaseAttackPoint;
+	UPROPERTY(Replicated, EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
+	float BaseAttackBackswing;
+	UPROPERTY(Replicated, VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
+	TEnumAsByte<CharacterState> char_state;
+	float char_state_time;
+
 	AAghsCloneCharacter();
 
 	// Called every frame.
@@ -361,6 +393,18 @@ public:
 		return attack_time;
 	}
 
+	UFUNCTION( BlueprintCallable )
+    float GetAttackPoint() const
+    {
+        return BaseAttackPoint/(1+(GetAttackSpeed()) * 5.0 / 700);
+    }
+
+	UFUNCTION( BlueprintCallable )
+    float GetAttackBackswing() const
+    {
+        return BaseAttackBackswing/(1+(GetAttackSpeed()) * 5.0 / 700);
+    }
+
 	void ResetAttackTimer(double in_time)
 	{
 		last_attack_time = in_time;
@@ -437,6 +481,30 @@ public:
 	void SetDestination(FVector in_destination)
 	{
 		current_destination = in_destination;
+	}
+
+    FVector GetNextPathPoint(FVector in_point)
+    {
+		auto path_follower = Cast<UPathFollowingComponent>(GetController()->GetPathFollowingAgent());
+		int32 path_index = path_follower->GetCurrentPathElement();
+		auto path = path_follower->GetPath();
+		FVector out_point;
+		if (path)
+		{
+			auto points = path->GetPathPoints();
+			out_point = path_follower->GetPath()->GetPathPoints()[path_index];
+		}
+		else
+		{
+			out_point = GetActorLocation() + GetActorForwardVector();
+		}
+		return out_point;
+    }
+
+	void PauseMove()
+	{
+		auto path_follower = Cast<UPathFollowingComponent>(GetController()->GetPathFollowingAgent());
+		path_follower->PauseMove(FAIRequestID::CurrentRequest, true);
 	}
 
     TArray<UAbility*>& GetAbilityArray()
@@ -554,6 +622,7 @@ public:
 	{
 		UE_LOG(LogTemp, Warning, TEXT("Command Queue Cleared"));
 		command_queue.Empty();
+		current_command.command_type = NONE;
 	}
 
 	//UFUNCTION(reliable, server)
@@ -602,9 +671,9 @@ public:
 		LastCommand = in_command;
 	}
 
-	void ProcessAttackMove(const FCommand& in_command, float dt);
+	void ProcessAttackMove(const FCommand& in_command, float dt, bool is_new);
 
-	void ProcessAbilityCommand(const FCommand& in_command, float dt);
+	void ProcessAbilityCommand(const FCommand& in_command, float dt, bool is_new);
 	// END COMMAND INTERFACE
 
 	// VISION INTERFACE IMPLEMENTATION
@@ -635,6 +704,7 @@ public:
 		DOREPLIFETIME(AAghsCloneCharacter, Level);
 		DOREPLIFETIME(AAghsCloneCharacter, Experience);
 		DOREPLIFETIME(AAghsCloneCharacter, AttackProjectileSpeed);
+		DOREPLIFETIME(AAghsCloneCharacter, char_state);
 	}
 
 	TArray<UAbility*> Abilities;

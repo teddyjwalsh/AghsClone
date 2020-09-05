@@ -170,6 +170,10 @@ public:
     int32 max_level;
     UPROPERTY(Replicated)
     int32 current_level;
+    UPROPERTY(Replicated)
+    float CastPoint;
+    UPROPERTY(Replicated)
+    float CastBackswing;
 
     virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override
     {
@@ -338,5 +342,15 @@ public:
     UTexture2D* GetMaterial()
     {
         return MyMat;
+    }
+
+    virtual float GetCastPoint() const
+    {
+        return CastPoint;
+    }
+
+    virtual float GetCastBackswing() const
+    {
+        return CastBackswing;
     }
 };

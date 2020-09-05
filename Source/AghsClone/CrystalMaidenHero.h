@@ -43,12 +43,15 @@ class AGHSCLONE_API ACrystalNova : public AAbilityInstance
 	float radius;
 	bool ticked_once;
 
+	/** A decal that projects to the cursor location. */
+	UPROPERTY(Replicated, VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
+	class UDecalComponent* IceCircle;
 
 public:
 	// Sets default values for this actor's properties
 	ACrystalNova()
 	{
-		
+		SetReplicates(true);
 		PrimaryActorTick.bCanEverTick = true;
 		bounds = CreateDefaultSubobject<UCapsuleComponent>("Bounds");
 		SetRootComponent(bounds);
@@ -63,6 +66,19 @@ public:
 		SetDamageType(MagicDamage);
 		ticked_once = false;
 		
+		// Create a decal in the world to show the cursor's location
+		IceCircle = CreateDefaultSubobject<UDecalComponent>("IceCircle");
+		IceCircle->SetupAttachment(RootComponent);
+		static ConstructorHelpers::FObjectFinder<UMaterial> DecalMaterialAsset(TEXT("Material'/Game/Materials/IceCircleDecal.IceCircleDecal'"));
+		if (DecalMaterialAsset.Succeeded())
+		{
+			IceCircle->SetDecalMaterial(DecalMaterialAsset.Object);
+		}
+		IceCircle->DecalSize = FVector(100.0f, 500.0f, 500.0f);
+		IceCircle->SetRelativeRotation(FRotator(90.0f, 0.0f, 0.0f).Quaternion());
+		IceCircle->SetRelativeLocation(FVector(0, 0, 95));
+		IceCircle->SetSortOrder(0);
+
 	}
 
 	void SetRadius(float in_radius)
@@ -76,7 +92,7 @@ protected:
 	virtual void BeginPlay() override
 	{
 		Super::BeginPlay();
-		SetLifeSpan(3.0);
+		SetLifeSpan(2.0);
 	}
 
 public:
@@ -94,6 +110,12 @@ public:
 	void OnTouch(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComponent, int32 other_body_index, bool bFromSweep, const FHitResult& hit_res)
 	{
 
+	}
+
+	void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override
+	{
+		Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+		DOREPLIFETIME(ACrystalNova, IceCircle);
 	}
 
 };
@@ -115,6 +137,8 @@ class AGHSCLONE_API UCrystalNovaAbility : public UAbility
 		max_level = 4;
 		current_level = 0;
 		radius = 425;
+		CastPoint = 0.3;
+		CastBackswing = 0.6;
 		SetStatusEffect(UCrystalNovaSlow::StaticClass());
 	}
 
@@ -208,6 +232,8 @@ class AGHSCLONE_API UFrostbiteAbility : public UAbility
 		damage_tick = 0.7;
 		current_level = 0;
 		radius = 425;
+		CastPoint = 0.3;
+		CastBackswing = 0.6;
 		SetStatusEffect(UFrostbiteRoot::StaticClass());
 	}
 
@@ -265,12 +291,13 @@ class AGHSCLONE_API UArcaneAuraAbility : public UAbility
 {
 	GENERATED_BODY()
 
+	UPROPERTY()
 	UArcaneAura* aura;
 	float range;
 
 	UArcaneAuraAbility()
 	{
-		aura = NewObject<UArcaneAura>();
+		//aura = NewObject<UArcaneAura>();
 		max_level = 4;
 		range = 12345678;
 	}
@@ -280,7 +307,7 @@ protected:
 	virtual void BeginPlay() override
 	{
 		Super::BeginPlay();
-		PrimaryComponentTick.TickInterval = 0.9f;
+		PrimaryComponentTick.TickInterval = 0.4f;
 		aura = NewObject<UArcaneAura>(GetWorld(), UArcaneAura::StaticClass());
 		aura->Applier = GetOwner();
 	}
@@ -401,6 +428,8 @@ public:
 		SetArmor(-1);
 		SetAttackDamage(31);
 		SetAttackProjectileSpeed(900);
+        BaseAttackPoint = 0.45;
+        BaseAttackBackswing = 0.35;
 		attributes->SetPrimaryAttribute(AttrIntelligence);
 		attributes->BaseStrength = 18;
 		attributes->StrengthGain = 2.2;
