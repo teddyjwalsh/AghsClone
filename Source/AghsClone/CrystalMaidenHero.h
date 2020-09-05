@@ -44,14 +44,14 @@ class AGHSCLONE_API ACrystalNova : public AAbilityInstance
 	bool ticked_once;
 
 	/** A decal that projects to the cursor location. */
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(Replicated, VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
 	class UDecalComponent* IceCircle;
 
 public:
 	// Sets default values for this actor's properties
 	ACrystalNova()
 	{
-		
+		SetReplicates(true);
 		PrimaryActorTick.bCanEverTick = true;
 		bounds = CreateDefaultSubobject<UCapsuleComponent>("Bounds");
 		SetRootComponent(bounds);
@@ -76,9 +76,8 @@ public:
 		}
 		IceCircle->DecalSize = FVector(100.0f, 500.0f, 500.0f);
 		IceCircle->SetRelativeRotation(FRotator(90.0f, 0.0f, 0.0f).Quaternion());
-		IceCircle->SetRelativeLocation(FVector(0, 0, 0));
-		IceCircle->SetFadeIn(0, 0.5);
-		IceCircle->SetFadeOut(0, 1.0);
+		IceCircle->SetRelativeLocation(FVector(0, 0, 95));
+		IceCircle->SetSortOrder(0);
 
 	}
 
@@ -111,6 +110,12 @@ public:
 	void OnTouch(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComponent, int32 other_body_index, bool bFromSweep, const FHitResult& hit_res)
 	{
 
+	}
+
+	void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override
+	{
+		Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+		DOREPLIFETIME(ACrystalNova, IceCircle);
 	}
 
 };
