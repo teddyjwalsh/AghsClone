@@ -187,6 +187,7 @@ public:
 		return team;
 	}
 
+	UFUNCTION(BlueprintCallable)
 	void SetTeam(int32 in_team)
 	{
 		team = in_team;
@@ -266,6 +267,7 @@ public:
 		
 	}
 
+	UFUNCTION(BlueprintCallable)
 	virtual void SetMaxHealth(float in_val)
 	{
 		MaxHealth = in_val;
@@ -287,11 +289,13 @@ public:
 	}
 	// END HEALTH INTERFACE
 
+	UFUNCTION(BlueprintCallable)
 	virtual void SetArmor(float in_armor)
 	{
 		Armor = in_armor;
 	}
 
+	UFUNCTION(BlueprintCallable)
 	virtual void SetAttackDamage(float in_damage)
 	{
 		attack_damage = in_damage;
@@ -302,6 +306,7 @@ public:
 		return GetStat(StatMovespeed);// BaseMovespeed + Inventory->GetMovespeed();// + StatusManager->GetMovespeed();
 	}
 
+	UFUNCTION( BlueprintCallable )
 	virtual void SetBaseMovespeed(float in_movespeed)
 	{
 		BaseMovespeed = in_movespeed;
@@ -323,6 +328,7 @@ public:
 		Mana = std::min(GetMaxMana(), std::max(0.0f, in_val))/GetMaxMana();
 	}
 
+	UFUNCTION(BlueprintCallable)
 	virtual void SetMaxMana(float in_val)
 	{
 		MaxMana = in_val;
@@ -336,6 +342,7 @@ public:
 
 	// AUTO ATTACK IMPLEMENTATION
 
+	UFUNCTION(BlueprintCallable)
 	void SetAttackProjectileSpeed(float in_speed)
 	{
 		AttackProjectileSpeed = in_speed;
@@ -391,6 +398,18 @@ public:
 	{
 		float attack_time = BaseAttackTime / (GetAttackSpeed() * 0.01);
 		return attack_time;
+	}
+
+	UFUNCTION(BlueprintCallable)
+	void SetBaseAttackPoint(float in_val)
+	{
+		BaseAttackPoint = in_val;
+	}
+
+	UFUNCTION(BlueprintCallable)
+	void SetBaseAttackBackswing(float in_val)
+	{
+		BaseAttackBackswing = in_val;
 	}
 
 	UFUNCTION( BlueprintCallable )
@@ -625,7 +644,7 @@ public:
 		current_command.command_type = NONE;
 	}
 
-	//UFUNCTION(reliable, server)
+	UFUNCTION( BlueprintCallable )
 	virtual void SetCommand(const FCommand& in_command) override
 	{
 		ClearCommandQueue();
@@ -656,6 +675,7 @@ public:
 		current_destination = in_dest;
 	}
 
+	UFUNCTION( BlueprintCallable )
 	virtual FCommand GetCurrentCommand() const override
 	{
 		return current_command;
