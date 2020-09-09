@@ -194,9 +194,6 @@ void AAghsCloneCharacter::Tick(float DeltaSeconds)
 	float attack_point = GetAttackPoint();
 	float backswing = GetAttackBackswing();
 
-	UE_LOG(LogTemp, Warning, TEXT("Backswing: %f"), backswing);
-	UE_LOG(LogTemp, Warning, TEXT("Attack Point: %f"), attack_point);
-
 	//UStaticMesh::Array
 	GetCharacterMovement()->MaxWalkSpeed = GetMovespeed();
 
