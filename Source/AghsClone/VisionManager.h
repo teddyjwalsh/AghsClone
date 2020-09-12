@@ -12,6 +12,7 @@
 #include "Materials/MaterialParameterCollection.h"
 
 #include "AghsCloneCharacter.h"
+#include "AghsClonePlayerController.h"
 #include "VisionManager.generated.h"
 
 UCLASS()
@@ -22,6 +23,9 @@ class AGHSCLONE_API AVisionManager : public AActor
 	std::map<int32, std::set<AActor*>> team_vision_sets;
 	USphereComponent* vision_bounds;
 	UMaterialParameterCollection* vision_positions;
+	bool first_iteration;
+	std::set<AAghsClonePlayerController*> player_controllers;
+	TArray<AActor*> field_actor_record;
 
 public:	
 	// Sets default values for this actor's properties
