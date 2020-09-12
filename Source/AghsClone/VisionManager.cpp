@@ -126,3 +126,7 @@ void AVisionManager::Tick(float DeltaTime)
 	return;
 }
 
+std::set<AActor*>& AVisionManager::get_team_visible(int32 in_team)
+{
+	return team_vision_sets[in_team];
+}

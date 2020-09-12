@@ -34,5 +34,6 @@ protected:
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
+	std::set<AActor*>& get_team_visible(int32 in_team);
 
 };
