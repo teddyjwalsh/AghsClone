@@ -453,6 +453,11 @@ void AAghsCloneCharacter::ProcessAttackMove(const FCommand& in_command, float dt
 	if (in_command.unit_targeted)
 	{
 		command_loc = in_command.target->GetActorLocation();
+		if (in_command.target == this)
+		{
+			NextCommand();
+			return;
+		}
 	}
 	FVector diff_vector = command_loc - GetActorLocation();
 
