@@ -29,7 +29,7 @@ public:
 		if (aghs_cont)
 		{
 			FNavLocation NavPoint;
-			NavSys->ProjectPointToNavigation(FVector(0, 0, 0), NavPoint);
+			NavSys->ProjectPointToNavigation(FVector(-1300, -1300, 0), NavPoint);
 			//auto new_character = GetWorld()->SpawnActor<AAghsCloneCharacter>(NavPoint.Location, FRotator());
 			AAghsCloneCharacter* new_character = Cast<AHero>(UAIBlueprintHelperLibrary::SpawnAIFromClass(GetWorld(), ACrystalMaidenHero::StaticClass(), nullptr, NavPoint.Location));
 			new_character->SetTeam(GetNumPlayers());

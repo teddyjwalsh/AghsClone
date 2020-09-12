@@ -222,9 +222,11 @@ void AAghsCloneCharacter::Tick(float DeltaSeconds)
             ChanneledAbility = nullptr;
             NextCommand();
         }
-		if (current_command.command_type != ATTACK_MOVE)
+		if (current_command.command_type != ATTACK_MOVE && 
+			current_command.command_type != ABILITY)
 		{
 			char_state_time = 0.0;
+			char_state = Idle;
 		}
 		if (StatusManager->GetStunned())
 		{
