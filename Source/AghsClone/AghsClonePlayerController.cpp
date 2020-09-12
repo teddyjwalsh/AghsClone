@@ -91,15 +91,18 @@ void AAghsClonePlayerController::PlayerTick(float DeltaTime)
 		bMoveToMouseCursor = false;
 	}
 
-	if (IsValid(StoreWidget))
+	if (StoreWidget)
 	{
-		if (StoreWidget->GridIsHovered())
+		if (!StoreWidget->IsPendingKillOrUnreachable())
 		{
-			hud_clicked = true;
-		}
-		else
-		{
-			hud_clicked = false;
+			if (StoreWidget->GridIsHovered())
+			{
+				hud_clicked = true;
+			}
+			else
+			{
+				hud_clicked = false;
+			}
 		}
 	}
 	if (IsValid(AbilitiesWidget))
