@@ -95,6 +95,7 @@ class AAghsCloneCharacter : public ACharacter,
 	UPROPERTY(Replicated, EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
 	AActor* unit_owner;
 	float vision_radius;
+	UPROPERTY(Replicated, EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
 	float attack_range;
 	float attack_damage;
 	float BaseAttackTime;
@@ -104,6 +105,8 @@ class AAghsCloneCharacter : public ACharacter,
 	float AttackTimer;
 	float CastTimer;
 	TArray<float*> stats;
+	UPROPERTY(Replicated, EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
+	bool is_melee;
 
 protected:
 
@@ -356,13 +359,25 @@ public:
 		double t_diff = ts - last_attack_time;
 		if (t_diff >= attack_time)
 		{
-			auto proj = GetWorld()->SpawnActor<AAttackProjectile>();
-			proj->SetActorLocation(GetActorLocation());
-			proj->SetTarget(in_target);
-			proj->SetShooter(this);
-			proj->SetSpeed(AttackProjectileSpeed);
-			ResetAttackTimer(ts);
-			return true;
+			if (!is_melee)
+			{
+				auto proj = GetWorld()->SpawnActor<AAttackProjectile>();
+				proj->SetActorLocation(GetActorLocation());
+				proj->SetTarget(in_target);
+				proj->SetShooter(this);
+				proj->SetSpeed(AttackProjectileSpeed);
+				ResetAttackTimer(ts);
+				return true;
+			}
+			else
+			{
+				auto unit = Cast<AAghsCloneCharacter>(in_target);
+				if (unit)
+				{
+					ApplyOnHit(unit);
+					ResetAttackTimer(ts);
+				}
+			}
 		}
 		return false;
 	}
