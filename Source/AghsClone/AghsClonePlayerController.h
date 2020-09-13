@@ -9,6 +9,7 @@
 #include "UnitController.h"
 #include "Ability.h"
 #include "StoreWidget.h"
+#include "CharacterSelectWidget.h"
 #include "AbilityContainerInterface.h"
 #include "AbilityInterface.h"
 #include "AghsClonePlayerController.generated.h"
@@ -22,7 +23,6 @@ class AAghsClonePlayerController : public APlayerController
 	int32 wx, wy;
 	bool select_box_on;
 	
-	
 
 	FVector2D select_box_start;
 	FVector2D select_box_end;
@@ -34,9 +34,11 @@ class AAghsClonePlayerController : public APlayerController
 public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "UMG")
 	TSubclassOf<class UStoreWidget> StoreWidgetClass;
+	TSubclassOf<class UCharacterSelectWidget> CharacterSelectWidgetClass;
 	TSubclassOf<class UInventoryWidget> InventoryWidgetClass;
 	TSubclassOf<class UAbilitiesWidget> AbilitiesWidgetClass;
 	UStoreWidget* StoreWidget;
+	UCharacterSelectWidget* CharacterSelectWidget;
 	UInventoryWidget* InventoryWidget;
 	UAbilitiesWidget* AbilitiesWidget;
 

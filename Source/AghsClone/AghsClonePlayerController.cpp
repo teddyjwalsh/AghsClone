@@ -18,6 +18,7 @@
 #include "FieldActorInterface.h"
 #include "WalletComponent.h"
 #include "InventoryComponent.h"
+
 #include "Shop.h"
 
 AAghsClonePlayerController::AAghsClonePlayerController()
@@ -31,6 +32,7 @@ AAghsClonePlayerController::AAghsClonePlayerController()
 
 void AAghsClonePlayerController::BeginPlay()
 {
+	GetViewportSize(wx, wy);
 	shop_on = false;
 }
 
@@ -89,6 +91,14 @@ void AAghsClonePlayerController::PlayerTick(float DeltaTime)
 	{
 		MoveToMouseCursor();
 		bMoveToMouseCursor = false;
+	}
+
+	if (!CharacterSelectWidget)
+	{
+		CharacterSelectWidgetClass = UCharacterSelectWidget::StaticClass();
+		CharacterSelectWidget = CreateWidget<UCharacterSelectWidget>(this, CharacterSelectWidgetClass);
+		CharacterSelectWidget->SetPositionInViewport(FVector2D(wx - wx / 2, wy - wy / 2));
+		CharacterSelectWidget->AddToViewport(9999); // Z-order, this just makes it render on the very top.
 	}
 
 	if (StoreWidget)

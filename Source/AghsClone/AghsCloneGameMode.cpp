@@ -10,6 +10,8 @@
 #include "BlinkDagger.h"
 #include "GameFramework/GameUserSettings.h"
 
+TMap<FString, UTexture2D*> FCharacterSpec::textures;
+
 AAghsCloneGameMode::AAghsCloneGameMode()
 {
 	// use our custom PlayerController class
@@ -37,6 +39,15 @@ AAghsCloneGameMode::AAghsCloneGameMode()
 		MyGameSettings->ApplySettings(true);
 	}
 
+	auto temp_char_spec = new FCharacterSpec;// NewObject<FCharacterSpec>(GetWorld());
+	temp_char_spec->SetTexture("crystal_maiden.png");
+	temp_char_spec->CharClass = ACrystalMaidenHero::StaticClass();
+	character_list.Add(temp_char_spec);
+
+	temp_char_spec = new FCharacterSpec;// NewObject<FCharacterSpec>(GetWorld());
+	temp_char_spec->SetTexture("crystal_maiden.png");
+	temp_char_spec->CharClass = ACrystalMaidenHero::StaticClass();
+	character_list.Add(temp_char_spec);
 }
 
 void AAghsCloneGameMode::StartPlay()
