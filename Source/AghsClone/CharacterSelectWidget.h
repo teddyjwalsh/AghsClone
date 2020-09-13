@@ -17,7 +17,7 @@
 #include "InputCoreTypes.h"
 
 #include "StoreWidget.h"
-
+#include "GameModeInfo.h"
 #include "CharacterSelectWidget.generated.h"
 
 
@@ -29,7 +29,7 @@ class AGHSCLONE_API UCharacterSelectWidget : public UUserWidget
 {
 	GENERATED_BODY()
 public:
-	TArray<FCharacterSpec*> character_list;
+	TArray<FCharacterSpec> character_list;
 	UMultiButton* button;
 	UUniformGridPanel* grid;
 	//TArray<UMultiButton*> buttons;
@@ -46,7 +46,4 @@ public:
 	void OnItemHovered(UMultiButton* in_button);
 
 	bool GridIsHovered() const;
-
-	UFUNCTION(Server, Reliable)
-	void GetCharacterList();
 };

@@ -15,48 +15,14 @@
 #include "AghsCloneGameMode.generated.h"
 
 
-
-USTRUCT()
-struct FCharacterSpec
-{
-	GENERATED_BODY()
-
-	static TMap<FString, UTexture2D*> textures;
-
-	UTexture2D* MyTex;
-	UClass* CharClass;
-
-	void SetTexture(FString to_load)
-	{
-		if (!textures.Find(to_load))
-		{
-			//ConstructorHelpers::FObjectFinder<UTexture2D> ScreenMat(*FString::Printf(TEXT("Texture2D'/Game/Textures/%s.%s'"), *to_load, *to_load));
-			auto item_tex = Cast<UTexture2D>(
-				StaticLoadObject(UTexture2D::StaticClass(),
-					NULL,
-					*FString::Printf(TEXT("/Game/Textures/%s.%s"),
-						*to_load,
-						*to_load)));
-			textures.Add(to_load, item_tex);
-		}
-		MyTex = textures[to_load];
-	}
-};
-
 UCLASS(minimalapi)
 class AAghsCloneGameMode : public AGameModeBase
 {
-	TArray<FCharacterSpec*> character_list;
 
 	GENERATED_BODY()
 	void StartPlay() override;
 public:
 	AAghsCloneGameMode();
-
-	TArray<FCharacterSpec*>& GetCharacterList()
-	{
-		return character_list;
-	}
 
 	virtual void PostLogin(APlayerController * NewPlayer) override
 	{

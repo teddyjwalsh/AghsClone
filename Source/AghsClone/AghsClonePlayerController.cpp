@@ -93,7 +93,7 @@ void AAghsClonePlayerController::PlayerTick(float DeltaTime)
 		bMoveToMouseCursor = false;
 	}
 
-	if (!CharacterSelectWidget)
+	if (!CharacterSelectWidget && 0)
 	{
 		CharacterSelectWidgetClass = UCharacterSelectWidget::StaticClass();
 		CharacterSelectWidget = CreateWidget<UCharacterSelectWidget>(this, CharacterSelectWidgetClass);
@@ -206,7 +206,7 @@ void AAghsClonePlayerController::SetSelected(const TArray<AAghsCloneCharacter*>&
 				AbilitiesWidgetClass = UAbilitiesWidget::StaticClass();
 				AbilitiesWidget = CreateWidget<UAbilitiesWidget>(this, AbilitiesWidgetClass);
 				AbilitiesWidget->SetAlignmentInViewport(FVector2D(0.0, 1.0));
-				AbilitiesWidget->SetPositionInViewport(FVector2D(0, wy / 2.0), true);
+				AbilitiesWidget->SetPositionInViewport(FVector2D(0, wy), true);
 				AbilitiesWidget->AddToViewport(9999); // Z-order, this just makes it render on the very top.
 				AbilitiesWidget->SetAbilities();
 				AbilitiesWidget->Refresh();

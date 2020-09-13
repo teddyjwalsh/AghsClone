@@ -185,7 +185,7 @@ public:
 	UFrostbiteRoot()
 	{
 		bRooted = true;
-		max_instances = int32(max_duration / damage_tick);
+		max_instances = int32((max_duration / damage_tick));
 	}
 
 	virtual void TickStatus(float dt) override
@@ -204,10 +204,11 @@ public:
 			}
 			last_time = time;
 			damage_instances += 1;
-			if (damage_instances >= max_instances)
-			{
-				bFinished = true;
-			}
+
+		}
+		if (time >= max_duration)
+		{
+			bFinished = true;
 		}
 	}
 };

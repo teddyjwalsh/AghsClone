@@ -9,12 +9,18 @@
 #include "AghsClonePlayerController.h"
 #include "AghsCloneGameMode.h"
 #include "UnitController.h"
+#include "CharacterSelectWidget.h"
 #include "Shop.h"
 
 
 bool UCharacterSelectWidget::Initialize()
 {
-    
+    TArray<AActor*> FoundActors;
+    UGameplayStatics::GetAllActorsOfClass(GetWorld(), AGameModeInfo::StaticClass(), FoundActors);
+    if (FoundActors.Num())
+    {
+        character_list = Cast<AGameModeInfo>(FoundActors[0])->GetCharacterList();
+    }
     int32 max_col_count = 5;
     int32 col_count = 0;
     Super::Initialize();
@@ -32,7 +38,7 @@ bool UCharacterSelectWidget::Initialize()
     //button->SetRenderScale(FVector2D(10, 10));
     int row_count = 1;
     int count = 0;
-    for (auto& chr : characters)
+    for (auto& chr : character_list)
     {
         auto l_button = WidgetTree->ConstructWidget<UMultiButton>(UMultiButton::StaticClass(), FName("Button%d",count));
         
@@ -40,7 +46,7 @@ bool UCharacterSelectWidget::Initialize()
         buttons.Add(l_button, count);
         l_button->LeftClick.AddDynamic(this, &UCharacterSelectWidget::OnItemClicked);
         auto slot = grid->AddChildToUniformGrid(l_button, count / max_col_count, count % max_col_count);
-        l_button->SetBrushFromTexture(chr->MyTex);
+        l_button->SetBrushFromTexture(chr.MyTex);
         slot->SetVerticalAlignment(EVerticalAlignment::VAlign_Fill);
         slot->SetHorizontalAlignment(EHorizontalAlignment::HAlign_Fill);
         count += 1;
@@ -92,11 +98,4 @@ bool UCharacterSelectWidget::GridIsHovered() const
         return grid->IsHovered();
     }
     return false;
-}
-
-void UCharacterSelectWidget::GetCharacterList_Implementation()
-{
-    auto mode = UGameplayStatics::GetGameMode(GetWorld());
-    auto aghs_mode = Cast<AAghsCloneGameMode>(mode);
-    character_list = aghs_mode->GetCharacterList();
 }
