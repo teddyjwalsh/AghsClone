@@ -29,7 +29,7 @@ public:
 		Super::PostLogin(NewPlayer);
 		auto aghs_cont = Cast<AAghsClonePlayerController>(NewPlayer);
 		UNavigationSystemV1* NavSys = Cast<UNavigationSystemV1>(GetWorld()->GetNavigationSystem());
-		if (aghs_cont)
+		if (aghs_cont && 0)
 		{
 			FNavLocation NavPoint;
 			NavSys->ProjectPointToNavigation(FVector(-1450, -1550, 0), NavPoint);
@@ -45,6 +45,8 @@ public:
 			aghs_cont->AssignTeam(GetNumPlayers());
 			aghs_cont->SetSelected(init_select);
 		}
+		//aghs_cont->AssignTeam(1);
+		//aghs_cont->team = 1;
 	}
 };
 

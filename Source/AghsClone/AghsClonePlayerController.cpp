@@ -34,6 +34,7 @@ void AAghsClonePlayerController::BeginPlay()
 {
 	GetViewportSize(wx, wy);
 	shop_on = false;
+	char_needs_choosing = true;
 }
 
 void AAghsClonePlayerController::AssignTeam_Implementation(int32 in_team)
@@ -93,28 +94,17 @@ void AAghsClonePlayerController::PlayerTick(float DeltaTime)
 		bMoveToMouseCursor = false;
 	}
 
-	if (!CharacterSelectWidget && 0)
+	if (!CharacterSelectWidget && char_needs_choosing)
 	{
 		CharacterSelectWidgetClass = UCharacterSelectWidget::StaticClass();
 		CharacterSelectWidget = CreateWidget<UCharacterSelectWidget>(this, CharacterSelectWidgetClass);
 		CharacterSelectWidget->SetPositionInViewport(FVector2D(wx - wx / 2, wy - wy / 2));
 		CharacterSelectWidget->AddToViewport(9999); // Z-order, this just makes it render on the very top.
+		CharacterSelectWidget->SetAbilities();
+		char_needs_choosing = false;
 	}
 
-	if (StoreWidget)
-	{
-		if (!StoreWidget->IsPendingKillOrUnreachable())
-		{
-			if (StoreWidget->GridIsHovered())
-			{
-				hud_clicked = true;
-			}
-			else
-			{
-				hud_clicked = false;
-			}
-		}
-	}
+	IsHudHovered();
 	if (IsValid(AbilitiesWidget))
 	{
 		AbilitiesWidget->Refresh();
@@ -167,6 +157,7 @@ void AAghsClonePlayerController::SetSelected(const TArray<AAghsCloneCharacter*>&
 	AUnitController* MyPawn = Cast<AUnitController>(GetPawn());
 	if (MyPawn != nullptr)
 	{
+		selected_units.Empty();
 		selected_units.Reserve(in_selected.Num());
 		for (auto& u : in_selected)
 		{
@@ -196,7 +187,7 @@ void AAghsClonePlayerController::SetSelected(const TArray<AAghsCloneCharacter*>&
 			{
 				InventoryWidget->DrawInventory();
 				InventoryWidget->SetItems();
-				InventoryWidget->AddToViewport(9999); // Z-order, this just makes it render on the very top.
+				//InventoryWidget->AddToViewport(9999); // Z-order, this just makes it render on the very top.
 				InventoryWidget->SetPositionInViewport(FVector2D(wx - 120, wy - 80));
 				FAnchors anchor(100, 100, 100, 100);
 				InventoryWidget->SetVisibility(ESlateVisibility::Visible);
@@ -214,11 +205,11 @@ void AAghsClonePlayerController::SetSelected(const TArray<AAghsCloneCharacter*>&
 			else
 			{
 				//AbilitiesWidget->SetAnchorsInViewport(FAnchors(0.5, 0.5));
-				AbilitiesWidget->SetAlignmentInViewport(FVector2D(0.0, 1.0));
-				AbilitiesWidget->SetPositionInViewport(FVector2D(0, wy/2.0), true);
+				//AbilitiesWidget->SetAlignmentInViewport(FVector2D(0.0, 1.0));
+				//AbilitiesWidget->SetPositionInViewport(FVector2D(0, wy/2.0), true);
 				AbilitiesWidget->SetAbilities();
 				AbilitiesWidget->Refresh();
-				AbilitiesWidget->AddToViewport(9999); // Z-order, this just makes it render on the very top.
+				//AbilitiesWidget->AddToViewport(9999); // Z-order, this just makes it render on the very top.
 				//AbilitiesWidget->SetDesiredSizeInViewport(FVector2D(200, 100));
 				
 				FAnchors anchor(100, 100, 100, 100);
@@ -370,13 +361,6 @@ void AAghsClonePlayerController::CommandAttack_Implementation(const FCommand& in
 
 void AAghsClonePlayerController::OnSetDestinationPressed()
 {
-	if (StoreWidget)
-	{
-		if (StoreWidget->GridIsHovered())
-		{
-			//hud_clicked = true;
-		}
-	}
 	// set flag to keep updating destination until released
 	if (!hud_clicked)
 	{
@@ -617,4 +601,22 @@ void AAghsClonePlayerController::OnStopCommand_Implementation()
 		stop_command.command_type = STOP;
 		MyPawn->SetCommand(stop_command);
 	}
+}
+
+void AAghsClonePlayerController::SpawnHero_Implementation(UClass* in_hero)
+{
+	UNavigationSystemV1* NavSys = Cast<UNavigationSystemV1>(GetWorld()->GetNavigationSystem());
+	FNavLocation NavPoint;
+	NavSys->ProjectPointToNavigation(FVector(-1450, -1550, 0), NavPoint);
+	//auto new_character = GetWorld()->SpawnActor<AAghsCloneCharacter>(NavPoint.Location, FRotator());
+	AAghsCloneCharacter* new_character = Cast<AHero>(UAIBlueprintHelperLibrary::SpawnAIFromClass(GetWorld(), in_hero, nullptr, NavPoint.Location));
+	new_character->SetTeam(1);
+	new_character->SetUnitOwner(GetPawn());
+	TArray<AAghsCloneCharacter*> init_select;
+	init_select.Add(new_character);
+	//NavSys->ProjectPointToNavigation(FVector(0,0,0), FNav)
+
+	AssignTeam(1);
+	team = 1;
+	SetSelected(init_select);
 }
