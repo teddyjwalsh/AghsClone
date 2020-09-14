@@ -26,6 +26,7 @@ AAghsClonePlayerController::AAghsClonePlayerController()
 	bShowMouseCursor = true;
 	DefaultMouseCursor = EMouseCursor::Crosshairs;
 	ClickEventKeys.Add(EKeys::RightMouseButton);
+	character_selected = false;
 	//bReplicates = true;
 	//SetReplicateMovement(true);
 }
@@ -619,4 +620,11 @@ void AAghsClonePlayerController::SpawnHero_Implementation(UClass* in_hero)
 	AssignTeam(1);
 	team = 1;
 	SetSelected(init_select);
+	character_selected = true;
+	OnCharacterSelect();
+}
+
+void AAghsClonePlayerController::OnCharacterSelect_Implementation()
+{
+	CharacterSelectWidget->RemoveFromViewport();
 }

@@ -33,6 +33,7 @@ class AAghsClonePlayerController : public APlayerController
 	TArray<AAghsCloneCharacter*> selected_units;
 	TArray<AAghsCloneCharacter*> temp_units;
 	bool char_needs_choosing;
+	bool character_selected;
 
 public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "UMG")
@@ -88,6 +89,10 @@ public:
 
 	UFUNCTION(Reliable, Server)
 	void SpawnHero(UClass* in_hero);
+
+	UFUNCTION(Reliable, Client)
+	void OnCharacterSelect();
+
 
 protected:
 	/** True if the controlled character should navigate to the mouse cursor. */
