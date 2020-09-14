@@ -117,46 +117,7 @@ bool UAbilitiesWidget::Refresh()
         child->Refresh();
     }
     return true;
-    /*
-    int32 max_col_count = 6;
-    int32 col_count = 0;
-    grid->ClearChildren();
-    int row_count = 1;
-    
-    int count = 0;
-    for (auto& ab : abilities)
-    {
-        auto l_button = WidgetTree->ConstructWidget<UMultiButton>(UMultiButton::StaticClass(), FName("Button",count));
-        
-        l_button->SetVisibility(ESlateVisibility::Visible);
-        buttons.Add(l_button, ab);
-        TFunction<void(void)> test_func;
-        l_button->RightClick.AddDynamic(this, &UAbilitiesWidget::OnItemClicked);
-        auto slot = grid->AddChildToGrid(l_button, count / max_col_count, count % max_col_count);
-        if (ab)
-        {
-            l_button->SetBrushFromTexture(ab->GetMaterial());
-        }
-        slot->SetVerticalAlignment(EVerticalAlignment::VAlign_Fill);
-        slot->SetHorizontalAlignment(EHorizontalAlignment::HAlign_Fill);
-        
-        count += 1;
-        col_count = std::min(count, max_col_count);
-        row_count = std::ceil(count*1.0 / max_col_count);
-        auto cooldown = WidgetTree->ConstructWidget<UTextBlock>(UTextBlock::StaticClass(), FName("Cooldown", count));
-        //cooldown->SetMinDesiredWidth(200);
-        cooldown->SetText(FText::FromString(""));
-        cooldown->ColorAndOpacity = FSlateColor(FLinearColor(0.4, 0.4, 0.4));
-        cooldown->Font.Size = 30;
-        l_button->AddChild(cooldown);
-        //l_button->Background.SetImageSize(FVector2D(500, 500));
-        l_button->SetBrush(l_button->Background);
-        
-    }
-    SetDesiredSizeInViewport(FVector2D(el_width * col_count, el_height*row_count));
-    SetVisibility(ESlateVisibility::Visible);
-    return true;
-    */
+
 }
 
 void UAbilitiesWidget::NativeConstruct()

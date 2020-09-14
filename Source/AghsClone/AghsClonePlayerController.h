@@ -5,10 +5,13 @@
 #include "CoreMinimal.h"
 #include "Components/Button.h"
 #include "GameFramework/PlayerController.h"
+#include "NavigationSystem.h"
 #include "AghsCloneCharacter.h"
 #include "UnitController.h"
 #include "Ability.h"
 #include "StoreWidget.h"
+#include "Hero.h"
+#include "CharacterSelectWidget.h"
 #include "AbilityContainerInterface.h"
 #include "AbilityInterface.h"
 #include "AghsClonePlayerController.generated.h"
@@ -22,7 +25,6 @@ class AAghsClonePlayerController : public APlayerController
 	int32 wx, wy;
 	bool select_box_on;
 	
-	
 
 	FVector2D select_box_start;
 	FVector2D select_box_end;
@@ -30,13 +32,16 @@ class AAghsClonePlayerController : public APlayerController
 	int32 targeted_ability_num;
 	TArray<AAghsCloneCharacter*> selected_units;
 	TArray<AAghsCloneCharacter*> temp_units;
+	bool char_needs_choosing;
 
 public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "UMG")
 	TSubclassOf<class UStoreWidget> StoreWidgetClass;
+	TSubclassOf<class UCharacterSelectWidget> CharacterSelectWidgetClass;
 	TSubclassOf<class UInventoryWidget> InventoryWidgetClass;
 	TSubclassOf<class UAbilitiesWidget> AbilitiesWidgetClass;
 	UStoreWidget* StoreWidget;
+	UCharacterSelectWidget* CharacterSelectWidget;
 	UInventoryWidget* InventoryWidget;
 	UAbilitiesWidget* AbilitiesWidget;
 
@@ -80,6 +85,9 @@ public:
 
 	UFUNCTION(Reliable, Server)
 	void RequestBuy(int32 item_id);
+
+	UFUNCTION(Reliable, Server)
+	void SpawnHero(UClass* in_hero);
 
 protected:
 	/** True if the controlled character should navigate to the mouse cursor. */
@@ -164,6 +172,37 @@ protected:
 	UFUNCTION(Reliable, Server)
 	void OnStopCommand();
 
+	void IsHudHovered()
+	{
+		if (StoreWidget)
+		{
+			if (!StoreWidget->IsPendingKillOrUnreachable())
+			{
+				if (StoreWidget->GridIsHovered())
+				{
+					hud_clicked = true;
+				}
+				else
+				{
+					hud_clicked = false;
+				}
+			}
+		}
+		if (CharacterSelectWidget)
+		{
+			if (!CharacterSelectWidget->IsPendingKillOrUnreachable())
+			{
+				if (CharacterSelectWidget->GridIsHovered())
+				{
+					hud_clicked = true;
+				}
+				else
+				{
+					hud_clicked = false;
+				}
+			}
+		}
+	}
 
 };
 

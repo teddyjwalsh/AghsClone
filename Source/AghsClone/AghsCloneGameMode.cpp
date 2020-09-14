@@ -10,6 +10,8 @@
 #include "BlinkDagger.h"
 #include "GameFramework/GameUserSettings.h"
 
+TMap<FString, UTexture2D*> FCharacterSpec::textures;
+
 AAghsCloneGameMode::AAghsCloneGameMode()
 {
 	// use our custom PlayerController class
