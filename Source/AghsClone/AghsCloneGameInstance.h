@@ -37,10 +37,20 @@ class AGHSCLONE_API UAghsCloneGameInstance : public UGameInstance,
 
 	IOnlineSessionPtr SessionInterface;
 	TSharedPtr<class FOnlineSessionSearch> SessionSearch;
+	TSubclassOf<class UMainMenu> MainMenuClass;
 	UMainMenu* MainMenu;
+public:
 
+	UFUNCTION( BlueprintCallable )
 	void Init()
 	{
+
+		MainMenuClass = UMainMenu::StaticClass();
+		MainMenu = CreateWidget<UMainMenu>(this, MainMenuClass);
+		MainMenu->SetPositionInViewport(FVector2D(0, 0));
+		MainMenu->AddToViewport(9999); // Z-order, this just makes it render on the very top.
+		MainMenu->SessionMenuInterface = Cast<ISessionMenuInterface>(this);
+
 		IOnlineSubsystem* SubSystem = IOnlineSubsystem::Get();
 		SessionInterface = SubSystem->GetSessionInterface();
 		if (SessionInterface.IsValid())
@@ -57,11 +67,13 @@ class AGHSCLONE_API UAghsCloneGameInstance : public UGameInstance,
 		}
 	}
 
+	UFUNCTION()
 	void OnCreateSessionComplete(FName name, bool result)
 	{
 
 	}
 
+	UFUNCTION()
 	void OnDestroySessionComplete(FName name, bool result)
 	{
 
@@ -83,6 +95,7 @@ class AGHSCLONE_API UAghsCloneGameInstance : public UGameInstance,
 			ETravelType::TRAVEL_Absolute);
 	}
 
+	UFUNCTION()
 	void OnFindSessionsComplete(bool Success)
 	{
 		if (Success && SessionSearch.IsValid())
@@ -111,6 +124,7 @@ class AGHSCLONE_API UAghsCloneGameInstance : public UGameInstance,
 		}
 	}
 
+	UFUNCTION()
 	virtual void Host(FString ServerName)
 	{
 		FString DesiredServerName("Shark");
@@ -128,6 +142,7 @@ class AGHSCLONE_API UAghsCloneGameInstance : public UGameInstance,
 		}
 	}
 
+	UFUNCTION()
 	virtual void JoinSession(uint32 Index)
 	{
 		// Create the pointer

@@ -10,6 +10,7 @@
 #include "UnitController.h"
 #include "Ability.h"
 #include "StoreWidget.h"
+#include "MainMenu.h"
 #include "Hero.h"
 #include "CharacterSelectWidget.h"
 #include "AbilityContainerInterface.h"
@@ -41,10 +42,12 @@ public:
 	TSubclassOf<class UCharacterSelectWidget> CharacterSelectWidgetClass;
 	TSubclassOf<class UInventoryWidget> InventoryWidgetClass;
 	TSubclassOf<class UAbilitiesWidget> AbilitiesWidgetClass;
+	TSubclassOf<class UMainMenu> MainMenuClass;
 	UStoreWidget* StoreWidget;
 	UCharacterSelectWidget* CharacterSelectWidget;
 	UInventoryWidget* InventoryWidget;
 	UAbilitiesWidget* AbilitiesWidget;
+	UMainMenu* MainMenu;
 
 	int32 team;
 

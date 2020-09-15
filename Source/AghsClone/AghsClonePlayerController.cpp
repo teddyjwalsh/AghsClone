@@ -103,6 +103,7 @@ void AAghsClonePlayerController::PlayerTick(float DeltaTime)
 		CharacterSelectWidget->AddToViewport(9999); // Z-order, this just makes it render on the very top.
 		CharacterSelectWidget->SetAbilities();
 		char_needs_choosing = false;
+
 	}
 
 	IsHudHovered();
