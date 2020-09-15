@@ -9,6 +9,7 @@
 #include "Shop.h"
 #include "BlinkDagger.h"
 #include "GameFramework/GameUserSettings.h"
+#include "Interfaces/OnlineSessionInterface.h"
 
 TMap<FString, UTexture2D*> FCharacterSpec::textures;
 
@@ -16,7 +17,7 @@ AAghsCloneGameMode::AAghsCloneGameMode()
 {
 	// use our custom PlayerController class
 	PlayerControllerClass = AAghsClonePlayerController::StaticClass();
-
+	
 	// set default pawn class to our Blueprinted character
 	static ConstructorHelpers::FClassFinder<APawn> PlayerPawnBPClass(TEXT("/Game/TopDownCPP/Blueprints/TopDownCharacter"));
 	if (PlayerPawnBPClass.Class != NULL)
@@ -38,7 +39,6 @@ AAghsCloneGameMode::AAghsCloneGameMode()
 		MyGameSettings->SetVSyncEnabled(true);
 		MyGameSettings->ApplySettings(true);
 	}
-
 }
 
 void AAghsCloneGameMode::StartPlay()
