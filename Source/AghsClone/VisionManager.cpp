@@ -21,7 +21,7 @@ AVisionManager::AVisionManager()
 	vision_bounds = CreateDefaultSubobject<USphereComponent>(TEXT("vision_bounds"));
 	vision_bounds->SetAbsolute(true, true, true);
 
-	vision_positions = CreateDefaultSubobject<UMaterialParameterCollection>(TEXT("vision_positions"));
+	//vision_positions = CreateDefaultSubobject<UMaterialParameterCollection>(TEXT("vision_positions"));
 
 	SetReplicates(false);
 	

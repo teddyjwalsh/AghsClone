@@ -9,12 +9,13 @@
 #include "Components/TextBlock.h"
 #include "Components/UniformGridPanel.h"
 #include "SessionMenuInterface.h"
+#include "Kismet/GameplayStatics.h"
 #include "MainMenu.generated.h"
 
 /**
  * 
  */
-UCLASS()
+UCLASS(ClassGroup = (Custom), meta = (BlueprintSpawnableComponent))
 class AGHSCLONE_API UMainMenu : public UUserWidget
 {
 public:
@@ -30,7 +31,7 @@ public:
 	bool Initialize()
 	{
 		Super::Initialize();
-
+		SessionMenuInterface = Cast<ISessionMenuInterface>(UGameplayStatics::GetGameInstance(GetWorld()));
 		grid = WidgetTree->ConstructWidget<UUniformGridPanel>(UUniformGridPanel::StaticClass(), "MainMenuGrid");
 		WidgetTree->RootWidget = grid;
 		NewSessionButton = WidgetTree->ConstructWidget<UButton>(UButton::StaticClass(), "NewSessionButton");
@@ -61,6 +62,7 @@ public:
 			return;
 		}
 		SessionMenuInterface->Host("CoopPuzzleGameServer");
+		UGameplayStatics::OpenLevel(GetWorld(), FName("GameTestMap"));
 	}
 
 	UFUNCTION()
