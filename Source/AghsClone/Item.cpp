@@ -3,7 +3,7 @@
 #include "Item.h"
 #include "UObject/ConstructorHelpers.h"
 #include "Components/SphereComponent.h"
-#include "Factories/MaterialFactoryNew.h"
+//#include "Factories/MaterialFactoryNew.h"
 
 std::vector<FString> mats_to_load = {};// "kotlguyp", "moon_shard", "brown_boots", "serpentblade", "blink_dagger" };
 
