@@ -246,30 +246,33 @@ void UInventoryWidget::SetItems()
         if (uc)
         {
             auto prime_unit = uc->GetPrimaryUnit();
-            auto inventory = Cast<UInventoryComponent>(prime_unit->GetComponentByClass(UInventoryComponent::StaticClass()));
-            if (inventory)
+            if (prime_unit)
             {
-                current_inventory = inventory; 
-                auto new_items = current_inventory->GetItems();
-                int32 count = 0;
-                for (auto& it : new_items)
+                auto inventory = Cast<UInventoryComponent>(prime_unit->GetComponentByClass(UInventoryComponent::StaticClass()));
+                if (inventory)
                 {
-                    bool tex_set = false;
-                    if (it)
+                    current_inventory = inventory;
+                    auto new_items = current_inventory->GetItems();
+                    int32 count = 0;
+                    for (auto& it : new_items)
                     {
-                        buttons[button_array[count]] = it;
-                        auto mat = it->GetMaterial();
-                        if (mat)
+                        bool tex_set = false;
+                        if (it)
                         {
-                            button_array[count]->SetBrushFromTexture(mat);
-                            tex_set = true;
+                            buttons[button_array[count]] = it;
+                            auto mat = it->GetMaterial();
+                            if (mat)
+                            {
+                                button_array[count]->SetBrushFromTexture(mat);
+                                tex_set = true;
+                            }
                         }
+                        if (!tex_set)
+                        {
+                            button_array[count]->SetBrushColor(FLinearColor(0.2, 0.2, 0.2));
+                        }
+                        count += 1;
                     }
-                    if (!tex_set)
-                    {
-                        button_array[count]->SetBrushColor(FLinearColor(0.2,0.2,0.2));
-                    }
-                    count += 1;
                 }
             }
         }

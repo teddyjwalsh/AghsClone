@@ -61,8 +61,8 @@ public:
 		{
 			return;
 		}
+		UGameplayStatics::OpenLevel(GetWorld(), FName("GameTestMap"), true, L"?listen");
 		SessionMenuInterface->Host("CoopPuzzleGameServer");
-		UGameplayStatics::OpenLevel(GetWorld(), FName("GameTestMap"));
 	}
 
 	UFUNCTION()

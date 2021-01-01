@@ -9,6 +9,7 @@
 #include "Shop.h"
 #include "BlinkDagger.h"
 #include "GameFramework/GameUserSettings.h"
+#include "GameMapsSettings.h"
 #include "Interfaces/OnlineSessionInterface.h"
 
 TMap<FString, UTexture2D*> FCharacterSpec::textures;
@@ -38,7 +39,9 @@ AAghsCloneGameMode::AAghsCloneGameMode()
 		MyGameSettings->SetFullscreenMode(EWindowMode::Windowed);
 		MyGameSettings->SetVSyncEnabled(true);
 		MyGameSettings->ApplySettings(true);
+		bUseSeamlessTravel = true;
 	}
+	
 }
 
 void AAghsCloneGameMode::StartPlay()

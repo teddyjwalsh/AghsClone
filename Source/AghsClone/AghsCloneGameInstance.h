@@ -44,18 +44,17 @@ public:
 	UFUNCTION( BlueprintCallable )
 	void Init()
 	{
-
+		/*
 		MainMenuClass = UMainMenu::StaticClass();
 		MainMenu = CreateWidget<UMainMenu>(this, MainMenuClass);
 		MainMenu->SetPositionInViewport(FVector2D(0, 0));
 		MainMenu->AddToViewport(9999); // Z-order, this just makes it render on the very top.
 		MainMenu->SessionMenuInterface = Cast<ISessionMenuInterface>(this);
-
+		*/
 		IOnlineSubsystem* SubSystem = IOnlineSubsystem::Get();
 		SessionInterface = SubSystem->GetSessionInterface();
 		if (SessionInterface.IsValid())
 		{
-
 			// Subscribe to minimun events to handling sessions﻿﻿﻿﻿
 			SessionInterface->OnCreateSessionCompleteDelegates.AddUObject(this, &UAghsCloneGameInstance::OnCreateSessionComplete);
 			
@@ -91,8 +90,12 @@ public:
 		// session
 		APlayerController* PlayerController =
 			GetFirstLocalPlayerController();
-		PlayerController->ClientTravel(Url,
-			ETravelType::TRAVEL_Absolute);
+		if (PlayerController)
+		{
+			UGameplayStatics::OpenLevel(GetWorld(), FName("GameTestMap"));
+			PlayerController->ClientTravel(Url,
+				ETravelType::TRAVEL_Absolute);
+		}
 	}
 
 	UFUNCTION()
@@ -117,6 +120,8 @@ public:
 					Data.CurrentPlayers = Data.MaxPlayers - SearchResult.Session.NumOpenPublicConnections;
 					Data.HostUsername = SearchResult.Session.OwningUserName;
 					ServerData.Add(Data);
+					SessionInterface->JoinSession(0, SESSION_NAME, SearchResult);
+					break;
 				}
 				// Send the information back to the menu
 				//MainMenu->InitializeSessionsList(ServerData);
@@ -131,8 +136,8 @@ public:
 		if (SessionInterface.IsValid())
 		{
 			FOnlineSessionSettings SessionSettings;
-			SessionSettings.bIsLANMatch = false;
-				SessionSettings.NumPublicConnections = 2;
+			SessionSettings.bIsLANMatch = true;
+				SessionSettings.NumPublicConnections = 1;
 			SessionSettings.bShouldAdvertise = true;
 			SessionSettings.bUsesPresence = true;
 			SessionSettings.Set(SERVER_NAME_SETTINGS_KEY, DesiredServerName,
@@ -159,7 +164,7 @@ public:
 
 		if (Index < (uint32)(SessionSearch->SearchResults.Num()))
 		{
-			SessionInterface->JoinSession(0, SESSION_NAME, SessionSearch->SearchResults[Index]);
+			//SessionInterface->JoinSession(0, SESSION_NAME, SessionSearch->SearchResults[Index]);
 		}
 	}
 
