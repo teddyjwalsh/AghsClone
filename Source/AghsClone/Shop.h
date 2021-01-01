@@ -142,10 +142,18 @@ public:
 
 	static AShop* GetClosestShop(AActor* in_actor, ItemId item_id = -1)
 	{
+		float min_rad = 100000;
+		AShop* nearest_shop = nullptr;
+		if (shops.Num())
+		{
+			nearest_shop = shops[0];
+		}
 		for (auto& s : shops)
 		{
-			if ((in_actor->GetActorLocation() - s->GetActorLocation()).Size() < s->radius)
+			if ((in_actor->GetActorLocation() - s->GetActorLocation()).Size() < min_rad)
 			{
+				nearest_shop = s;
+				min_rad = (in_actor->GetActorLocation() - s->GetActorLocation()).Size();
 				if (item_id == -1)
 				{
 					return s;
@@ -157,7 +165,7 @@ public:
 				}
 			}
 		}
-		return default_shop;
+		return nearest_shop;
 	}
 
 

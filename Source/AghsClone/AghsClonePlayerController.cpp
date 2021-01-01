@@ -627,5 +627,6 @@ void AAghsClonePlayerController::SpawnHero_Implementation(UClass* in_hero)
 
 void AAghsClonePlayerController::OnCharacterSelect_Implementation()
 {
-	CharacterSelectWidget->RemoveFromViewport();
+	CharacterSelectWidget->SetVisibility(ESlateVisibility::Hidden);
+	CharacterSelectWidget->SetIsEnabled(false);
 }

@@ -81,7 +81,7 @@ void UCharacterSelectionWidget::OnItemClicked(UMultiButton* in_button)
     auto child_index = grid->GetChildIndex(in_button);
     auto pc = Cast<AAghsClonePlayerController>(GetWorld()->GetFirstLocalPlayerFromController()->GetPlayerController(GetWorld()));
     pc->SpawnHero(character->CharClass);
-    UE_LOG(LogTemp, Warning, TEXT("Bought %d"), child_index)
+    UE_LOG(LogTemp, Warning, TEXT("Chose Character %d"), child_index)
 }
 
 bool UCharacterSelectWidget::Initialize()

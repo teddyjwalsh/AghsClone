@@ -198,7 +198,7 @@ protected:
 		}
 		if (CharacterSelectWidget)
 		{
-			if (!CharacterSelectWidget->IsPendingKillOrUnreachable())
+			if (!CharacterSelectWidget->IsPendingKillOrUnreachable() && IsValid(CharacterSelectWidget))
 			{
 				if (CharacterSelectWidget->GridIsHovered())
 				{
