@@ -25,7 +25,6 @@ class AAghsClonePlayerController : public APlayerController
 	float mx, my;
 	int32 wx, wy;
 	bool select_box_on;
-	
 
 	FVector2D select_box_start;
 	FVector2D select_box_end;
@@ -48,6 +47,11 @@ public:
 	UInventoryWidget* InventoryWidget;
 	UAbilitiesWidget* AbilitiesWidget;
 	UMainMenu* MainMenu;
+
+	/** A decal that projects to the cursor location. */
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
+	class UDecalComponent* MoveCommandIndicator;
+	ConstructorHelpers::FObjectFinder<UMaterial>* MoveIndicatorAsset;
 
 	int32 team;
 

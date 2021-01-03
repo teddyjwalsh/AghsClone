@@ -2,6 +2,8 @@
 
 #include "AghsClonePlayerController.h"
 
+#include <string>
+
 #include "GameFramework/PlayerController.h"
 #include "Blueprint/AIBlueprintHelperLibrary.h"
 #include "Runtime/Engine/Classes/Components/DecalComponent.h"
@@ -18,6 +20,7 @@
 #include "FieldActorInterface.h"
 #include "WalletComponent.h"
 #include "InventoryComponent.h"
+#include "MoveIndicator.h"
 
 #include "Shop.h"
 
@@ -29,6 +32,7 @@ AAghsClonePlayerController::AAghsClonePlayerController()
 	character_selected = false;
 	//bReplicates = true;
 	//SetReplicateMovement(true);
+	MoveIndicatorAsset = new ConstructorHelpers::FObjectFinder<UMaterial>(TEXT("Material'/Game/Materials/MoveIndicatorDecal.MoveIndicatorDecal'"));
 }
 
 void AAghsClonePlayerController::BeginPlay()
@@ -349,6 +353,10 @@ void AAghsClonePlayerController::SetNewMoveDestination_Implementation(const FVec
 			move_command.command_type = MOVE;
 			move_command.location = DestLocation;
 			MyPawn->SetCommand(move_command);
+
+			auto ci = GetWorld()->SpawnActor<AMoveIndicator>();
+			ci->SetActorLocation(DestLocation + FVector(0,0,10));
+			ci->SetLifeSpan(0.5);
 		}
 	}
 }
@@ -363,6 +371,8 @@ void AAghsClonePlayerController::CommandAttack_Implementation(const FCommand& in
 
 void AAghsClonePlayerController::OnSetDestinationPressed()
 {
+	static int count = 0;
+
 	// set flag to keep updating destination until released
 	if (!hud_clicked)
 	{
