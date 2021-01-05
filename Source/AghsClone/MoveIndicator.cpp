@@ -12,7 +12,6 @@ AMoveIndicator::AMoveIndicator()
 	MoveIndicatorDecal = CreateDefaultSubobject<UDecalComponent>(TEXT("MoveIndicatorDecal"));
 	MoveIndicatorDecal->SetupAttachment(RootComponent);
 	DecalMaterialAsset = new ConstructorHelpers::FObjectFinder<UMaterial>(TEXT("Material'/Game/Materials/MoveIndicatorDecal.MoveIndicatorDecal'"));
-	
 }
 
 // Called when the game starts or when spawned

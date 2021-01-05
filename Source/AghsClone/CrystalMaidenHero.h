@@ -10,6 +10,7 @@
 
 #include "Hero.h"
 #include "Components/CapsuleComponent.h"
+#include "Engine/StaticMeshActor.h"
 #include "StatusManager.h"
 #include "CrystalMaidenHero.generated.h"
 
@@ -46,6 +47,9 @@ class AGHSCLONE_API ACrystalNova : public AAbilityInstance
 	/** A decal that projects to the cursor location. */
 	UPROPERTY(Replicated, VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
 	class UDecalComponent* IceCircle;
+	ConstructorHelpers::FObjectFinder<UMaterial>* DecalMaterialAsset;
+	UMaterialInstanceDynamic* DynDecalMaterial;
+	float anim_time;
 
 public:
 	// Sets default values for this actor's properties
@@ -67,17 +71,9 @@ public:
 		ticked_once = false;
 		
 		// Create a decal in the world to show the cursor's location
-		IceCircle = CreateDefaultSubobject<UDecalComponent>("IceCircle");
+		IceCircle = CreateDefaultSubobject<UDecalComponent>(TEXT("IceCircleDecal"));
 		IceCircle->SetupAttachment(RootComponent);
-		static ConstructorHelpers::FObjectFinder<UMaterial> DecalMaterialAsset(TEXT("Material'/Game/Materials/IceCircleDecal.IceCircleDecal'"));
-		if (DecalMaterialAsset.Succeeded())
-		{
-			IceCircle->SetDecalMaterial(DecalMaterialAsset.Object);
-		}
-		IceCircle->DecalSize = FVector(100.0f, 500.0f, 500.0f);
-		IceCircle->SetRelativeRotation(FRotator(90.0f, 0.0f, 0.0f).Quaternion());
-		IceCircle->SetRelativeLocation(FVector(0, 0, 95));
-		IceCircle->SetSortOrder(0);
+		DecalMaterialAsset = new ConstructorHelpers::FObjectFinder<UMaterial>(TEXT("Material'/Game/Materials/IceCircleDecal.IceCircleDecal'"));
 
 	}
 
@@ -93,6 +89,17 @@ protected:
 	{
 		Super::BeginPlay();
 		SetLifeSpan(2.0);
+
+		DynDecalMaterial = UMaterialInstanceDynamic::Create(DecalMaterialAsset->Object, this);
+		anim_time = 0;
+		if (DecalMaterialAsset->Succeeded())
+		{
+			IceCircle->SetDecalMaterial(DynDecalMaterial);
+		}
+		IceCircle->DecalSize = FVector(100.0f, 500.0f, 500.0f);
+		IceCircle->SetRelativeRotation(FRotator(90.0f, 0.0f, 0.0f).Quaternion());
+		IceCircle->SetRelativeLocation(FVector(0, 0, 95));
+		IceCircle->SetSortOrder(0);
 	}
 
 public:
@@ -101,7 +108,9 @@ public:
 	{
 		Super::Tick(DeltaTime);
 		ticked_once = true;
-		SetEnabled(false);
+		//SetEnabled(false);
+		anim_time += DeltaTime;
+		DynDecalMaterial->SetScalarParameterValue("AnimTime", anim_time);
 		//DrawDebugComponents();
 		//Destroy();
 	}
@@ -166,6 +175,30 @@ public:
 		instances.push_back(new_instance);
 	}
 };
+/*
+UCLASS()
+class AGHSCLONE_API AFrostbiteModel : public AActor
+{
+	GENERATED_BODY()
+
+	ConstructorHelpers::FObjectFinder<UMaterial>* DecalMaterialAsset;
+	UMaterialInstanceDynamic* DynDecalMaterial;
+	float anim_time;
+
+public:
+	// Sets default values for this actor's properties
+	AFrostbiteModel();
+
+protected:
+	// Called when the game starts or when spawned
+	virtual void BeginPlay() override;
+
+public:
+	// Called every frame
+	virtual void Tick(float DeltaTime) override;
+
+};
+*/
 
 UCLASS(Blueprintable)
 class UFrostbiteRoot : public UStatusEffect
@@ -181,15 +214,42 @@ public:
 	float max_duration = 1.5;
 	int32 damage_instances = 0;
 	int32 max_instances;
+	AStaticMeshActor* ice;
+	bool first_time;
+	ConstructorHelpers::FObjectFinder<UStaticMesh>* ice_mesh;
+	ConstructorHelpers::FObjectFinder<UMaterial>* ice_mat;
 
 	UFrostbiteRoot()
 	{
 		bRooted = true;
 		max_instances = int32((max_duration / damage_tick));
+		first_time = true;
+		ice_mesh = new ConstructorHelpers::FObjectFinder<UStaticMesh>(TEXT("Material'/Game/Geometry/Meshes/frostbite.frostbite'"));
+		ice_mat = new ConstructorHelpers::FObjectFinder<UMaterial>(TEXT("Material'/Game/Materials/FrostbiteIce.FrostbiteIce'"));
 	}
 
 	virtual void TickStatus(float dt) override
 	{
+		/*
+		if (first_time)
+		{
+			FActorSpawnParameters new_ice;
+			
+			ice = GetWorld()->SpawnActor<AStaticMeshActor>();
+			ice->SetMobility(EComponentMobility::Movable);
+			auto smc = ice->GetStaticMeshComponent();
+			
+			
+			smc->SetStaticMesh(ice_mesh->Object);
+			ice->SetActorLocation(GetOwner()->GetActorLocation() + FVector(0, 0, -60));
+			smc->SetMaterial(0, ice_mat->Object);
+			smc->SetWorldScale3D(FVector(0.2, 0.2, 0.2));
+			ice->SetActorEnableCollision(false);
+			ice->SetReplicates(true);
+			smc->SetIsReplicated(true);
+			first_time = false;
+		}
+		*/
 		time += dt;
 		if (time - last_time > damage_tick)
 		{
@@ -209,6 +269,7 @@ public:
 		if (time >= max_duration)
 		{
 			bFinished = true;
+			ice->Destroy();
 		}
 	}
 };

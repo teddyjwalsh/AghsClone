@@ -320,6 +320,10 @@ void AAghsClonePlayerController::MoveToMouseCursor()
 		{
 			// We hit something, move there
 			SetNewMoveDestination(Hit.ImpactPoint);
+
+			auto ci = GetWorld()->SpawnActor<AMoveIndicator>();
+			ci->SetActorLocation(Hit.ImpactPoint + FVector(0, 0, 10));
+			ci->SetLifeSpan(0.5);
 		}
 	}
 }
@@ -354,9 +358,6 @@ void AAghsClonePlayerController::SetNewMoveDestination_Implementation(const FVec
 			move_command.location = DestLocation;
 			MyPawn->SetCommand(move_command);
 
-			auto ci = GetWorld()->SpawnActor<AMoveIndicator>();
-			ci->SetActorLocation(DestLocation + FVector(0,0,10));
-			ci->SetLifeSpan(0.5);
 		}
 	}
 }
