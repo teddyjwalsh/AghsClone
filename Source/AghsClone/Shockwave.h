@@ -12,14 +12,14 @@
 #include "Shockwave.generated.h"
 
 UCLASS(Blueprintable)
-class UShockwaveSlow : public UStatusEffect
+class AShockwaveSlow : public AStatusEffect
 {
 	GENERATED_BODY()
 
 	float slow;
 
 public:
-	UShockwaveSlow()
+	AShockwaveSlow()
 	{
 		max_duration = 3;
 		slow = -100;

@@ -28,7 +28,7 @@ void UStatusManager::BeginPlay()
 void UStatusManager::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
-	TArray<UStatusEffect*> to_remove;
+	TArray<AStatusEffect*> to_remove;
 	for (auto& status_it : statuses)
 	{
 		status_it->TickStatus(DeltaTime);
@@ -52,6 +52,7 @@ void UStatusManager::TickComponent(float DeltaTime, ELevelTick TickType, FActorC
 	for (auto& rem : to_remove)
 	{
 		statuses.Remove(rem);
+		rem->Destroy();
 	}
 	// ...
 }

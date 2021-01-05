@@ -99,7 +99,7 @@ public:
                             auto status_manager = Cast<UStatusManager>(act->GetComponentByClass(UStatusManager::StaticClass()));
                             if (status_manager)
                             {
-                                auto status_effect = NewObject<UStatusEffect>(GetWorld(), status_effect_class);
+                                auto status_effect = NewObject<AStatusEffect>(GetWorld(), status_effect_class);
                                 status_manager->AddStatus(status_effect);
                             }
                         }

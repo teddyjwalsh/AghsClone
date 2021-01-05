@@ -8,7 +8,7 @@
 #include "StatusManager.generated.h"
 
 UCLASS(Blueprintable)
-class AGHSCLONE_API UStatusEffect : public UObject,
+class AGHSCLONE_API AStatusEffect : public AActor,
 	public IStatInterface
 {
 	GENERATED_BODY()
@@ -28,7 +28,7 @@ public:
 	bool bSilenced = false;
 	bool bMuted = false;
 
-	UStatusEffect()
+	AStatusEffect()
 	{
 		for (int i = START_STAT_TYPE; i != END_STAT_TYPE; ++i)
 		{
@@ -41,7 +41,7 @@ public:
 		current_duration = 0;
 	}
 
-	~UStatusEffect()
+	~AStatusEffect()
 	{
 		UE_LOG(LogTemp, Warning, TEXT("Deleted Status Effect!"));
 	}
@@ -155,8 +155,8 @@ class AGHSCLONE_API UStatusManager : public UActorComponent,
 {
 	GENERATED_BODY()
 
-	TArray<UStatusEffect*> statuses;
-	TMap<UStatusEffect*, float> linger_times;
+	TArray<AStatusEffect*> statuses;
+	TMap<AStatusEffect*, float> linger_times;
 
 public:	
 	// Sets default values for this component's properties
@@ -203,7 +203,7 @@ public:
 		return false;
 	}
 
-	bool AddStatus(UStatusEffect* in_status)
+	bool AddStatus(AStatusEffect* in_status)
 	{
 		if (!in_status->IsAura())
 		{
@@ -217,7 +217,7 @@ public:
 		return true;
 	}
 
-	bool RefreshStatus(UStatusEffect* in_status)
+	bool RefreshStatus(AStatusEffect* in_status)
 	{
 		bool found = false;
 		for (auto& status : statuses)
@@ -237,7 +237,7 @@ public:
 
 	bool GetStunned() const
 	{
-		for (UStatusEffect* si : statuses)
+		for (AStatusEffect* si : statuses)
 		{
 			if (si->bStunned)
 			{
@@ -249,7 +249,7 @@ public:
 
 	bool GetRooted() const
 	{
-		for (UStatusEffect* si : statuses)
+		for (AStatusEffect* si : statuses)
 		{
 			if (si->bRooted)
 			{
@@ -261,7 +261,7 @@ public:
 
 	bool GetSilenced() const
 	{
-		for (UStatusEffect* si : statuses)
+		for (AStatusEffect* si : statuses)
 		{
 			if (si->bSilenced)
 			{
@@ -273,7 +273,7 @@ public:
 
 	bool GetMuted() const
 	{
-		for (UStatusEffect* si : statuses)
+		for (AStatusEffect* si : statuses)
 		{
 			if (si->bMuted)
 			{

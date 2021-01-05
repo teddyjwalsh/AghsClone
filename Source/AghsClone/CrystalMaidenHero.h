@@ -15,7 +15,7 @@
 #include "CrystalMaidenHero.generated.h"
 
 UCLASS(Blueprintable)
-class UCrystalNovaSlow : public UStatusEffect
+class ACrystalNovaSlow : public AStatusEffect
 {
 	GENERATED_BODY()
 
@@ -23,7 +23,7 @@ class UCrystalNovaSlow : public UStatusEffect
 	float movespeed_multiplier;
 
 public:
-	UCrystalNovaSlow()
+	ACrystalNovaSlow()
 	{
 		
 		max_duration = 4.5;
@@ -65,7 +65,7 @@ public:
 		//bounds->OnComponentBeginOverlap.AddDynamic(this, &ACrystalNova::OnTouch);
 		SetReplicates(true);
 		bounds->SetCapsuleSize(1000, 1000);
-		SetStatusEffect(UCrystalNovaSlow::StaticClass());
+		SetStatusEffect(ACrystalNovaSlow::StaticClass());
 		SetHitDamage(130);
 		SetDamageType(MagicDamage);
 		ticked_once = false;
@@ -148,7 +148,7 @@ class AGHSCLONE_API UCrystalNovaAbility : public UAbility
 		radius = 425;
 		CastPoint = 0.3;
 		CastBackswing = 0.6;
-		SetStatusEffect(UCrystalNovaSlow::StaticClass());
+		SetStatusEffect(ACrystalNovaSlow::StaticClass());
 	}
 
 	std::vector<ACrystalNova*> instances;
@@ -201,7 +201,7 @@ public:
 */
 
 UCLASS(Blueprintable)
-class UFrostbiteRoot : public UStatusEffect
+class AFrostbiteRoot : public AStatusEffect
 {
 	GENERATED_BODY()
 
@@ -216,40 +216,40 @@ public:
 	int32 max_instances;
 	AStaticMeshActor* ice;
 	bool first_time;
+	UStaticMeshComponent* ice_model;
 	ConstructorHelpers::FObjectFinder<UStaticMesh>* ice_mesh;
 	ConstructorHelpers::FObjectFinder<UMaterial>* ice_mat;
 
-	UFrostbiteRoot()
+
+	AFrostbiteRoot()
 	{
 		bRooted = true;
 		max_instances = int32((max_duration / damage_tick));
 		first_time = true;
 		ice_mesh = new ConstructorHelpers::FObjectFinder<UStaticMesh>(TEXT("Material'/Game/Geometry/Meshes/frostbite.frostbite'"));
 		ice_mat = new ConstructorHelpers::FObjectFinder<UMaterial>(TEXT("Material'/Game/Materials/FrostbiteIce.FrostbiteIce'"));
+		ice_model = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("IceModel"));
+		ice_model->SetStaticMesh(ice_mesh->Object);
+		ice_model->SetMaterial(0, ice_mat->Object);
+		ice_model->SetupAttachment(RootComponent);
+		SetReplicates(true);
+		SetActorEnableCollision(false);
 	}
 
 	virtual void TickStatus(float dt) override
 	{
-		/*
+
 		if (first_time)
 		{
-			FActorSpawnParameters new_ice;
-			
-			ice = GetWorld()->SpawnActor<AStaticMeshActor>();
-			ice->SetMobility(EComponentMobility::Movable);
-			auto smc = ice->GetStaticMeshComponent();
-			
-			
-			smc->SetStaticMesh(ice_mesh->Object);
-			ice->SetActorLocation(GetOwner()->GetActorLocation() + FVector(0, 0, -60));
-			smc->SetMaterial(0, ice_mat->Object);
-			smc->SetWorldScale3D(FVector(0.2, 0.2, 0.2));
-			ice->SetActorEnableCollision(false);
-			ice->SetReplicates(true);
-			smc->SetIsReplicated(true);
-			first_time = false;
+			if (owner)
+			{
+				SetActorLocation(owner->GetActorLocation() + FVector(0, 0, -80));
+
+				AttachToActor(owner, FAttachmentTransformRules(EAttachmentRule::SnapToTarget, false));
+				SetActorRelativeScale3D(FVector(0.2, 0.2, 0.2));
+			}
 		}
-		*/
+
 		time += dt;
 		if (time - last_time > damage_tick)
 		{
@@ -269,7 +269,7 @@ public:
 		if (time >= max_duration)
 		{
 			bFinished = true;
-			ice->Destroy();
+			//ice->Destroy();
 		}
 	}
 };
@@ -296,7 +296,7 @@ class AGHSCLONE_API UFrostbiteAbility : public UAbility
 		radius = 425;
 		CastPoint = 0.3;
 		CastBackswing = 0.6;
-		SetStatusEffect(UFrostbiteRoot::StaticClass());
+		SetStatusEffect(AFrostbiteRoot::StaticClass());
 	}
 
 	std::vector<UFrostbiteAbility*> instances;
@@ -317,7 +317,8 @@ public:
 		auto status_manager = Cast<UStatusManager>(in_unit->GetComponentByClass(UStatusManager::StaticClass()));
 		if (status_manager)
 		{
-			auto status_effect = NewObject<UFrostbiteRoot>(GetWorld(), UFrostbiteRoot::StaticClass());
+			//auto status_effect = NewObject<AFrostbiteRoot>(GetWorld(), AFrostbiteRoot::StaticClass());
+			auto status_effect = GetWorld()->SpawnActor<AFrostbiteRoot>();
 			float damage_inc = total_damages[current_level] * (damage_tick / durations[current_level]);
 			int32 max_instances = int32(durations[current_level] / damage_tick);
 			status_effect->total_damage = total_damages[current_level];
@@ -328,7 +329,7 @@ public:
 };
 
 UCLASS(Blueprintable)
-class UArcaneAura : public UStatusEffect
+class AArcaneAura : public AStatusEffect
 {
 	GENERATED_BODY()
 
@@ -339,7 +340,7 @@ class UArcaneAura : public UStatusEffect
 public:
 	AActor* Applier;
 
-	UArcaneAura()
+	AArcaneAura()
 	{
 		max_duration = 20.0;
 		ManaRegen = 0.5;
@@ -354,7 +355,7 @@ class AGHSCLONE_API UArcaneAuraAbility : public UAbility
 	GENERATED_BODY()
 
 	UPROPERTY()
-	UArcaneAura* aura;
+	AArcaneAura* aura;
 	float range;
 
 	UArcaneAuraAbility()
@@ -370,7 +371,7 @@ protected:
 	{
 		Super::BeginPlay();
 		PrimaryComponentTick.TickInterval = 0.4f;
-		aura = NewObject<UArcaneAura>(GetWorld(), UArcaneAura::StaticClass());
+		aura = NewObject<AArcaneAura>(GetWorld(), AArcaneAura::StaticClass());
 		aura->Applier = GetOwner();
 	}
 
@@ -417,7 +418,7 @@ class AGHSCLONE_API UFreezingFieldAbility : public UAbility
 		ManaCosts = { { 200,400,600 } };
 		max_level = 3;
 		current_level = 0;
-		SetStatusEffect(UFrostbiteRoot::StaticClass());
+		SetStatusEffect(AFrostbiteRoot::StaticClass());
 	}
 
 	std::vector<UFreezingFieldAbility*> instances;

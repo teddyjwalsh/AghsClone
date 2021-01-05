@@ -64,7 +64,7 @@ void AShockwave::Tick(float DeltaTime)
 					auto status_manager = Cast<UStatusManager>(act->GetComponentByClass(UStatusManager::StaticClass()));
 					if (status_manager)
 					{
-						auto status_effect = NewObject<UStatusEffect>(GetWorld(), UShockwaveSlow::StaticClass());
+						auto status_effect = NewObject<AStatusEffect>(GetWorld(), AShockwaveSlow::StaticClass());
 						status_manager->AddStatus(status_effect);
 					}
 				}
