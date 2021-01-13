@@ -68,6 +68,7 @@ public:
 		SetStatusEffect(ACrystalNovaSlow::StaticClass());
 		SetHitDamage(130);
 		SetDamageType(MagicDamage);
+		bounds->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
 		ticked_once = false;
 		
 		// Create a decal in the world to show the cursor's location

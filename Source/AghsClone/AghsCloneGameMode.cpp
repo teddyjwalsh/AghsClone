@@ -81,4 +81,10 @@ void AAghsCloneGameMode::StartPlay()
 	new_item->CastRange = 1200;
 	new_item->SetMaterial("blink_dagger");
 	shop->AddItem(new_item, 5, 800);
+
+	new_item = GetWorld()->SpawnActor<AItem>();
+	new_item->HealthRegen = 50;
+	new_item->ManaRegen = 50;
+	new_item->SetMaterial("chipped_gem");
+	shop->AddItem(new_item, 6, 500);
 }

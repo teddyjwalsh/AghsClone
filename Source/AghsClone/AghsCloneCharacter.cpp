@@ -16,6 +16,7 @@
 #include "Components/PointLightComponent.h"
 #include "Kismet/KismetMathLibrary.h"
 #include "Engine/NetworkObjectList.h"
+#include "Engine/DecalActor.h"
 
 #include "HeadMountedDisplayFunctionLibrary.h"
 #include "Materials/Material.h"
@@ -95,18 +96,67 @@ AAghsCloneCharacter::AAghsCloneCharacter() :
 	TopDownCameraComponent = CreateDefaultSubobject<UCameraComponent>(TEXT("TopDownCamera"));
 	TopDownCameraComponent->SetupAttachment(CameraBoom, USpringArmComponent::SocketName);
 	TopDownCameraComponent->bUsePawnControlRotation = false; // Camera does not rotate relative to arm
+	/*
+	vision_mesh = CreateDefaultSubobject<UProceduralMeshComponent>(TEXT("VisionMesh"));
+	static ConstructorHelpers::FObjectFinder<UMaterial> FOWMat(TEXT("Material'/Game/Materials/FogOfWarInvis.FogOfWarInvis'"));
+	fow_mat = FOWMat.Object;
+	
+	//vision_mesh->SetIsReplicated(true);
+	vision_mesh->SetRenderCustomDepth(true);
+	vision_mesh->SetCastShadow(true);
+	vision_mesh->SetCustomDepthStencilValue(1);
+	vision_mesh->SetRenderInMainPass(true);
+	vision_mesh->SetMaterial(0, fow_mat);
+	TArray < FVector > Vertices;
+	TArray < int32 > Triangles;
+	TArray < FVector > Normals;
+	int max_vision_rays = 100;
+	Vertices.Add(GetActorLocation());
+	for (int i = 0; i < max_vision_rays; ++i)
+	{
+		FHitResult out_hit;
+		auto actor_loc = GetActorLocation();
+		float angle = i * 2 * PI / (max_vision_rays - 2);
+		FVector out_vec(cos(angle), sin(angle), 0);
 
-	GetMesh()->SetLightingChannels(false, false, true);
+		Vertices.Add(GetActorLocation() + out_vec * vision_radius);
+		if (i != 0)
+		{
+			Triangles.Add(0);
+			Triangles.Add(i);
+			Triangles.Add(i - 1);
+			Normals.Add(FVector(0, 0, 1));
+		}
+	}
+	//Vertices.AddZeroed(101);
+	//Normals.AddZeroed(99);
+	TArray < FVector2D > UV0;
+	TArray < FColor > VertexColors;
+	TArray < FProcMeshTangent > Tangents;
+	vision_mesh->CreateMeshSection(0, Vertices, Triangles, Normals, UV0, VertexColors, Tangents, false);
+	*/
+	GetMesh()->SetRenderCustomDepth(true);
+	GetMesh()->SetCustomDepthStencilValue(1);
 
+	//auto vision_mat = vision_mesh->GetMaterial(0);
+	//vision_mesh->SetRelativeLocation(FVector(0, 0, -(RootComponent->GetRelativeScale3D().Z/2.0)));
+	
+	//vision_mesh->SetVisibility(false);
+	
+	//vision_mesh->SetupAttachment(RootComponent);
+
+	//GetMesh()->SetLightingChannels(false, false, true);
+	/**/
 	VisionLight = CreateDefaultSubobject<UPointLightComponent>(TEXT("VisionLight"));
 	VisionLight->SetupAttachment(RootComponent);
-	VisionLight->SetLightingChannels(true, true, false);
+	VisionLight->SetLightingChannels(false, false, false);
 	VisionLight->SetLightFalloffExponent(0.1);
 	VisionLight->SetSpecularScale(0);
 	VisionLight->ShadowResolutionScale = 8.0;
 	VisionLight->bUseInverseSquaredFalloff = false;
 	VisionLight->SetAttenuationRadius(GetVisionRadius());
 	VisionLight->SetIntensity(20);
+	
 
 	Inventory = CreateDefaultSubobject<UInventoryComponent>(TEXT("Inventory"));
 	Inventory->SetIsReplicated(true);
@@ -204,21 +254,21 @@ void AAghsCloneCharacter::Tick(float DeltaSeconds)
 
 	FDateTime t = FDateTime::UtcNow();
 	double ts = t.ToUnixTimestamp() + t.GetMillisecond() * 1.0 / 1000;
-
+	auto channeled_interface = Cast<IAbilityInterface>(ChanneledAbility);
 	if (HasAuthority())
 	{
 		if (ChanneledAbility)
 		{
-			if (ChanneledAbility->IsDoneChanneling())
+			if (channeled_interface->IsDoneChanneling())
 			{
-				ChanneledAbility->EndChannel();
+				channeled_interface->EndChannel();
 				ChanneledAbility = nullptr;
 				NextCommand();
 			}
 		}
         if (ChanneledAbility && GetLastCommand() != GetCurrentCommand())
         {
-            ChanneledAbility->EndChannel();
+			channeled_interface->EndChannel();
             ChanneledAbility = nullptr;
             NextCommand();
         }
@@ -234,7 +284,7 @@ void AAghsCloneCharacter::Tick(float DeltaSeconds)
 			UAIBlueprintHelperLibrary::SimpleMoveToLocation(GetController(), GetActorLocation());
             if (ChanneledAbility)
             {
-                ChanneledAbility->EndChannel();
+				channeled_interface->EndChannel();
                 ChanneledAbility = nullptr;
                 NextCommand();
             }
@@ -412,7 +462,7 @@ void AAghsCloneCharacter::ProcessAbilityCommand(const FCommand& in_command, floa
 			}
 			if (ability_interface->IsChanneling())
 			{
-				ChanneledAbility = ability_interface;
+				ChanneledAbility = Cast<UObject>(ability_interface);
 				char_state = Channeling;
 			}
 		}
@@ -544,4 +594,31 @@ void AAghsCloneCharacter::ProcessAttackMove(const FCommand& in_command, float dt
         default:
             break; 
     }
+}
+/*
+void AAghsCloneCharacter::SetVisionMesh(
+	const TArray < FVector >& Vertices,
+	const TArray < int32 >& Triangles,
+	const TArray < FVector >& Normals
+)
+{
+	TArray < FVector2D > UV0;
+	TArray < FColor > VertexColors;
+	TArray < FProcMeshTangent > Tangents;
+	if (!vision_mesh->GetNumSections())
+	{
+		vision_mesh->CreateMeshSection(0, Vertices, Triangles, Normals, UV0, VertexColors, Tangents, false);
+	}
+	else
+	{
+		vision_mesh->UpdateMeshSection(0, Vertices, Normals, UV0, VertexColors, Tangents);
+		bool visible = vision_mesh->IsVisible();
+		auto mat = vision_mesh->GetMaterial(0);
+	}
+}
+*/
+
+void AAghsCloneCharacter::SetVisionMesh(AFogOfWarMesh* in_mesh)
+{
+	vision_mesh = in_mesh;
 }

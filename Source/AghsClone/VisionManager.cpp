@@ -22,7 +22,7 @@ AVisionManager::AVisionManager()
 	vision_bounds->SetAbsolute(true, true, true);
 
 	//vision_positions = CreateDefaultSubobject<UMaterialParameterCollection>(TEXT("vision_positions"));
-
+	vision_update_timer = 0.0;
 	SetReplicates(false);
 	
 }
@@ -34,14 +34,94 @@ void AVisionManager::BeginPlay()
 	first_iteration = true;
 }
 
+void AVisionManager::create_client_fow(AActor* act, const TArray<AActor*>& field_actors)
+{
+#if WITH_EDITOR
+	ENetMode netMode = GetWorld()->GetNetMode();
+	ENetRole netRole = GetLocalRole();
+	ENetRole netRoleRemote = GetRemoteRole();
+#endif
+
+	FCollisionQueryParams ignore_me;
+	//ignore_me.AddIgnoredActor(act);
+	ignore_me.AddIgnoredActors(field_actors);
+
+	TArray<FVector> Vertices;
+	TArray<int32> Triangles;
+	TArray<FVector> Normals;
+
+	if (GetWorld()->IsClient())
+	{
+		printf("IS CLIENT WHEN SHOULD BE CLIENT!!!!");
+	}
+
+	int max_vision_rays = 100;
+	Vertices.Add(vision_bounds->GetComponentLocation());
+	for (int i = 0; i < max_vision_rays; ++i)
+	{
+		FHitResult out_hit;
+		auto actor_loc = act->GetActorLocation();
+		float angle = i * 2 * PI / (max_vision_rays - 2);
+		FVector out_vec(cos(angle), sin(angle), 0);
+
+		GetWorld()->LineTraceSingleByChannel(out_hit,
+			vision_bounds->GetComponentLocation(),
+			vision_bounds->GetComponentLocation() + out_vec * vision_bounds->GetScaledSphereRadius(),
+			ECollisionChannel::ECC_WorldDynamic,
+			ignore_me);
+
+		if (out_hit.bBlockingHit)
+		{
+			Vertices.Add(vision_bounds->GetComponentLocation() + out_vec * (out_hit.Distance + 10));
+			if (i != 0)
+			{
+				Triangles.Add(0);
+				Triangles.Add(i);
+				Triangles.Add(i - 1);
+				Normals.Add(FVector(0, 0, 1));
+			}
+		}
+		else
+		{
+			Vertices.Add(vision_bounds->GetComponentLocation() + out_vec * vision_bounds->GetScaledSphereRadius());
+			if (i != 0)
+			{
+				Triangles.Add(0);
+				Triangles.Add(i);
+				Triangles.Add(i - 1);
+				Normals.Add(FVector(0, 0, 1));
+			}
+		}
+	}
+
+	if (vision_meshes.find(act) == vision_meshes.end())
+	{
+		vision_meshes[act] = GetWorld()->SpawnActor<AFogOfWarMesh>();
+	}
+	auto aghs_char = Cast<AAghsCloneCharacter>(act);
+	if (aghs_char)
+	{
+		vision_meshes[act]->SetVisionMesh(Vertices, Triangles, Normals);
+		aghs_char->SetVisionMesh(vision_meshes[act]);
+	}
+}
+
 // Called every frame
 void AVisionManager::Tick(float DeltaTime)
 {
-	Super::Tick(DeltaTime);
-	if (!GetWorld()->IsServer())
+	//if (!GetWorld()->IsServer())
+	if (!HasAuthority())
 	{
 		return;
 	}
+	Super::Tick(DeltaTime);
+
+#if WITH_EDITOR
+	ENetMode netMode = GetWorld()->GetNetMode();
+	ENetRole netRole = GetLocalRole();
+	ENetRole netRoleRemote = GetRemoteRole();
+#endif
+
 	TArray<AActor*> vision_actors;
 	UGameplayStatics::GetAllActorsWithInterface(GetWorld(), UVisionInterface::StaticClass(), vision_actors);
 	TArray<AActor*> field_actors;
@@ -116,6 +196,83 @@ void AVisionManager::Tick(float DeltaTime)
 				//team_vision_sets[vision_team].erase(near_actor);
 			}
 		}
+		/*
+		TArray<FVector> Vertices;
+		TArray<int32> Triangles;
+		TArray<FVector> Normals;
+
+		int max_vision_rays = 100;
+		Vertices.Add(vision_bounds->GetComponentLocation());
+		for (int i = 0; i < max_vision_rays; ++i)
+		{
+			FHitResult out_hit;
+			auto actor_loc = act->GetActorLocation();
+			float angle = i * 2*PI / (max_vision_rays-2);
+			FVector out_vec(cos(angle), sin(angle), 0);
+
+			GetWorld()->LineTraceSingleByChannel(out_hit,
+				vision_bounds->GetComponentLocation(),
+				vision_bounds->GetComponentLocation() + out_vec * vision_bounds->GetScaledSphereRadius(),
+				ECollisionChannel::ECC_WorldDynamic,
+				ignore_me);
+
+			if (out_hit.bBlockingHit)
+			{
+				Vertices.Add(vision_bounds->GetComponentLocation() + out_vec * (out_hit.Distance + 10));
+				if (i != 0)
+				{
+					Triangles.Add(0);
+					Triangles.Add(i);
+					Triangles.Add(i-1);
+					Normals.Add(FVector(0, 0, 1));
+				}
+			}
+			else
+			{
+				Vertices.Add(vision_bounds->GetComponentLocation() + out_vec * vision_bounds->GetScaledSphereRadius());
+				if (i != 0)
+				{
+					Triangles.Add(0);
+					Triangles.Add(i);
+					Triangles.Add(i - 1);
+					Normals.Add(FVector(0, 0, 1));
+				}
+			}
+		}
+		
+		
+		if (vision_meshes.find(act) == vision_meshes.end())
+		{
+			//UProceduralMeshComponent* new_mesh = NewObject<UProceduralMeshComponent>(act, UProceduralMeshComponent::StaticClass());
+			//act->AddOwnedComponent(new_mesh);
+			//vision_meshes[act] = new_mesh;
+			//vision_meshes[act]->CreateMeshSection(0, Vertices, Triangles, Normals, UV0, VertexColors, Tangents, true);
+			auto aghs_char = Cast<AAghsCloneCharacter>(act);
+			if (aghs_char)
+			{
+				aghs_char->SetVisionMesh(Vertices, Triangles, Normals);
+			}
+		}
+
+		*/
+		if (!HasAuthority())
+		{
+			printf("IS CLIENT WHEN SHOULD BE SERVER");
+		}
+		if (vision_meshes.find(act) == vision_meshes.end())
+		{
+			vision_meshes[act] = GetWorld()->SpawnActor<AFogOfWarMesh>();
+			auto aghs_char = Cast<AAghsCloneCharacter>(act);
+			if (aghs_char)
+			{
+				//vision_meshes[act]->create_client_fow(act, vision_bounds, field_actors);
+				aghs_char->SetVisionMesh(vision_meshes[act]);
+			}
+			vision_meshes[act]->SetVisionActor(act);
+			
+		}
+		
+		//vision_meshes[act]->
 	}
 	auto pit = GetWorld()->GetPlayerControllerIterator();
 	int count = 0;
@@ -129,31 +286,58 @@ void AVisionManager::Tick(float DeltaTime)
 		}
 		if (pc)
 		{
+			/*
+			FVector cam_loc;
+			FRotator cam_rot;
+			pc->PlayerCameraManager->GetCameraViewPoint(cam_loc, cam_rot);
+			pc->PlayerCameraManager->Camera
+			*/
+			bool do_update = false;
+			if (vision_update_timer > 2)
+			{
+				do_update = true;
+				vision_update_timer = 0;
+			}
 			for (auto& act : field_actors)
 			{
 				bool new_actor = false;
+				auto find_act = team_vision_sets[pc->GetTeam()].find(act);
+				auto find_act_old = old_sets[pc->GetTeam()].find(act);
 				if (field_actor_record.Find(act) == INDEX_NONE)
 				{
 					new_actor = true;
 				}
 				//if (GetGameTimeSinceCreation() > 2.0)
 				{
-					if (team_vision_sets[pc->GetTeam()].find(act) == team_vision_sets[pc->GetTeam()].end() &&
-						(old_sets[pc->GetTeam()].find(act) != old_sets[pc->GetTeam()].end() || new_controller))
+					if (find_act == team_vision_sets[pc->GetTeam()].end() &&
+						(find_act_old != old_sets[pc->GetTeam()].end() || new_controller))
 					{
 						pc->SetLocalActorVisibility(act, false);
 					}
-					else if (team_vision_sets[pc->GetTeam()].find(act) != team_vision_sets[pc->GetTeam()].end() &&
-						(old_sets[pc->GetTeam()].find(act) == old_sets[pc->GetTeam()].end() || new_controller))
+					else if (find_act != team_vision_sets[pc->GetTeam()].end() &&
+						(find_act_old == old_sets[pc->GetTeam()].end() || new_controller))
 					{
 						pc->SetLocalActorVisibility(act, true);
 					}
+				}
+				if (do_update)
+				{
+					if (find_act == team_vision_sets[pc->GetTeam()].end())
+					{
+						pc->SetLocalActorVisibility(act, false);
+					}
+					else
+					{
+						pc->SetLocalActorVisibility(act, true);
+					}
+					
 				}
 			}
 		}
 		player_controllers.insert(pc);
 	}
 	field_actor_record = field_actors;
+	vision_update_timer += DeltaTime;
 	return;
 }
 

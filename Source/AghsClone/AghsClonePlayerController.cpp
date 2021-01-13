@@ -69,11 +69,23 @@ void AAghsClonePlayerController::SetLocalActorVisibility_Implementation(AActor* 
 		//ap->GetMesh()->SetVisibility(is_visible);
 		//ap->GetCapsuleComponent()->SetVisibleFlag(is_visible);
 		in_actor->SetActorHiddenInGame(!is_visible);
+		if (is_visible)
+		{
+			auto mesh_comp = Cast<UPrimitiveComponent>(in_actor->GetComponentByClass(UPrimitiveComponent::StaticClass()));
+			if (mesh_comp)
+			{
+				//mesh_comp->SetRenderCustomDepth(true);
+			}
+		}
 		if (ap)
 		{
 			if (ap->GetTeam() != GetTeam())
 			{
 				ap->GetVisionLight()->SetVisibility(false);
+				if (ap->GetVisionMesh())
+				{
+					ap->GetVisionMesh()->SetVisibility(false);
+				}
 			}
 		}
 		else

@@ -130,7 +130,7 @@ public:
 					{
 						DrawLevel(xp_interface, FVector2D(vx - 120, vy - 150));
 					}
-                    IAbilityInterface* channeled = sc->GetChanneled();
+                    auto channeled = sc->GetChanneled();
                     if (channeled)
                     {
                         float current = channeled->GetChannelTime();
@@ -183,7 +183,7 @@ public:
 			FVector2D health_box_loc = screen_loc + FVector2D(-20, -30);
 			FCanvasBoxItem box_item(health_box_loc - FVector2D(0, 0), health_box_size + FVector2D(1, 1));
 			float health_fraction = char_health_interface->GetHealth() * 1.0 / char_health_interface->GetMaxHealth();
-			FCanvasTileItem tile_item(health_box_loc, health_box_size * FVector2D(health_fraction, 1), in_color);
+			FCanvasTileItem tile_item(health_box_loc + FVector2D(0, 0), health_box_size * FVector2D(health_fraction, 1) + FVector2D(1, 1), in_color);
 			box_item.SetColor(FLinearColor(1, 1, 1));
 			Canvas->DrawItem(tile_item);
 			Canvas->DrawItem(box_item);
@@ -261,10 +261,10 @@ public:
 
     void DrawChannelBar(float CurrentTime, float MaxTime, FVector2D screen_loc)
     {
-		static auto def_font = GetFontFromSizeIndex(10);
+		static auto def_font = GetFontFromSizeIndex(0);
 		static FCanvasTextItem health_text(FVector2D(0, 0), FText(), def_font, FLinearColor(1, 1, 1));
 
-		FVector2D main_health_box_size(200, 10);
+		FVector2D main_health_box_size(200, 12);
 		FVector2D main_health_box_loc = FVector2D(screen_loc.X - main_health_box_size.X / 2, screen_loc.Y);
 		FCanvasBoxItem box_item(main_health_box_loc - FVector2D(0, 0), main_health_box_size + FVector2D(1, 1));
 		float health_fraction = CurrentTime * 1.0 / MaxTime;

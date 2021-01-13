@@ -13,6 +13,7 @@
 #include "Components/SphereComponent.h"
 #include "NavigationSystem.h"
 #include "NavigationPath.h"
+#include "ProceduralMeshComponent.h"
 #include "Navigation/PathFollowingComponent.h"
 
 #include "Ability.h"
@@ -29,6 +30,7 @@
 #include "StatInterface.h"
 #include "ExperienceInterface.h"
 #include "StatusManager.h"
+#include "FogOfWarMesh.h"
 #include "AghsCloneCharacter.generated.h"
 
 UENUM()
@@ -94,6 +96,7 @@ class AAghsCloneCharacter : public ACharacter,
 	int32 team;
 	UPROPERTY(Replicated, EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
 	AActor* unit_owner;
+	UPROPERTY(Replicated, EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
 	float vision_radius;
 	UPROPERTY(Replicated, EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
 	float attack_range;
@@ -134,6 +137,7 @@ public:
 	FORCEINLINE class UDecalComponent* GetCursorToWorld() { return CursorToWorld; }
 	/** Returns VisionLight subobject **/
 	FORCEINLINE class UPointLightComponent* GetVisionLight() { return VisionLight; }
+	FORCEINLINE class AFogOfWarMesh* GetVisionMesh() { return vision_mesh; }
 
 	virtual float GetStat(StatType stat_type) const override
 	{
@@ -211,6 +215,7 @@ public:
 	{
 		Super::BeginPlay();
 		PrimaryActorTick.bCanEverTick = (GetLocalRole() == ROLE_Authority);
+		//vision_mesh->SetMaterial(0, fow_mat);
 	}
 
 	void SetSelected(bool is_selected)
@@ -716,11 +721,23 @@ public:
 	{
 		return vision_radius;
 	}
+
+	//UFUNCTION(Reliable, Client)
+	/*
+	virtual void SetVisionMesh(
+		const TArray < FVector >& Vertices,
+		const TArray < int32 >& Triangles,
+		const TArray < FVector >& Normals
+	) override;
+	*/
+
+	//UFUNCTION(Reliable, Client)
+	virtual void SetVisionMesh(AFogOfWarMesh* in_mesh) override;
     // END VISION INTERFACE
 
     virtual IAbilityInterface* GetChanneled()
     {
-        return ChanneledAbility;
+        return Cast<IAbilityInterface>(ChanneledAbility);
     }
 
 	void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override
@@ -740,6 +757,9 @@ public:
 		DOREPLIFETIME(AAghsCloneCharacter, Experience);
 		DOREPLIFETIME(AAghsCloneCharacter, AttackProjectileSpeed);
 		DOREPLIFETIME(AAghsCloneCharacter, char_state);
+		DOREPLIFETIME(AAghsCloneCharacter, vision_radius);
+		DOREPLIFETIME(AAghsCloneCharacter, vision_mesh);
+		DOREPLIFETIME(AAghsCloneCharacter, ChanneledAbility);
 	}
 
 	TArray<UAbility*> Abilities;
@@ -775,7 +795,12 @@ private:
 	UPROPERTY(Replicated, VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
 	class UStatusManager* StatusManager;
 
+	UPROPERTY(Replicated, VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
+	class AFogOfWarMesh* vision_mesh;
+
 	class USphereComponent* temp_sphere;
+
+	UMaterial* fow_mat;
 
 	//UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Replicated, meta = (AllowPrivateAccess = "true"))
 	int32 targeting_active;
@@ -785,7 +810,8 @@ private:
 	//UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
 	FCommand current_command;
 	FCommand LastCommand;
-    IAbilityInterface* ChanneledAbility;
+	UPROPERTY(Replicated, VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
+	UObject* ChanneledAbility;
 
 	//UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Replicated, meta = (AllowPrivateAccess = "true"))
 	FVector current_destination;
