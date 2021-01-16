@@ -17,13 +17,14 @@ AFogOfWarMesh::AFogOfWarMesh()
 	fow_mat = FOWMat.Object;
 
 	SetReplicates(true);
-
+	
 	vision_mesh->SetIsReplicated(true);
 	vision_mesh->SetRenderCustomDepth(true);
 	vision_mesh->SetCastShadow(false);
 	vision_mesh->SetCustomDepthStencilValue(1);
 	vision_mesh->SetRenderInMainPass(false);
-	vision_mesh->SetMaterial(0, fow_mat);
+	vision_mesh->bRenderInDepthPass = false;
+	//vision_mesh->SetMaterial(0, fow_mat);
 	TArray < FVector > Vertices;
 	TArray < int32 > Triangles;
 	TArray < FVector > Normals;
@@ -69,6 +70,12 @@ void AFogOfWarMesh::SetVisionMesh_Implementation(
 	const TArray < FVector >& Normals
 )
 {
+#if WITH_EDITOR
+	ENetMode netMode = GetWorld()->GetNetMode();
+	ENetRole netRole = GetLocalRole();
+	ENetRole netRoleRemote = GetRemoteRole();
+#endif
+
 	TArray < FVector2D > UV0;
 	TArray < FColor > VertexColors;
 	TArray < FProcMeshTangent > Tangents;

@@ -22,6 +22,8 @@ UAbility::UAbility()
 	}
 	TargetingDecal->DecalSize = FVector(16.0f, 128.0f, 128.0f);
 	TargetingDecal->SetRelativeRotation(FRotator(90.0f, 0.0f, 0.0f).Quaternion());
+	TargetingDecal->SetHiddenInGame(true);
+	TargetingDecal->SetVisibility(false);
 	// ...
 }
 

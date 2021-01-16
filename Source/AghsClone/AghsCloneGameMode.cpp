@@ -20,12 +20,12 @@ AAghsCloneGameMode::AAghsCloneGameMode()
 	PlayerControllerClass = AAghsClonePlayerController::StaticClass();
 	
 	// set default pawn class to our Blueprinted character
-	static ConstructorHelpers::FClassFinder<APawn> PlayerPawnBPClass(TEXT("/Game/TopDownCPP/Blueprints/TopDownCharacter"));
+	static ConstructorHelpers::FClassFinder<APawn> PlayerPawnBPClass(TEXT("/Game/Blueprints/UnitControllerBP"));
 	if (PlayerPawnBPClass.Class != NULL)
 	{
 		DefaultPawnClass = PlayerPawnBPClass.Class;
 	}
-	DefaultPawnClass = AUnitController::StaticClass();
+	//DefaultPawnClass = AUnitController::StaticClass();
 	HUDClass = AInGameHud::StaticClass();
 	//ReplicationDriver::CreateReplicationDriverDelegate().BindLambda([](UNetDriver* ForNetDriver, const FURL& URL, UWorld* World) -> UReplicationDriver*
 	//		{
