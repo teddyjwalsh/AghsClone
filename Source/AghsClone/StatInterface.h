@@ -15,6 +15,7 @@ enum StatType
 	StatMana,
 	StatAttackSpeed,
 	StatAttackDamage,
+	StatAttackRange,
 	StatMovespeed,
 	StatArmor,
 	StatMagicResist,
@@ -23,6 +24,7 @@ enum StatType
     StatStrength,
     StatAgility,
     StatIntelligence,
+	StatTurnRate,
 	END_STAT_TYPE
 };
 

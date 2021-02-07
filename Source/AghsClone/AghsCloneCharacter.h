@@ -104,6 +104,7 @@ class AAghsCloneCharacter : public ACharacter,
 	float BaseAttackTime;
 	float AttackSpeed;
 	float BaseMovespeed;
+	float TurnRate;
 	double last_attack_time;
 	float AttackTimer;
 	float CastTimer;
@@ -281,6 +282,12 @@ public:
 		MaxHealth = in_val;
 	}
 
+	UFUNCTION(BlueprintCallable)
+	virtual void SetHealthRegen(float in_val)
+	{
+		HealthRegen = in_val;
+	}
+
 	virtual float GetArmor() const override
 	{
 		return GetStat(StatArmor);
@@ -307,6 +314,18 @@ public:
 	virtual void SetAttackDamage(float in_damage)
 	{
 		attack_damage = in_damage;
+	}
+
+	UFUNCTION(BlueprintCallable)
+		virtual void SetAttackSpeed(float in_speed)
+	{
+		AttackSpeed = in_speed;
+	}
+
+	UFUNCTION(BlueprintCallable)
+	virtual void SetAttackRange(float in_range)
+	{
+		attack_range = in_range;
 	}
 
 	virtual float GetMovespeed() const
@@ -340,6 +359,12 @@ public:
 	virtual void SetMaxMana(float in_val)
 	{
 		MaxMana = in_val;
+	}
+
+	UFUNCTION(BlueprintCallable)
+	virtual void SetManaRegen(float in_val)
+	{
+		ManaRegen = in_val;
 	}
 
 	virtual float GetMaxMana() const
@@ -564,7 +589,10 @@ public:
 		return nullptr;
     }
 
-	
+	virtual int32 AbilityCount() const override
+	{
+		return Abilities.Num();
+	}
 
 	bool TriggerTargetedAbility(FVector target_loc)
 	{

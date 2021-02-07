@@ -3,6 +3,7 @@
 
 #include "GameModeInfo.h"
 #include "CrystalMaidenHero.h"
+#include "SniperHero.h"
 
 // Sets default values
 AGameModeInfo::AGameModeInfo()
@@ -16,8 +17,8 @@ AGameModeInfo::AGameModeInfo()
 	temp_char_spec.CharClass = ACrystalMaidenHero::StaticClass();
 	character_list.Add(temp_char_spec);
 
-	temp_char_spec.SetTexture("crystal_maiden");
-	temp_char_spec.CharClass = ACrystalMaidenHero::StaticClass();
+	temp_char_spec.SetTexture("sniper");
+	temp_char_spec.CharClass = ASniperHero::StaticClass();
 	character_list.Add(temp_char_spec);
 }
 

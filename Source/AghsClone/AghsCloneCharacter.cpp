@@ -51,16 +51,19 @@ AAghsCloneCharacter::AAghsCloneCharacter() :
 	AddStat(StatMaxMana, &MaxMana);
 	AddStat(StatArmor, &Armor);
 	AddStat(StatAttackSpeed, &AttackSpeed);
+	AddStat(StatAttackRange, &attack_range);
 	AddStat(StatMovespeed, &BaseMovespeed);
 	AddStat(StatAttackDamage, &attack_damage);
 	AddStat(StatMagicResist, &MagicResist);
 	AddStat(StatHealthRegen, &HealthRegen);
 	AddStat(StatManaRegen, &ManaRegen);
+	AddStat(StatTurnRate, &TurnRate);
 
 	//AutoPossessAI = EAutoPossessAI::PlacedInWorldOrSpawned;
 	Health = 1.0;
 	Mana = 1.0;
 	attack_range = 600;
+	TurnRate = 500;
 	//bReplicates = true;
 	SetReplicates(true);
 	bReplicates = true;
@@ -216,13 +219,15 @@ AAghsCloneCharacter::AAghsCloneCharacter() :
 	//GetCapsuleComponent()->SetIsReplicated(true);
 	FDetachmentTransformRules test_det(EDetachmentRule::KeepRelative, true);
 
-	static ConstructorHelpers::FObjectFinder<USkeletalMesh> Skellie(TEXT("SkeletalMesh'/Game/Mannequin/Character/Mesh/SK_Mannequin.SK_Mannequin'"));
+	static ConstructorHelpers::FObjectFinder<USkeletalMesh> Skellie(TEXT("/Game/characters/wizard/rigged_wizard.rigged_wizard"));
 	GetMesh()->SetSkeletalMesh(Skellie.Object);
-	GetMesh()->SetRelativeLocation(FVector(0, 0, -95));
-	GetMesh()->SetRelativeRotation(FRotator(0, -90, 0));
+	GetMesh()->SetRelativeScale3D(FVector(20, 20, 20));
+	GetMesh()->SetRelativeLocation(FVector(0, 0, 0));
+	GetMesh()->SetRelativeRotation(FRotator(0, 0, 0));
 
 	//static ConstructorHelpers::FObjectFinder<UClass> Skellie_anim(TEXT("/Game/Mannequin/Animations/ThirdPerson_AnimBP.ThirdPerson_AnimBP_C"));
-	static ConstructorHelpers::FObjectFinder<UClass> Skellie_anim(TEXT("/Game/Animations/AghsCharAnimBP.AghsCharAnimBP_C"));
+	//static ConstructorHelpers::FObjectFinder<UClass> Skellie_anim(TEXT("/Game/Animations/AghsCharAnimBP.AghsCharAnimBP_C"));
+	static ConstructorHelpers::FObjectFinder<UClass> Skellie_anim(TEXT("/Game/characters/wizard/WizardAnimBP.WizardAnimBP_C"));
 	//GetMesh()->SetAnimation(Cast<UAnimationAsset>(Skellie_anim.Object));
 	GetMesh()->SetAnimInstanceClass(Skellie_anim.Object);
 	//static ConstructorHelpers::FObjectFinder<UMaterialInterface> ScreenMat(TEXT("SkeletalMesh'/Game/StarterContent/Materials/M_Glass.M_Glass'"));
@@ -403,8 +408,8 @@ void AAghsCloneCharacter::ProcessAbilityCommand(const FCommand& in_command, floa
 		if (angle_diff > 11.5)
 		{
 			PauseMove();
-			float turn_rate = 500;
-			float inc = dt * turn_rate;
+			//float turn_rate = 500;
+			float inc = dt * GetStat(StatTurnRate);
 			if (angle_diff < inc)
 			{
 				inc = angle_diff;
@@ -536,8 +541,8 @@ void AAghsCloneCharacter::ProcessAttackMove(const FCommand& in_command, float dt
 			if (angle_diff > 11.5)
 			{
 				PauseMove();
-				float turn_rate = 500;
-				float inc = dt * turn_rate;
+				//float turn_rate = 500;
+				float inc = dt * GetStat(StatTurnRate);
 				if (angle_diff < inc)
 				{
 					inc = angle_diff;
@@ -553,7 +558,7 @@ void AAghsCloneCharacter::ProcessAttackMove(const FCommand& in_command, float dt
 
 			//SetDestination(command_loc);
 			//Exit Conditions
-			if (diff_vector.Size() <= attack_range && angle_diff < 11.5)
+			if (diff_vector.Size() <= GetStat(StatAttackRange) && angle_diff < 11.5)
 			{
 				UAIBlueprintHelperLibrary::SimpleMoveToLocation(GetController(), GetActorLocation());
 				AttackTimer = 0.0;
@@ -564,7 +569,7 @@ void AAghsCloneCharacter::ProcessAttackMove(const FCommand& in_command, float dt
         case Idle:
             SetDestination(GetActorLocation());
             //Exit Conditions
-            if (diff_vector.Size() > attack_range)
+            if (diff_vector.Size() > GetStat(StatAttackRange))
             {
                 char_state = MovementTowards;
             }

@@ -43,6 +43,7 @@ class AGHSCLONE_API ACrystalNova : public AAbilityInstance
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
 	UCapsuleComponent* bounds;
+	UPROPERTY(Replicated, VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
 	float radius;
 	bool ticked_once;
 
@@ -96,7 +97,7 @@ protected:
 	virtual void BeginPlay() override
 	{
 		Super::BeginPlay();
-		SetLifeSpan(200.0);
+		SetLifeSpan(2.0);
 
 		DynDecalMaterial = UMaterialInstanceDynamic::Create(DecalMaterialAsset->Object, this);
 		anim_time = 0;
@@ -110,8 +111,6 @@ protected:
 		IceCircle->SetSortOrder(0);
 		//UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), EmitterAsset->Object->Get, GetActorLocation(), FRotator(), true);
 		
-
-		
 	}
 
 public:
@@ -122,9 +121,8 @@ public:
 		if (!ticked_once)
 		{
 			//SmokeEmitter = CreateDefaultSubobject<UParticleSystemComponent>(TEXT("IceSmoke"));
-			
 			SmokeEmitter->SetTemplate(EmitterAsset->Object);
-			SmokeEmitter->SetFloatParameter(FName("StartRadius"), radius);
+			SmokeEmitter->SetFloatParameter(FName("StartRadius"), float(int(radius)));
 
 			SmokeEmitter->SetRelativeLocation(FVector(0, 0, 0));
 
@@ -150,6 +148,7 @@ public:
 		Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 		DOREPLIFETIME(ACrystalNova, IceCircle);
 		DOREPLIFETIME(ACrystalNova, SmokeEmitter);
+		DOREPLIFETIME(ACrystalNova, radius);
 	}
 
 };
