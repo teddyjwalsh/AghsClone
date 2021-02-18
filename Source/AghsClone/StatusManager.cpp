@@ -3,13 +3,16 @@
 
 #include "StatusManager.h"
 
+std::map<int, std::unordered_set<AStatusEffect*>> AStatusEffect::timer_status_map;
+std::map<int, FTimerHandle> AStatusEffect::timer_map;
+
 // Sets default values for this component's properties
 UStatusManager::UStatusManager()
 {
 	// Set this component to be initialized when the game starts, and to be ticked every frame.  You can turn these features
 	// off to improve performance if you don't need them.
 	PrimaryComponentTick.bCanEverTick = true;
-
+	PrimaryComponentTick.TickInterval = 0.05f;
 	// ...
 }
 

@@ -12,7 +12,6 @@ UAbility::UAbility()
 	// Set this component to be initialized when the game starts, and to be ticked every frame.  You can turn these features
 	// off to improve performance if you don't need them.
 	PrimaryComponentTick.bCanEverTick = true;
-
 	// Create a decal in the world to show the cursor's location
 	TargetingDecal = CreateDefaultSubobject<UDecalComponent>("TargetingDecal");
 	static ConstructorHelpers::FObjectFinder<UMaterial> DecalMaterialAsset(TEXT("Material'/Game/TopDownCPP/Blueprints/M_Cursor_Decal.M_Cursor_Decal'"));
@@ -24,6 +23,7 @@ UAbility::UAbility()
 	TargetingDecal->SetRelativeRotation(FRotator(90.0f, 0.0f, 0.0f).Quaternion());
 	TargetingDecal->SetHiddenInGame(true);
 	TargetingDecal->SetVisibility(false);
+	SetTickInterval(0.5);
 	// ...
 }
 

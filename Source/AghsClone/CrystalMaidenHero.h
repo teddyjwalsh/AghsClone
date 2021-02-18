@@ -83,6 +83,7 @@ public:
 		EmitterAsset = new ConstructorHelpers::FObjectFinder<UParticleSystem>(TEXT("ParticleSystem'/Game/Effects/CrystalNovaSmoke.CrystalNovaSmoke'"));
 		SmokeEmitter = NewObject<UParticleSystemComponent>(this, FName("IceSmoke"));
 		SmokeEmitter->SetupAttachment(RootComponent);
+		SetApplyStandardStatus(true);
 	}
 
 	void SetRadius(float in_radius)
@@ -130,7 +131,7 @@ public:
 			AddOwnedComponent(SmokeEmitter);
 		}
 		ticked_once = true;
-		//SetEnabled(false);
+		SetEnabled(false);
 		anim_time += DeltaTime;
 		DynDecalMaterial->SetScalarParameterValue("AnimTime", anim_time);
 		//DrawDebugComponents();
@@ -357,19 +358,20 @@ class AArcaneAura : public AStatusEffect
 {
 	GENERATED_BODY()
 
-	float ManaRegen;
+	
 	float self_multiplier;
 	
 
 public:
+	float ManaRegen;
 	AActor* Applier;
 
 	AArcaneAura()
 	{
-		max_duration = 20.0;
-		ManaRegen = 0.5;
+		max_duration = 0.5;
+		ManaRegen = 0;
 		AddStat(StatManaRegen, &ManaRegen);
-		bIsAura = true;
+		bIsAura = false;
 	}
 };
 
@@ -380,6 +382,7 @@ class AGHSCLONE_API UArcaneAuraAbility : public UAbility
 
 	UPROPERTY()
 	AArcaneAura* aura;
+	std::vector<float> ManaRegens = { {0.5,1,1.5,2} };
 	float range;
 
 	UArcaneAuraAbility()
@@ -394,18 +397,21 @@ protected:
 	virtual void BeginPlay() override
 	{
 		Super::BeginPlay();
-		PrimaryComponentTick.TickInterval = 0.4f;
+		//PrimaryComponentTick.TickInterval = 0.4f;
 		aura = NewObject<AArcaneAura>(GetWorld(), AArcaneAura::StaticClass());
-		aura->Applier = GetOwner();
+		aura->SetApplier(GetOwner());
 	}
 
 public:
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override
 	{
-		
 		if (GetWorld()->GetTimeSeconds() < 2)
 		{
 			return;
+		}
+		if (GetLevel())
+		{
+			aura->ManaRegen = ManaRegens[(unsigned int)(GetLevel())];
 		}
 		for (TActorIterator<AHero> act_it(GetWorld()); act_it; ++act_it)
 		{
@@ -418,7 +424,7 @@ public:
 					
 					if (status_manager)
 					{
-						status_manager->RefreshStatus(aura);
+						status_manager->AddStatus(aura);
 					}
 				}
 			}

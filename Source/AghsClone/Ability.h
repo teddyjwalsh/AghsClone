@@ -21,8 +21,16 @@ class AGHSCLONE_API AAbilityInstance : public AActor,
 
     float scale = 0.1;
     float hit_damage = 100;
+    float projectile_speed = 0;
+    FVector projectile_vector;
+    bool targeted_projectile = false;
+    bool distance_projectile = false;
     bool enabled = true;
     bool tick_hit_enabled = false;
+    bool first_tick = true;
+    bool reset_hit_on_tick = false;
+    bool apply_standard_status = false;
+    bool apply_standard_damage = false;
     DamageType damage_type = MagicDamage;
     //std::set<int32> hit;
     TSet<AActor*> hit;
@@ -30,8 +38,9 @@ class AGHSCLONE_API AAbilityInstance : public AActor,
     UPROPERTY()
     UClass* status_effect_class;
 
-
 public:
+    AActor* projectile_target;
+    int team;
     // Sets default values for this actor's properties
     //AAbilityInstance();
     void SetStatusEffect(UClass* in_status_effect)
@@ -49,9 +58,19 @@ public:
         tick_hit_enabled = in_enable;
     }
 
+    void SetResetHitOnTick(bool in_enable)
+    {
+        reset_hit_on_tick = in_enable;
+    }
+
     void SetHitDamage(float in_damage)
     {
         hit_damage = in_damage;
+    }
+
+    float GetHitDamage() const
+    {
+        return hit_damage;
     }
 
     void SetDamageType(DamageType in_type)
@@ -64,17 +83,88 @@ public:
         overlapper = in_shape;
     }
 
+    void SetApplyStandardStatus(bool in_enable)
+    {
+        apply_standard_status = in_enable;
+    }
+
+    void EnableUnitTargetedProjectile(AActor* targeted_unit)
+    {
+        projectile_target = targeted_unit;
+        targeted_projectile = true;
+        overlapper->OnComponentBeginOverlap.AddDynamic(this, &AAbilityInstance::OnOverlap);
+    }
+
+    void EnableDistanceProjectile(FVector in_vector)
+    {
+        projectile_vector = in_vector;
+        distance_projectile = true;
+        overlapper->OnComponentBeginOverlap.AddDynamic(this, &AAbilityInstance::OnOverlap);
+    }
+
+    void SetProjectileSpeed(float in_speed)
+    {
+        projectile_speed = in_speed;
+    }
+
 protected:
     // Called when the game starts or when spawned
-    //virtual void BeginPlay() override;
+    virtual void BeginPlay() override
+    {
+        Super::BeginPlay();
+        SetActorTickInterval(0.1);
+
+    }
 
 public:
+
+
+    virtual void OnNewHit(AActor* hit_char)
+    {
+
+    }
+
+    virtual void OnHit(AActor* hit_char)
+    {
+
+    }
+
     // Called every frame
     virtual void Tick(float DeltaTime) override
     {
         Super::Tick(DeltaTime);
         TSet<AActor*> set;
         overlapper->GetOverlappingActors(set);
+
+        if (targeted_projectile)
+        {
+            if (IsValid(projectile_target))
+            {
+                if (!projectile_target->IsPendingKill())
+                {
+                    FVector move_vector = projectile_target->GetActorLocation() - GetActorLocation();
+                    move_vector.Normalize();
+                    FHitResult hit_result;
+                    SetActorLocation(GetActorLocation() + move_vector * projectile_speed * DeltaTime, true, &hit_result);
+                    if (hit_result.IsValidBlockingHit())
+                    {
+                        OnHit(hit_result.GetActor());
+                    }
+                }
+            }
+            else
+            {
+                Destroy();
+            }
+        }
+        
+        if (distance_projectile)
+        {
+            FVector move_vector = projectile_vector;
+            move_vector.Normalize();
+            SetActorLocation(GetActorLocation() + move_vector * projectile_speed * DeltaTime);
+        }
+
         if (enabled && tick_hit_enabled)
         {
             if (set.Num() > 0 && HasAuthority())
@@ -82,35 +172,48 @@ public:
                 for (auto& act : set)
                 {
                     int32 act_id = act->GetUniqueID();
+                    OnHit(act);
                     if (!hit.Find(act) && act != GetOwner())
                     {
+
                         {
                             auto health_comp = Cast<IHealthInterface>(act);
-                            if (health_comp)
+                            OnNewHit(act);
+                            hit.Add(act);// (act->GetUniqueID());
+                            if (health_comp && apply_standard_damage)
                             {
                                 DamageInstance shock_damage;
                                 shock_damage.value = hit_damage;
                                 shock_damage.damage_type = damage_type;
                                 shock_damage.is_attack = false;
                                 health_comp->ApplyDamage(shock_damage, GetOwner());
-                                hit.Add(act);// (act->GetUniqueID());
+                                
                                 UE_LOG(LogTemp, Warning, TEXT("SHOCK HIT CHARACTER: %f, %d"), health_comp->GetHealth(), act);
                             }
                             auto status_manager = Cast<UStatusManager>(act->GetComponentByClass(UStatusManager::StaticClass()));
-                            if (status_manager)
+                            if (status_manager && apply_standard_status)
                             {
                                 auto status_effect = NewObject<AStatusEffect>(GetWorld(), status_effect_class);
-                                status_manager->AddStatus(status_effect);
+                                status_effect->SetApplier(GetOwner());
+                                status_manager->RefreshStatus(status_effect);
                             }
                         }
                     }
                 }
+                if (reset_hit_on_tick)
+                {
+                    hit.Empty();
+                }
             }
         }
-        
 
     }
 
+    UFUNCTION()
+    void OnOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+    {
+        OnHit(OtherActor);
+    }
 };
 
 
@@ -160,9 +263,12 @@ public:
 	float CastRange;
     UPROPERTY(Replicated)
     float Cooldown;    
+    UPROPERTY(Replicated)
+    float TickInterval;
 
     std::vector<float> Cooldowns;
     std::vector<float> ManaCosts;
+    std::vector<float> Damages;
     UPROPERTY(Replicated)
     float CurrentCooldown;
 	class UDecalComponent* TargetingDecal;
@@ -232,6 +338,14 @@ public:
             return ManaCosts[current_level - 1];
         }
         return ManaCosts[ManaCosts.size() - 1];
+    }
+    virtual float GetDamage() const override
+    {
+        if ((current_level - 1) < ManaCosts.size())
+        {
+            return Damages[current_level - 1];
+        }
+        return Damages[ManaCosts.size() - 1];
     }
 	virtual void OnActivation() { UE_LOG(LogTemp, Warning, TEXT("Non-targeted activation")); }
 	virtual void OnUnitActivation(AActor* target) { UE_LOG(LogTemp, Warning, TEXT("Unit-targeted activation")); }
@@ -352,5 +466,10 @@ public:
     virtual float GetCastBackswing() const
     {
         return CastBackswing;
+    }
+
+    void SetTickInterval(float tick_interval)
+    {
+        TickInterval = tick_interval;
     }
 };

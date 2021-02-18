@@ -24,7 +24,8 @@ AVisionManager::AVisionManager()
 	//vision_positions = CreateDefaultSubobject<UMaterialParameterCollection>(TEXT("vision_positions"));
 	vision_update_timer = 0.0;
 	SetReplicates(false);
-	
+	vision_bounds->SetCollisionProfileName(TEXT("Vision"));
+
 }
 
 // Called when the game starts or when spawned

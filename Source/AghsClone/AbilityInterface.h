@@ -99,7 +99,11 @@ public:
 		}
 		return retval;
 	}
-    virtual float GetManaCost() const = 0;
+	virtual float GetManaCost() const = 0;
+	virtual float GetDamage() const
+	{
+		return 0;
+	}
 	virtual float GetCurrentCooldown() const
 	{
 		return 0;

@@ -2,6 +2,10 @@
 
 #pragma once
 
+#include <unordered_map>
+#include <map>
+#include <unordered_set>
+
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
 #include "StatInterface.h"
@@ -15,14 +19,21 @@ class AGHSCLONE_API AStatusEffect : public AActor,
 protected:
 	bool bFinished = false;
 	bool bIsAura = false;
+	bool bStackable = false;
 	float max_duration;
 	float current_duration;
+	int tick_time;
 	TArray<float*> stats;
 	TArray<float*> mult_stats;
 	AActor* owner;
+	AActor* applier;
+	FTimerHandle tick_timer;
+	static std::map<int, std::unordered_set<AStatusEffect*>> timer_status_map;
+	static std::map<int, FTimerHandle> timer_map;
 
 public:
-
+	float applied_time;
+	float last_tick = -100.0;
 	bool bStunned = false;
 	bool bRooted = false;
 	bool bSilenced = false;
@@ -39,11 +50,29 @@ public:
 			mult_stats.Add(nullptr);
 		}
 		current_duration = 0;
+		applied_time = 0;
+		
 	}
 
 	~AStatusEffect()
 	{
 		UE_LOG(LogTemp, Warning, TEXT("Deleted Status Effect!"));
+		timer_status_map[tick_time].erase(this);
+	}
+
+	virtual void BeginPlay()
+	{
+		if (timer_status_map.find(tick_time) == timer_status_map.end())
+		{
+			FTimerHandle new_handle;
+			GetWorldTimerManager().SetTimer(new_handle, this, &AStatusEffect::StatusTick, float(tick_time*1.0/100.0), false);
+			timer_map[tick_time] = new_handle;
+			timer_status_map[tick_time].insert(this);
+		}
+		else
+		{
+
+		}
 	}
 
 	void SetOwner(AActor* in_owner)
@@ -54,6 +83,16 @@ public:
 	AActor* GetOwner() const
 	{
 		return owner;
+	}
+
+	void SetApplier(AActor* in_applier)
+	{
+		applier = in_applier;
+	}
+
+	AActor* GetApplier() const
+	{
+		return applier;
 	}
 
 	virtual float GetStat(StatType stat_type) const override
@@ -112,6 +151,7 @@ public:
 
 	virtual void TickStatus(float dt) 
 	{
+		applied_time += dt;
 		if (!bIsAura)
 		{
 			current_duration += dt;
@@ -136,6 +176,22 @@ public:
 	bool IsAura()
 	{
 		return bIsAura;
+	}
+
+	bool IsStackable()
+	{
+		return bStackable;
+	}
+
+	void SetTickTime(float in_time)
+	{
+		tick_time = int(in_time * 100);
+	}
+
+	UFUNCTION()
+	virtual void StatusTick()
+	{
+		UE_LOG(LogTemp, Warning, TEXT("AStatusEffect TICK"));
 	}
 
 	virtual float GetMovespeed() { return 0; }
@@ -205,6 +261,37 @@ public:
 
 	bool AddStatus(AStatusEffect* in_status)
 	{
+		in_status->SetOwner(GetOwner());
+
+		//if (!in_status->IsStackable())
+		{
+			bool found_existing = false;
+			for (int i = 0; i < statuses.Num(); ++i)
+			{
+				if (in_status->GetClass() == statuses[i]->GetClass() && !in_status->IsStackable())
+				{
+					in_status->applied_time = statuses[i]->applied_time;
+					in_status->last_tick = statuses[i]->last_tick;
+					//statuses[i] = in_status;
+					found_existing = true;
+					break;
+				}
+				else if (in_status->GetApplier() == statuses[i]->GetApplier())
+				{
+					in_status->applied_time = statuses[i]->applied_time;
+					in_status->last_tick = statuses[i]->last_tick;
+					//statuses[i] = in_status;
+					found_existing = true;
+					break;
+				}
+			}
+			if (!found_existing)
+			{
+
+				statuses.Add(in_status);
+			}
+		}
+		/*
 		if (!in_status->IsAura())
 		{
 			in_status->SetOwner(GetOwner());
@@ -214,6 +301,7 @@ public:
 			linger_times.Add(in_status, 0.5);
 		}
 		statuses.Add(in_status);
+		*/
 		return true;
 	}
 

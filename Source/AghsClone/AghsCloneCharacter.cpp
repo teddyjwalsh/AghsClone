@@ -219,7 +219,7 @@ AAghsCloneCharacter::AAghsCloneCharacter() :
 	//GetCapsuleComponent()->SetIsReplicated(true);
 	FDetachmentTransformRules test_det(EDetachmentRule::KeepRelative, true);
 
-	static ConstructorHelpers::FObjectFinder<USkeletalMesh> Skellie(TEXT("/Game/characters/wizard/rigged_wizard.rigged_wizard"));
+	static ConstructorHelpers::FObjectFinder<USkeletalMesh> Skellie(TEXT("/Game/characters/wizard/at_wizard.at_wizard"));
 	GetMesh()->SetSkeletalMesh(Skellie.Object);
 	GetMesh()->SetRelativeScale3D(FVector(20, 20, 20));
 	GetMesh()->SetRelativeLocation(FVector(0, 0, 0));
@@ -250,7 +250,7 @@ void AAghsCloneCharacter::Tick(float DeltaSeconds)
 	float backswing = GetAttackBackswing();
 
 	//UStaticMesh::Array
-	GetCharacterMovement()->MaxWalkSpeed = GetMovespeed();
+	GetCharacterMovement()->MaxWalkSpeed = std::max(GetMovespeed(),100.0f);
 
 	if (!GetWorld()->IsServer())
 	{

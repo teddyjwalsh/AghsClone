@@ -13,19 +13,25 @@ class AGHSCLONE_API AAttackProjectile : public AActor,
 {
 	GENERATED_BODY()
 
-	class UStaticMeshComponent* model;
+	
 
 	AActor* target;
 	AActor* owner;
 	float speed;
 	
-public:	
+public:
+	class UStaticMeshComponent* model;
 	// Sets default values for this actor's properties
 	AAttackProjectile();
 
 	void SetTarget(AActor* in_target)
 	{
 		target = in_target;
+	}
+
+	AActor* GetTarget()
+	{
+		return target;
 	}
 
 	void SetShooter(AActor* in_owner)
@@ -47,6 +53,6 @@ public:
 	virtual void Tick(float DeltaTime) override;
 
 	UFUNCTION()
-	void OnOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
+	virtual void OnOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
 
 };
