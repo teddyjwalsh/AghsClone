@@ -236,7 +236,7 @@ public:
 	float last_time = -123456;
 	float damage_tick = 0.7;
 	float total_damage = 150;
-	float max_duration = 1.5;
+	//float max_duration = 1.5;
 	int32 damage_instances = 0;
 	int32 max_instances;
 	AStaticMeshActor* ice;
@@ -249,7 +249,7 @@ public:
 	AFrostbiteRoot()
 	{
 		bRooted = true;
-		max_instances = int32((max_duration / damage_tick));
+		
 		first_time = true;
 		ice_mesh = new ConstructorHelpers::FObjectFinder<UStaticMesh>(TEXT("Material'/Game/Geometry/Meshes/frostbite.frostbite'"));
 		ice_mat = new ConstructorHelpers::FObjectFinder<UMaterial>(TEXT("Material'/Game/Materials/FrostbiteIce.FrostbiteIce'"));
@@ -261,9 +261,15 @@ public:
 		SetActorEnableCollision(false);
 	}
 
-	virtual void TickStatus(float dt) override
+	virtual void BeginPlay() override
 	{
+		Super::BeginPlay();
+		max_instances = int32((max_duration / damage_tick));
+	}
 
+	virtual void TickConnection(AActor* in_actor) override
+	{
+		float now = GetWorld()->GetTimeSeconds();
 		if (first_time)
 		{
 			if (owner)
@@ -273,10 +279,10 @@ public:
 				AttachToActor(owner, FAttachmentTransformRules(EAttachmentRule::SnapToTarget, false));
 				SetActorRelativeScale3D(FVector(0.2, 0.2, 0.2));
 			}
+			first_time = false;
 		}
 
-		time += dt;
-		if (time - last_time > damage_tick)
+		if (now - last_time > damage_tick)
 		{
 			auto hi = Cast<IHealthInterface>(GetOwner());
 			if (hi && (damage_instances < max_instances))
@@ -287,14 +293,9 @@ public:
 				di.is_attack = false;
 				hi->ApplyDamage(di, GetOwner());
 			}
-			last_time = time;
+			last_time = now;
 			damage_instances += 1;
 
-		}
-		if (time >= max_duration)
-		{
-			bFinished = true;
-			//ice->Destroy();
 		}
 	}
 };
@@ -346,9 +347,10 @@ public:
 			auto status_effect = GetWorld()->SpawnActor<AFrostbiteRoot>();
 			float damage_inc = total_damages[current_level] * (damage_tick / durations[current_level]);
 			int32 max_instances = int32(durations[current_level] / damage_tick);
+			status_effect->max_duration = durations[current_level];
 			status_effect->total_damage = total_damages[current_level];
 			status_effect->max_instances = max_instances;
-			status_manager->AddStatus(status_effect);
+			status_effect->ApplyToStatusManager(status_manager);
 		}
 	}
 };
@@ -371,7 +373,9 @@ public:
 		max_duration = 0.5;
 		ManaRegen = 0;
 		AddStat(StatManaRegen, &ManaRegen);
-		bIsAura = false;
+		bIsAura = true;
+		bTeamOnly = true;
+		aura_radius = 500;
 	}
 };
 
@@ -389,7 +393,7 @@ class AGHSCLONE_API UArcaneAuraAbility : public UAbility
 	{
 		//aura = NewObject<UArcaneAura>();
 		max_level = 4;
-		range = 12345678;
+		range = 500;
 	}
 
 protected:
@@ -398,13 +402,15 @@ protected:
 	{
 		Super::BeginPlay();
 		//PrimaryComponentTick.TickInterval = 0.4f;
-		aura = NewObject<AArcaneAura>(GetWorld(), AArcaneAura::StaticClass());
+		aura = GetWorld()->SpawnActor<AArcaneAura>();
+		aura->SetOwner(GetOwner());
 		aura->SetApplier(GetOwner());
 	}
 
 public:
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override
 	{
+		return;
 		if (GetWorld()->GetTimeSeconds() < 2)
 		{
 			return;

@@ -3,8 +3,53 @@
 
 #include "StatusManager.h"
 
-std::map<int, std::unordered_set<AStatusEffect*>> AStatusEffect::timer_status_map;
-std::map<int, FTimerHandle> AStatusEffect::timer_map;
+void AStatusEffect::Tick(float dt)
+{
+	Super::Tick(dt);
+	float now = GetWorld()->GetTimeSeconds();
+	if (IsAura())
+	{
+		TArray<TEnumAsByte<EObjectTypeQuery>> m_objectTypes;
+		//m_objectTypes.Add(UEngineTypes::ConvertToObjectType(ECollisionChannel::ECC_WorldDynamic));
+		//m_objectTypes.Add(UEngineTypes::ConvertToObjectType(ECollisionChannel::ECC_PhysicsBody));
+		TArray<AActor*> actors_to_ignore;
+		//actors_to_ignore.Add(GetOwner());
+		TArray<AActor*> found_actors;
+		UKismetSystemLibrary::SphereOverlapActors(GetWorld(), GetOwner()->GetActorLocation(),
+			aura_radius, m_objectTypes, AActor::StaticClass(), actors_to_ignore,
+			found_actors);
+		for (auto found_actor : found_actors)
+		{
+			auto found_sm = Cast<UStatusManager>(
+				found_actor->GetComponentByClass(UStatusManager::StaticClass()));
+			if (found_sm)
+			{
+				auto new_con = found_sm->RefreshStatus(this);
+				if (new_con)
+				{
+					connections.insert(new_con);
+				}
+			}
+		}
+	}
+	for (auto sc : connections)
+	{
+		TickConnection(sc->unit_with_status);
+	}
+	if (now - start_time > max_duration)
+	{
+		Destroy();
+	}
+};
+
+void AStatusEffect::ApplyToStatusManager(UStatusManager* in_manager)
+{
+	auto new_con = in_manager->RefreshStatus(this);
+	if (new_con)
+	{
+		connections.insert(new_con);
+	}
+}
 
 // Sets default values for this component's properties
 UStatusManager::UStatusManager()
@@ -21,7 +66,7 @@ UStatusManager::UStatusManager()
 void UStatusManager::BeginPlay()
 {
 	Super::BeginPlay();
-
+	
 	// ...
 	
 }
@@ -31,31 +76,24 @@ void UStatusManager::BeginPlay()
 void UStatusManager::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
-	TArray<AStatusEffect*> to_remove;
+	TArray<StatusConnection*> to_remove;
+	float now = GetWorld()->GetTimeSeconds();
 	for (auto& status_it : statuses)
 	{
-		status_it->TickStatus(DeltaTime);
-		if (!status_it->IsAura())
+		if (!IsValid(status_it->effect))
 		{
-			if (status_it->IsFinished())
-			{
-				to_remove.Add(status_it);
-			}
+			to_remove.Add(status_it);
 		}
-		else
+		else if (now - status_it->last_refresh > status_it->effect->linger_time && status_it->effect->IsAura())
 		{
-			linger_times[status_it] -= DeltaTime;
-			if (linger_times[status_it] < 0)
-			{
-				to_remove.Add(status_it);
-				linger_times.Remove(status_it);
-			}
+			to_remove.Add(status_it);
 		}
 	}
 	for (auto& rem : to_remove)
 	{
 		statuses.Remove(rem);
-		rem->Destroy();
+		UE_LOG(LogTemp, Warning, TEXT("De-Applied status effect"));
+		delete rem;
 	}
 	// ...
 }

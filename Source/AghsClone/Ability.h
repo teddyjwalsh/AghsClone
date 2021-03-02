@@ -193,9 +193,6 @@ public:
                             auto status_manager = Cast<UStatusManager>(act->GetComponentByClass(UStatusManager::StaticClass()));
                             if (status_manager && apply_standard_status)
                             {
-                                auto status_effect = NewObject<AStatusEffect>(GetWorld(), status_effect_class);
-                                status_effect->SetApplier(GetOwner());
-                                status_manager->RefreshStatus(status_effect);
                             }
                         }
                     }

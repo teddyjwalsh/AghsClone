@@ -7,6 +7,8 @@
 #include <unordered_set>
 
 #include "CoreMinimal.h"
+#include "Kismet/KismetSystemLibrary.h"
+#include "StatusConnection.h"
 #include "Components/ActorComponent.h"
 #include "StatInterface.h"
 #include "StatusManager.generated.h"
@@ -20,7 +22,10 @@ protected:
 	bool bFinished = false;
 	bool bIsAura = false;
 	bool bStackable = false;
-	float max_duration;
+	bool bTeamOnly = false;
+	bool bEnemyOnly = false;
+	float aura_radius;
+	
 	float current_duration;
 	int tick_time;
 	TArray<float*> stats;
@@ -28,12 +33,14 @@ protected:
 	AActor* owner;
 	AActor* applier;
 	FTimerHandle tick_timer;
-	static std::map<int, std::unordered_set<AStatusEffect*>> timer_status_map;
-	static std::map<int, FTimerHandle> timer_map;
+	std::unordered_set<StatusConnection*> connections;
+	float start_time;
 
 public:
 	float applied_time;
 	float last_tick = -100.0;
+	float linger_time = 0.5;
+	float max_duration = 10000000000;
 	bool bStunned = false;
 	bool bRooted = false;
 	bool bSilenced = false;
@@ -49,30 +56,23 @@ public:
 		{
 			mult_stats.Add(nullptr);
 		}
-		current_duration = 0;
-		applied_time = 0;
-		
+		PrimaryActorTick.bCanEverTick = true;
+		PrimaryActorTick.TickInterval = 0.1f;
+		PrimaryActorTick.bStartWithTickEnabled = true;
+		PrimaryActorTick.bAllowTickOnDedicatedServer = true;
 	}
 
 	~AStatusEffect()
 	{
 		UE_LOG(LogTemp, Warning, TEXT("Deleted Status Effect!"));
-		timer_status_map[tick_time].erase(this);
 	}
 
-	virtual void BeginPlay()
+	virtual void BeginPlay() override
 	{
-		if (timer_status_map.find(tick_time) == timer_status_map.end())
-		{
-			FTimerHandle new_handle;
-			GetWorldTimerManager().SetTimer(new_handle, this, &AStatusEffect::StatusTick, float(tick_time*1.0/100.0), false);
-			timer_map[tick_time] = new_handle;
-			timer_status_map[tick_time].insert(this);
-		}
-		else
-		{
-
-		}
+		
+		Super::BeginPlay();
+		SetActorTickEnabled(true);
+		start_time = GetWorld()->GetTimeSeconds();
 	}
 
 	void SetOwner(AActor* in_owner)
@@ -149,18 +149,7 @@ public:
 		return true;
 	}
 
-	virtual void TickStatus(float dt) 
-	{
-		applied_time += dt;
-		if (!bIsAura)
-		{
-			current_duration += dt;
-			if (current_duration >= max_duration)
-			{
-				bFinished = true;
-			}
-		}
-	};
+	virtual void Tick(float dt) override;
 
 	bool IsFinished() const
 	{
@@ -191,8 +180,26 @@ public:
 	UFUNCTION()
 	virtual void StatusTick()
 	{
-		UE_LOG(LogTemp, Warning, TEXT("AStatusEffect TICK"));
+		//UE_LOG(LogTemp, Warning, TEXT("AStatusEffect TICK"));
 	}
+
+	void RemoveConnection(StatusConnection* in_connection)
+	{
+		if (connections.find(in_connection) != connections.end())
+		{
+			connections.erase(in_connection);
+		}
+	}
+
+	void SetAura(float in_radius)
+	{
+		bIsAura = true;
+		aura_radius = in_radius;
+	}
+
+	void ApplyToStatusManager(class UStatusManager* in_manager);
+
+	virtual void TickConnection(AActor* in_actor) {};
 
 	virtual float GetMovespeed() { return 0; }
 	virtual float GetHealth() { return 0; }
@@ -211,7 +218,7 @@ class AGHSCLONE_API UStatusManager : public UActorComponent,
 {
 	GENERATED_BODY()
 
-	TArray<AStatusEffect*> statuses;
+	TArray<StatusConnection*> statuses;
 	TMap<AStatusEffect*, float> linger_times;
 
 public:	
@@ -223,17 +230,17 @@ public:
 		float out_stat = 0;
 		if (stat_type != StatMagicResist)
 		{
-			for (IStatInterface* si : statuses)
+			for (StatusConnection* si : statuses)
 			{
-				out_stat += si->GetStat(stat_type);
+				out_stat += si->effect->GetStat(stat_type);
 			}
 		}
 		else
 		{
 			out_stat = 1.0;
-			for (IStatInterface* si : statuses)
+			for (StatusConnection* si : statuses)
 			{
-				out_stat *= 1 - si->GetStat(stat_type);
+				out_stat *= 1 - si->effect->GetStat(stat_type);
 			}
 			out_stat = 1 - out_stat;
 		}
@@ -245,9 +252,9 @@ public:
 		float out_stat = 1.0;
 		
 		{
-			for (IStatInterface* si : statuses)
+			for (StatusConnection* si : statuses)
 			{
-				out_stat *= si->GetStatMult(stat_type);
+				out_stat *= si->effect->GetStatMult(stat_type);
 			}
 		}
 
@@ -259,27 +266,30 @@ public:
 		return false;
 	}
 
-	bool AddStatus(AStatusEffect* in_status)
+	StatusConnection* AddStatus(AStatusEffect* in_status)
 	{
+		if (!GetOwner()->HasAuthority())
+		{
+			return nullptr;
+		}
 		in_status->SetOwner(GetOwner());
-
+		StatusConnection* new_connection = nullptr;
 		//if (!in_status->IsStackable())
 		{
 			bool found_existing = false;
 			for (int i = 0; i < statuses.Num(); ++i)
 			{
-				if (in_status->GetClass() == statuses[i]->GetClass() && !in_status->IsStackable())
+				if (in_status->GetClass() == statuses[i]->effect->GetClass() && !in_status->IsStackable())
 				{
-					in_status->applied_time = statuses[i]->applied_time;
-					in_status->last_tick = statuses[i]->last_tick;
+					//statuses[i]->last_refresh = GetWorld()->GetRealTimeSeconds();
 					//statuses[i] = in_status;
 					found_existing = true;
 					break;
 				}
-				else if (in_status->GetApplier() == statuses[i]->GetApplier())
+				else if (in_status->GetApplier() == statuses[i]->effect->GetApplier()
+					     && in_status->GetClass() == statuses[i]->effect->GetClass())
 				{
-					in_status->applied_time = statuses[i]->applied_time;
-					in_status->last_tick = statuses[i]->last_tick;
+					statuses[i]->last_refresh = GetWorld()->GetTimeSeconds();
 					//statuses[i] = in_status;
 					found_existing = true;
 					break;
@@ -287,8 +297,12 @@ public:
 			}
 			if (!found_existing)
 			{
-
-				statuses.Add(in_status);
+				new_connection = new StatusConnection();
+				new_connection->effect = in_status;
+				new_connection->last_refresh = GetWorld()->GetTimeSeconds();
+				new_connection->unit_with_status = GetOwner();
+				statuses.Add(new_connection);
+				UE_LOG(LogTemp, Warning, TEXT("Applied status effect to %s"),*GetOwner()->GetName());  
 			}
 		}
 		/*
@@ -302,32 +316,33 @@ public:
 		}
 		statuses.Add(in_status);
 		*/
-		return true;
+		return new_connection;
 	}
 
-	bool RefreshStatus(AStatusEffect* in_status)
+	StatusConnection* RefreshStatus(AStatusEffect* in_status)
 	{
+		StatusConnection* out_con = nullptr;
 		bool found = false;
 		for (auto& status : statuses)
 		{
-			if (status == in_status)
+			if (status->effect == in_status)
 			{
-				linger_times[status] = 0.5;
+				status->last_refresh = GetWorld()->GetTimeSeconds();
 				found = true;
 			}
 		}
 		if (found == false)
 		{
-			AddStatus(in_status);
+			out_con = AddStatus(in_status);
 		}
-		return found;
+		return out_con;
 	}
 
 	bool GetStunned() const
 	{
-		for (AStatusEffect* si : statuses)
+		for (StatusConnection* si : statuses)
 		{
-			if (si->bStunned)
+			if (si->effect->bStunned)
 			{
 				return true;
 			}
@@ -337,9 +352,9 @@ public:
 
 	bool GetRooted() const
 	{
-		for (AStatusEffect* si : statuses)
+		for (StatusConnection* si : statuses)
 		{
-			if (si->bRooted)
+			if (si->effect->bRooted)
 			{
 				return true;
 			}
@@ -349,9 +364,9 @@ public:
 
 	bool GetSilenced() const
 	{
-		for (AStatusEffect* si : statuses)
+		for (StatusConnection* si : statuses)
 		{
-			if (si->bSilenced)
+			if (si->effect->bSilenced)
 			{
 				return true;
 			}
@@ -361,9 +376,9 @@ public:
 
 	bool GetMuted() const
 	{
-		for (AStatusEffect* si : statuses)
+		for (StatusConnection* si : statuses)
 		{
-			if (si->bMuted)
+			if (si->effect->bMuted)
 			{
 				return true;
 			}

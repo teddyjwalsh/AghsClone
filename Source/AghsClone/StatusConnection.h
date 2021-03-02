@@ -9,12 +9,13 @@
  */
 class AGHSCLONE_API StatusConnection
 {
-	AActor* unit_with_status;
 	bool is_active;
+	
 
 public:
-
+	double last_refresh;
 	class AStatusEffect* effect;
+	AActor* unit_with_status;
 
 	StatusConnection();
 	~StatusConnection();
