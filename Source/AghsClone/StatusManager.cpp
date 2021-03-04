@@ -5,6 +5,10 @@
 
 void AStatusEffect::Tick(float dt)
 {
+	if (!HasAuthority())
+	{
+		return;
+	}
 	Super::Tick(dt);
 	float now = GetWorld()->GetTimeSeconds();
 	if (IsAura())
@@ -15,26 +19,44 @@ void AStatusEffect::Tick(float dt)
 		TArray<AActor*> actors_to_ignore;
 		//actors_to_ignore.Add(GetOwner());
 		TArray<AActor*> found_actors;
-		UKismetSystemLibrary::SphereOverlapActors(GetWorld(), GetOwner()->GetActorLocation(),
+		AActor* ownr = GetOwner();
+		FVector cur_loc = ownr->GetActorLocation();
+		UKismetSystemLibrary::SphereOverlapActors(GetWorld(), cur_loc,
 			aura_radius, m_objectTypes, AActor::StaticClass(), actors_to_ignore,
 			found_actors);
+		auto applier_team = Cast<ITeamInterface>(GetApplier());
 		for (auto found_actor : found_actors)
 		{
 			auto found_sm = Cast<UStatusManager>(
 				found_actor->GetComponentByClass(UStatusManager::StaticClass()));
+			auto team_interface = Cast<ITeamInterface>(found_actor);
+			bool same_team = false;
+			if (team_interface)
+			{
+				same_team = applier_team->GetTeam() == team_interface->GetTeam();
+			}
 			if (found_sm)
 			{
-				auto new_con = found_sm->RefreshStatus(this);
-				if (new_con)
+				if (((same_team && bTeamOnly) || (!same_team && bEnemyOnly) || (!bTeamOnly && !bEnemyOnly)))
 				{
-					connections.insert(new_con);
+					auto new_con = found_sm->RefreshStatus(this);
+					if (new_con)
+					{
+						connections.insert(new_con);
+					}
 				}
 			}
 		}
 	}
 	for (auto sc : connections)
 	{
-		TickConnection(sc->unit_with_status);
+
+		if (now - last_tick > tick_period)
+		{
+			TickConnection(sc->unit_with_status);
+			last_tick = now;
+		}
+		
 	}
 	if (now - start_time > max_duration)
 	{

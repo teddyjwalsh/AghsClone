@@ -23,6 +23,7 @@
 #include "CommandInterface.h"
 #include "VisionInterface.h"
 #include "FieldActorInterface.h"
+#include "TeamInterface.h"
 #include "AttackProjectile.h"
 #include "WalletComponent.h"
 #include "InventoryComponent.h"
@@ -58,7 +59,8 @@ class AAghsCloneCharacter : public ACharacter,
 	public IFieldActorInterface,
 	public IAbilityContainerInterface,
 	public IStatInterface,
-	public IExperienceInterface
+	public IExperienceInterface,
+	public ITeamInterface
 {
 	GENERATED_BODY()
 
@@ -190,13 +192,13 @@ public:
 		return true;
 	}
 
-	int32 GetTeam()
+	virtual Team GetTeam() const override
 	{
 		return team;
 	}
 
 	UFUNCTION(BlueprintCallable)
-	void SetTeam(int32 in_team)
+	virtual void SetTeam(int in_team) override
 	{
 		team = in_team;
 	}

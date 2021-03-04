@@ -11,11 +11,13 @@
 #include "StatusConnection.h"
 #include "Components/ActorComponent.h"
 #include "StatInterface.h"
+#include "TeamInterface.h"
 #include "StatusManager.generated.h"
 
 UCLASS(Blueprintable)
 class AGHSCLONE_API AStatusEffect : public AActor,
-	public IStatInterface
+	public IStatInterface,
+	public ITeamInterface
 {
 	GENERATED_BODY()
 protected:
@@ -25,6 +27,7 @@ protected:
 	bool bTeamOnly = false;
 	bool bEnemyOnly = false;
 	float aura_radius;
+	Team team;
 	
 	float current_duration;
 	int tick_time;
@@ -38,6 +41,7 @@ protected:
 
 public:
 	float applied_time;
+	float tick_period;
 	float last_tick = -100.0;
 	float linger_time = 0.5;
 	float max_duration = 10000000000;
@@ -57,10 +61,10 @@ public:
 			mult_stats.Add(nullptr);
 		}
 		PrimaryActorTick.bCanEverTick = true;
-		PrimaryActorTick.TickInterval = 0.1f;
+		//PrimaryActorTick.TickInterval = 0.1f;
 		PrimaryActorTick.bStartWithTickEnabled = true;
 		PrimaryActorTick.bAllowTickOnDedicatedServer = true;
-	}
+	} 
 
 	~AStatusEffect()
 	{
@@ -210,6 +214,19 @@ public:
 	virtual float GetAttackSpeed() { return 0; }
 	virtual float GetMagicResist() { return 0; }
 	virtual float GetAttackDamage() { return 0; }
+
+	virtual Team GetTeam() const override 
+	{ 
+		auto ti = Cast<ITeamInterface>(GetApplier());
+		if (ti)
+		{
+			return ti->GetTeam();
+		}
+		return -1;
+	}
+	virtual void SetTeam(Team in_team) override
+	{
+	};
 };
 
 UCLASS(ClassGroup = (Custom), meta = (BlueprintSpawnableComponent))
@@ -272,7 +289,7 @@ public:
 		{
 			return nullptr;
 		}
-		in_status->SetOwner(GetOwner());
+		//in_status->SetOwner(GetOwner());
 		StatusConnection* new_connection = nullptr;
 		//if (!in_status->IsStackable())
 		{
@@ -385,6 +402,7 @@ public:
 		}
 		return false;
 	}
+
 
 protected:
 	// Called when the game starts

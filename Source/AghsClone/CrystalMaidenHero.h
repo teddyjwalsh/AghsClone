@@ -21,10 +21,10 @@ class ACrystalNovaSlow : public AStatusEffect
 {
 	GENERATED_BODY()
 
-	float slow;
-	float movespeed_multiplier;
-
 public:
+	float slow;
+	float attack_speed_slow;
+	float movespeed_multiplier;
 	ACrystalNovaSlow()
 	{
 		
@@ -33,6 +33,7 @@ public:
 		movespeed_multiplier = 0.8;
 		AddStat(StatMovespeed, &slow);
 		AddStatMult(StatMovespeed, &movespeed_multiplier);
+		AddStat(StatAttackSpeed, &attack_speed_slow);
 	}
 };
 
@@ -58,6 +59,9 @@ class AGHSCLONE_API ACrystalNova : public AAbilityInstance
 	float anim_time;
 
 public:
+	float damage = 0;
+	float slow = 1.0;
+	float attack_speed_slow = 0;
 	// Sets default values for this actor's properties
 	ACrystalNova()
 	{
@@ -72,7 +76,7 @@ public:
 		SetReplicates(true);
 		bounds->SetCapsuleSize(1000, 1000);
 		SetStatusEffect(ACrystalNovaSlow::StaticClass());
-		SetHitDamage(130);
+		SetHitDamage(0);
 		SetDamageType(MagicDamage);
 		bounds->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
 		ticked_once = false;
@@ -83,7 +87,7 @@ public:
 		EmitterAsset = new ConstructorHelpers::FObjectFinder<UParticleSystem>(TEXT("ParticleSystem'/Game/Effects/CrystalNovaSmoke.CrystalNovaSmoke'"));
 		SmokeEmitter = NewObject<UParticleSystemComponent>(this, FName("IceSmoke"));
 		SmokeEmitter->SetupAttachment(RootComponent);
-		SetApplyStandardStatus(true);
+		//SetApplyStandardStatus(true);
 	}
 
 	void SetRadius(float in_radius)
@@ -111,7 +115,8 @@ protected:
 		IceCircle->SetRelativeLocation(FVector(0, 0, 0));
 		IceCircle->SetSortOrder(0);
 		//UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), EmitterAsset->Object->Get, GetActorLocation(), FRotator(), true);
-		
+
+
 	}
 
 public:
@@ -129,6 +134,34 @@ public:
 
 			SmokeEmitter->SetIsReplicated(true);
 			AddOwnedComponent(SmokeEmitter);
+
+			TArray<TEnumAsByte<EObjectTypeQuery>> m_objectTypes;
+			TArray<AActor*> actors_to_ignore;
+			TArray<AActor*> found_actors;
+			UKismetSystemLibrary::SphereOverlapActors(GetWorld(), GetActorLocation(),
+				radius, m_objectTypes, AActor::StaticClass(), actors_to_ignore,
+				found_actors);
+			auto applier_team = Cast<ITeamInterface>(GetOwner());
+			for (auto found_actor : found_actors)
+			{
+				auto found_sm = Cast<UStatusManager>(found_actor->GetComponentByClass(UStatusManager::StaticClass()));
+				auto found_health = Cast<IHealthInterface>(found_actor);
+				auto status_effect = GetWorld()->SpawnActor<ACrystalNovaSlow>();
+				status_effect->slow = slow;
+				status_effect->attack_speed_slow = attack_speed_slow;
+				DamageInstance CrystalNovaDamage;
+				CrystalNovaDamage.value = damage;
+				CrystalNovaDamage.damage_type = MagicDamage;
+				CrystalNovaDamage.is_attack = false;
+				if (found_health)
+				{
+					found_health->ApplyDamage(CrystalNovaDamage, GetOwner());
+				}
+				if (found_sm)
+				{
+					status_effect->ApplyToStatusManager(found_sm);
+				}
+			}
 		}
 		ticked_once = true;
 		SetEnabled(false);
@@ -159,6 +192,8 @@ UCLASS()
 class AGHSCLONE_API UCrystalNovaAbility : public UAbility
 {
 	GENERATED_BODY()
+	std::vector<float> slows = { {0.8,0.7,0.6,0.5} };
+	std::vector<float> attack_speed_slows = { {-20,-30,-40,-50} };
 
 	UCrystalNovaAbility()
 	{
@@ -167,6 +202,8 @@ class AGHSCLONE_API UCrystalNovaAbility : public UAbility
 		ManaCost = 130;
 		Cooldown = 11;
 		ManaCosts = { {130, 145, 160, 175} };
+
+		Damages = { {130, 170, 210, 260} };
 		Cooldowns = { {11, 10, 9, 8 } };
 		max_level = 4;
 		current_level = 0;
@@ -196,6 +233,9 @@ public:
 		new_instance->SetActorLocation(target + FVector(0, 0, 10));
 		new_instance->SetOwner(GetOwner());
 		new_instance->SetRadius(radius);
+		new_instance->damage = GetLevel() > 0 ? Damages[GetLevel() - 1] : 0;
+		new_instance->slow = GetLevel() > 0 ? slows[GetLevel() - 1] : 0;
+		new_instance->attack_speed_slow = GetLevel() > 0 ? attack_speed_slows[GetLevel() - 1] : 0; 
 		//new_instance->SetPos(target + FVector(0, 0, 200));
 		instances.push_back(new_instance);
 	}
@@ -259,6 +299,7 @@ public:
 		ice_model->SetupAttachment(RootComponent);
 		SetReplicates(true);
 		SetActorEnableCollision(false);
+		tick_period = 0.7;
 	}
 
 	virtual void BeginPlay() override
@@ -269,7 +310,6 @@ public:
 
 	virtual void TickConnection(AActor* in_actor) override
 	{
-		float now = GetWorld()->GetTimeSeconds();
 		if (first_time)
 		{
 			if (owner)
@@ -282,21 +322,17 @@ public:
 			first_time = false;
 		}
 
-		if (now - last_time > damage_tick)
+		auto hi = Cast<IHealthInterface>(GetOwner());
+		if (hi && (damage_instances < max_instances))
 		{
-			auto hi = Cast<IHealthInterface>(GetOwner());
-			if (hi && (damage_instances < max_instances))
-			{
-				DamageInstance di;
-				di.damage_type = MagicDamage;
-				di.value = total_damage * (damage_tick / max_duration);
-				di.is_attack = false;
-				hi->ApplyDamage(di, GetOwner());
-			}
-			last_time = now;
-			damage_instances += 1;
-
+			DamageInstance di;
+			di.damage_type = MagicDamage;
+			di.value = total_damage * (damage_tick / max_duration);
+			di.is_attack = false;
+			hi->ApplyDamage(di, GetOwner());
 		}
+		damage_instances += 1;
+
 	}
 };
 
@@ -351,6 +387,7 @@ public:
 			status_effect->total_damage = total_damages[current_level];
 			status_effect->max_instances = max_instances;
 			status_effect->ApplyToStatusManager(status_manager);
+			status_effect->tick_period = damage_tick;
 		}
 	}
 };
@@ -404,6 +441,8 @@ protected:
 		//PrimaryComponentTick.TickInterval = 0.4f;
 		aura = GetWorld()->SpawnActor<AArcaneAura>();
 		aura->SetOwner(GetOwner());
+		aura->AttachToActor(GetOwner(), FAttachmentTransformRules::KeepRelativeTransform, FName(FString("aura")));
+
 		aura->SetApplier(GetOwner());
 	}
 

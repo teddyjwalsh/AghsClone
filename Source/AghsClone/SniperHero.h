@@ -153,17 +153,20 @@ class AGHSCLONE_API AShrapnelSlow : public AStatusEffect
 {
 	GENERATED_BODY()
 
-	float slow;
-	float damage_tick = 1.0;
+	
 
 public:
 	float damage = 0;
 	float movespeed_multiplier = 1.0;
+	float slow;
+	float damage_tick = 1.0;
 
 	AShrapnelSlow()
 	{
+		SetAura(450);
 		SetTickTime(1.0);
-		max_duration = 0.5;
+		tick_period = 1.0;
+		max_duration = 10.0;
 		slow = -100;
 		movespeed_multiplier = 1.0;
 		//AddStat(StatMovespeed, &slow);
@@ -173,7 +176,7 @@ public:
 		PrimaryActorTick.bAllowTickOnDedicatedServer = true;
 		SetReplicates(true);
 		assert(IsActorTickEnabled());
-
+		bEnemyOnly = true;
 	}
 
 	virtual void BeginPlay() override
@@ -204,6 +207,20 @@ public:
 			shrapnel_damage.value = damage;
 			health_comp->ApplyDamage(shrapnel_damage, GetApplier());
 			last_tick = applied_time;
+		}
+	}
+
+	virtual void TickConnection(AActor* in_actor) override
+	{
+
+		auto hi = Cast<IHealthInterface>(in_actor);
+		if (hi)
+		{
+			DamageInstance di;
+			di.damage_type = MagicDamage;
+			di.value = damage;
+			di.is_attack = false;
+			hi->ApplyDamage(di, GetOwner());
 		}
 	}
 };
@@ -295,29 +312,6 @@ protected:
 
 public:
 
-	virtual void OnHit(AActor* hit_char) override
-	{
-		if (HasAuthority())
-		{
-			UStatusManager* status_manager = Cast<UStatusManager>(hit_char->GetComponentByClass(UStatusManager::StaticClass()));
-			auto aghs_char = Cast<AAghsCloneCharacter>(hit_char);
-			if (status_manager && aghs_char)
-			{
-				if (aghs_char->GetTeam() != team)
-				{
-					FVector Location(0.0f, 0.0f, 0.0f);
-					FRotator Rotation(0.0f, 0.0f, 0.0f);
-					FActorSpawnParameters SpawnInfo;
-					status = GetWorld()->SpawnActor<AShrapnelSlow>(Location, Rotation, SpawnInfo);
-					status->movespeed_multiplier = slow_multiplier;
-					status->damage = GetHitDamage();
-					status_manager->AddStatus(status);
-					status->SetApplier(GetOwner());
-				}
-			}
-		}
-	}
-
 	// Called every frame
 	virtual void Tick(float DeltaTime) override
 	{
@@ -364,7 +358,7 @@ class AGHSCLONE_API UShrapnelAbility : public UAbility
 {
 	GENERATED_BODY()
 
-	std::vector<float> Slows;
+		std::vector<float> Slows;
 
 	UShrapnelAbility()
 	{
@@ -385,6 +379,7 @@ class AGHSCLONE_API UShrapnelAbility : public UAbility
 	}
 
 	std::vector<AShrapnel*> instances;
+	std::vector<AShrapnelSlow*> slow_instances;
 	float radius;
 
 protected:
@@ -399,21 +394,31 @@ public:
 	// Called every frame
 	virtual void OnGroundActivation(const FVector& target) override
 	{
-		//auto new_instance = NewObject<UBallDrop>(this);
-		auto new_instance = GetWorld()->SpawnActor<AShrapnel>();
-		new_instance->SetActorLocation(target + FVector(0, 0, 10));
-		new_instance->SetOwner(GetOwner());
-		new_instance->SetRadius(radius);
-		new_instance->SetHitDamage(GetDamage());
-		new_instance->slow_multiplier = (GetLevel()) ? Slows[(unsigned int)(GetLevel() - 1)] : 1.0;
-		auto aghs_char = Cast<AAghsCloneCharacter>(GetOwner());
-		if (aghs_char)
+		if (GetOwner()->HasAuthority())
 		{
-			new_instance->team = aghs_char->GetTeam();
+			//auto new_instance = NewObject<UBallDrop>(this);
+			auto new_instance = GetWorld()->SpawnActor<AShrapnel>();
+			new_instance->SetActorLocation(target + FVector(0, 0, 10));
+			new_instance->SetOwner(GetOwner());
+			new_instance->SetRadius(radius);
+			new_instance->SetHitDamage(GetDamage());
+			new_instance->slow_multiplier = (GetLevel()) ? Slows[(unsigned int)(GetLevel() - 1)] : 1.0;
+			auto aghs_char = Cast<AAghsCloneCharacter>(GetOwner());
+			if (aghs_char)
+			{
+				new_instance->team = aghs_char->GetTeam();
+			}
+			//new_instance->SetActorTickInterval(TickInterval);
+			//new_instance->SetPos(target + FVector(0, 0, 200));
+			instances.push_back(new_instance);
+			auto new_status = GetWorld()->SpawnActor<AShrapnelSlow>();
+			new_status->movespeed_multiplier = (GetLevel()) ? Slows[(unsigned int)(GetLevel() - 1)] : 1.0;
+			new_status->damage = (GetLevel()) ? Damages[(unsigned int)(GetLevel() - 1)] : 1.0;
+			new_status->SetOwner(new_instance);
+			new_status->SetApplier(GetOwner());
+			new_status->SetActorLocation(target + FVector(0, 0, 10));
+			slow_instances.push_back(new_status);
 		}
-		//new_instance->SetActorTickInterval(TickInterval);
-		//new_instance->SetPos(target + FVector(0, 0, 200));
-		instances.push_back(new_instance);
 	}
 };
 
@@ -523,8 +528,8 @@ public:
 		auto new_ab2 = CreateDefaultSubobject<UHeadshotAbility>((std::string("Ability") + std::to_string(22)).c_str());
 		Abilities.Add(new_ab2);
 
-		auto new_ab = CreateDefaultSubobject<UTakeAimAbility>((std::string("Ability") + std::to_string(23)).c_str());
-		Abilities.Add(new_ab);
+		//auto new_ab = CreateDefaultSubobject<UTakeAimAbility>((std::string("Ability") + std::to_string(23)).c_str());
+		//Abilities.Add(new_ab);
 
 		auto new_ab4 = CreateDefaultSubobject<UAssassinateAbility>((std::string("Ability") + std::to_string(24)).c_str());
 		Abilities.Add(new_ab4);
