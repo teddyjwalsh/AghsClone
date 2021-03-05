@@ -365,12 +365,15 @@ class AGHSCLONE_API UShrapnelAbility : public UAbility
 		bGroundTargeted = true;
 		CastRange = 700;
 		ManaCost = 130;
-		Cooldown = 11;
+		Cooldown = 35;
 		ManaCosts = { {50,50,50,50} };
 		Cooldowns = { {11, 10, 9, 8 } };
 		Damages = { {20, 35, 50, 65 } };
 		Slows = { {0.88, 0.82, 0.76, 0.70 } };
 		max_level = 4;
+		max_charges = 3;
+		bIsCharges = true;
+		charges = 3;
 		current_level = 0;
 		radius = 450;
 		CastPoint = 0.3;
@@ -528,8 +531,8 @@ public:
 		auto new_ab2 = CreateDefaultSubobject<UHeadshotAbility>((std::string("Ability") + std::to_string(22)).c_str());
 		Abilities.Add(new_ab2);
 
-		//auto new_ab = CreateDefaultSubobject<UTakeAimAbility>((std::string("Ability") + std::to_string(23)).c_str());
-		//Abilities.Add(new_ab);
+		auto new_ab = CreateDefaultSubobject<UTakeAimAbility>((std::string("Ability") + std::to_string(23)).c_str());
+		Abilities.Add(new_ab);
 
 		auto new_ab4 = CreateDefaultSubobject<UAssassinateAbility>((std::string("Ability") + std::to_string(24)).c_str());
 		Abilities.Add(new_ab4);

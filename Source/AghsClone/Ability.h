@@ -227,6 +227,7 @@ class AGHSCLONE_API UAbility : public UActorComponent,
     UPROPERTY()
     UClass* status_effect_class;
 
+
 public:	
 	// Sets default values for this component's properties
 	UAbility();
@@ -236,6 +237,9 @@ public:
     }
 
 protected:
+    int charges;
+    int max_charges;
+
 	// Called when the game starts
 	virtual void BeginPlay() override;
 
@@ -248,6 +252,7 @@ public:
     bool bOnHit = false;
     bool bIsUltimate = false;
     bool bIsChanneled = false;
+    bool bIsCharges = false;
 	float DefaultCooldown;
     UPROPERTY( Replicated )
     float MaxChannelTime;
@@ -468,5 +473,30 @@ public:
     void SetTickInterval(float tick_interval)
     {
         TickInterval = tick_interval;
+    }
+
+    virtual bool IsCharges() const override
+    {
+        return bIsCharges;
+    }
+
+    virtual bool UseCharge() override
+    {
+        if (charges)
+        {
+            charges -= 1;
+            return true;
+        }
+        return false;
+    }
+
+    virtual int GetChargeCount() const override
+    {
+        return charges;
+    }
+
+    virtual int GetMaxCharges() const override
+    {
+        return max_charges;
     }
 };

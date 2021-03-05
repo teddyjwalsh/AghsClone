@@ -46,6 +46,17 @@ void UAbility::TickComponent(float DeltaTime, ELevelTick TickType, FActorCompone
 	{
 		CurrentCooldown = std::max(0.0f, CurrentCooldown - DeltaTime);
 	}
+	else if (IsCharges())
+	{
+		if (GetChargeCount() < max_charges)
+		{
+			charges += 1;
+			if (GetChargeCount() < max_charges)
+			{
+				SetCurrentCooldown(GetCooldown());
+			}
+		}
+	}
 	// ...
 }
 

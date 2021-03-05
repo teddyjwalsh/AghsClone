@@ -60,13 +60,17 @@ public:
 	bool OnActivationMeta()
 	{
 		bool retval = false;
-		if (GetCurrentCooldown() == 0)
+		if (GetCurrentCooldown() == 0 || GetChargeCount() > 0)
 		{
-			if (CostMana())
+			if (GetChargeCount() > 0 || !IsCharges())
 			{
-				OnActivation();
-				SetCurrentCooldown(GetCooldown());
-				retval = true;
+				if (CostMana())
+				{
+					UseCharge();
+					OnActivation();
+					SetCurrentCooldown(GetCooldown());
+					retval = true;
+				}
 			}
 		}
 		return retval;
@@ -74,13 +78,17 @@ public:
 	bool OnUnitActivationMeta(AActor* target)
 	{
 		bool retval = false;
-		if (GetCurrentCooldown() == 0)
+		if (GetCurrentCooldown() == 0 || GetChargeCount() > 0)
 		{
-			if (CostMana() && GetCurrentCooldown() == 0)
+			if (GetChargeCount() || !IsCharges())
 			{
-				OnUnitActivation(target);
-				SetCurrentCooldown(GetCooldown());
-				retval = true;
+				if (CostMana() && GetCurrentCooldown() == 0)
+				{
+					UseCharge();
+					OnUnitActivation(target);
+					SetCurrentCooldown(GetCooldown());
+					retval = true;
+				}
 			}
 		}
 		return retval;
@@ -88,13 +96,17 @@ public:
 	bool OnGroundActivationMeta(const FVector& target)
 	{
 		bool retval = false;
-		if (GetCurrentCooldown() == 0)
+		if (GetCurrentCooldown() == 0 || GetChargeCount() > 0)
 		{
-			if (CostMana())
+			if (GetChargeCount() || !IsCharges())
 			{
-				OnGroundActivation(target);
-				SetCurrentCooldown(GetCooldown());
-				retval = true;
+				if (CostMana())
+				{
+					UseCharge();
+					OnGroundActivation(target);
+					SetCurrentCooldown(GetCooldown());
+					retval = true;
+				}
 			}
 		}
 		return retval;
@@ -152,6 +164,27 @@ public:
     {
         return false;
     }
+
+	virtual bool IsCharges() const
+	{
+		return 0;
+	}
+
+	virtual bool UseCharge()
+	{
+		return true;
+	}
+
+	virtual int GetChargeCount() const
+	{
+		return -1;
+	}
+
+	virtual int GetMaxCharges() const
+	{
+		return -1;
+	}
+
     virtual void Toggle() 
     {
     }
@@ -160,7 +193,6 @@ public:
 	{
 		return 0;
 	}
-
 
 	virtual float GetCastBackswing() const
 	{
